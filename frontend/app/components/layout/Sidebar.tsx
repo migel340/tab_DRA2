@@ -14,24 +14,25 @@ export default function Sidebar() {
   );
 
   return (
-    <div className="flex flex-col h-full p-4">
-      <div className="text-xl font-bold mb-8 p-2 text-blue-600">Naprawy</div>
-      <nav className="space-y-1">
-        {visibleLinks.map((link) => (
-          <Link
-            key={link.to}
-            to={link.to}
-            className={`block p-2 rounded-lg transition-colors ${
-              location.pathname === link.to
-                ? "bg-blue-100 text-blue-700 font-medium"
-                : "text-gray-600 hover:bg-gray-200"
-            }`}
-          >
-            {link.label}
-          </Link>
-        ))}
-      </nav>
-
+    <div className="flex flex-col p-4 gap-5">
+      <div>
+        <div className="text-xl font-bold mb-5  p-2 text-blue-600">Naprawy</div>
+        <nav className="space-y-1">
+          {visibleLinks.map((link) => (
+            <Link
+              key={link.to}
+              to={link.to}
+              className={`block p-2 rounded-lg transition-colors ${
+                location.pathname === link.to
+                  ? "bg-blue-100 text-blue-700 font-medium"
+                  : "text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+      </div>
       <div className="mt-auto border-t pt-4">
         <Link
           to="/login"
