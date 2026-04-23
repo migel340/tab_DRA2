@@ -1,7 +1,12 @@
+import { MOCK_USER } from "~/mocks/auth";
 import type { AuthResponse } from "./api";
+import { shouldSkipAuth } from "./utils";
+import type { User } from "~/types/auth";
 
 const TOKEN_KEY = "dra2_token";
 const USER_KEY = "dra2_user";
+
+const skipAuth = shouldSkipAuth();
 
 export function saveAuth(data: AuthResponse) {
   localStorage.setItem(TOKEN_KEY, data.token);
@@ -22,23 +27,23 @@ export function getToken(): string | null {
 }
 
 export function getUser() {
+  if (skipAuth) {
+    return MOCK_USER;
+  }
   const raw = localStorage.getItem(USER_KEY);
   if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as {
-      id: number;
-      username: string;
-      firstName: string;
-      surname: string;
-      role: "ADMIN" | "MANAGER" | "STAFF";
-    };
+    return JSON.parse(raw) as User;
   } catch {
     return null;
   }
 }
 
 export function isAuthenticated(): boolean {
+  if (skipAuth) {
+    return true;
+  }
   return !!getToken();
 }
 
