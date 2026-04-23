@@ -72,3 +72,12 @@ npm run dev
 | Maven     | 3.9+   |
 | Node.js   | 18+    |
 | Docker    | 20+    |
+
+## Frontend
+
+Aby poprawnie uruchomić frontend, skopiuj plik `.env.example` (jeśli istnieje) do `.env` i uzupełnij zmienne środowiskowe:
+
+```bash
+cd frontend
+cp .env.example .env
+```
