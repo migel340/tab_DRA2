@@ -1,87 +1,131 @@
-# Welcome to React Router!
+# DRA2 Frontend — React Router + shadcn/ui
 
-A modern, production-ready template for building full-stack React applications using React Router.
+Interfejs użytkownika systemu zarządzania naprawami. SPA z autoryzacją JWT i podziałem widoków na role.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## Wymagania
 
-## Features
+- Node.js 18+
+- npm
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
-
-## Getting Started
-
-### Installation
-
-Install the dependencies:
+## Uruchomienie
 
 ```bash
 npm install
-```
-
-### Development
-
-Start the development server with HMR:
-
-```bash
 npm run dev
 ```
 
-Your application will be available at `http://localhost:5173`.
+Aplikacja dostępna pod `http://localhost:5173`. Wymaga uruchomionego backendu na `http://localhost:8080`.
 
-## Building for Production
+## Stack technologiczny
 
-Create a production build:
+| Narzędzie       | Rola                                       |
+| --------------- | ------------------------------------------ |
+| React Router v7 | Routing, layouty, loadery                  |
+| shadcn/ui       | Komponenty UI (Button, Input, Label, Card) |
+| Tailwind CSS v4 | Stylowanie                                 |
+| Lucide React    | Ikony                                      |
+| TypeScript      | Typowanie                                  |
 
-```bash
-npm run build
-```
-
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
+## Struktura projektu
 
 ```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
+app/
+├── root.tsx                       # Główny komponent, providery, meta tagi
+├── routes.ts                      # Definicja routingu (jakie ścieżki → jakie komponenty)
+├── app.css                        # Style globalne, zmienne shadcn, fonty
+│
+├── components/                    # Komponenty współdzielone
+│   ├── layout/
+│   │   └── Sidebar.tsx            #   → sidebar z nawigacją i wylogowaniem
+│   └── ui/                        #   → komponenty shadcn (nie edytuj ręcznie)
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── input.tsx
+│       └── label.tsx
+│
+├── config/
+│   └── navigation.ts              # Lista linków nawigacji z rolami
+│
+├── layouts/
+│   └── DashboardLayout.tsx        # Layout z sidebarem (sprawdza auth)
+│
+├── lib/                           # Narzędzia i helpery
+│   ├── api.ts                     #   → funkcje fetch do backendu (login, register)
+│   ├── auth.ts                    #   → zarządzanie sesją (token w localStorage)
+│   └── utils.ts                   #   → helper cn() do klas Tailwind
+│
+├── routes/                        # Strony
+│   ├── auth/
+│   │   ├── login.tsx              #   → strona logowania
+│   │   └── register.tsx           #   → strona rejestracji
+│   ├── dashboard/
+│   │   └── DashboardGuard.tsx     #   → przekierowanie / → /requests
+│   └── requests/
+│       └── requests.tsx           #   → lista zgłoszeń
+│
+└── types/                         # Typy TypeScript
+    ├── auth.ts                    #   → Role, User
+    └── navigation.ts              #   → NavItem
 ```
 
-## Styling
+## Routing
 
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
+| Ścieżka     | Komponent               | Auth | Opis                       |
+| ----------- | ----------------------- | ---- | -------------------------- |
+| `/login`    | `auth/login.tsx`        | Nie  | Formularz logowania        |
+| `/register` | `auth/register.tsx`     | Nie  | Formularz rejestracji      |
+| `/`         | `DashboardGuard.tsx`    | Tak  | Przekierowuje na /requests |
+| `/requests` | `requests/requests.tsx` | Tak  | Lista zgłoszeń             |
 
----
+## Autoryzacja na froncie
 
-Built with ❤️ using React Router.
+### Flow logowania
+
+1. User wpisuje dane na `/login`
+2. `api.ts` → `login()` wysyła POST do backendu
+3. Backend zwraca token JWT + dane usera
+4. `auth.ts` → `saveAuth()` zapisuje token i dane do `localStorage`
+5. Przekierowanie na `/` → `DashboardLayout` sprawdza auth → renderuje dashboard
+
+### Ochrona stron
+
+`DashboardLayout.tsx` sprawdza `isAuthenticated()` przy każdym wejściu. Brak tokena → przekierowanie na `/login`.
+
+### Widoczność nawigacji wg ról
+
+Plik `config/navigation.ts` definiuje linki z tablicą `roles`. Sidebar filtruje je po roli zalogowanego usera:
+
+```typescript
+// config/navigation.ts
+export const ALL_APP_LINKS: NavItem[] = [
+  {
+    to: "/requests",
+    label: "Zgłoszenia",
+    roles: ["MANAGER"], // widoczne tylko dla managera
+  },
+];
+```
+
+### Wylogowanie
+
+Kliknięcie "Wyloguj" w sidebarze wywołuje `logout()` (czyści localStorage) i przekierowuje na `/login`.
+
+## Konwencje dla zespołu
+
+- **Nowe strony** — stwórz plik w `routes/`, dodaj wpis w `routes.ts`.
+- **Komponenty shadcn** — instaluj przez `npx shadcn@latest add <nazwa>`. Nie edytuj plików w `components/ui/` ręcznie.
+- **Nowe linki w sidebarze** — dodaj wpis w `config/navigation.ts` z odpowiednimi rolami.
+- **Requesty do API** — dodawaj funkcje w `lib/api.ts`. Token dołączaj przez `getToken()` z `lib/auth.ts`:
+
+```typescript
+// Przykład chronionego requesta
+const res = await fetch(`${API_URL}/api/requests`, {
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`,
+  },
+});
+```
+
+- **Ikony** — używaj `lucide-react`: `import { NazwaIkony } from "lucide-react"`.
+- **Style** — Tailwind CSS utility classes. Dla warunkowych klas używaj `cn()` z `lib/utils.ts`.
