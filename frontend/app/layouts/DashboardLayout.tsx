@@ -1,25 +1,31 @@
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
 import Sidebar from "~/components/layout/Sidebar";
-import type { Role } from "~/types/auth";
-
-export async function loader() {
-  return {
-    user: {
-      id: 1,
-      email: "user@gmail.com",
-      role: "MANAGER" as Role,
-    },
-  };
-}
+import { getUser, isAuthenticated } from "~/lib/auth";
 
 export default function DashboardLayout() {
+  const navigate = useNavigate();
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      navigate("/login", { replace: true });
+    } else {
+      setReady(true);
+    }
+  }, [navigate]);
+
+  if (!ready) return null;
+
+  const user = getUser();
+
   return (
     <div className="flex h-screen">
-      <aside className="w-64 shrink-0 border-r border-l-gray-200">
+      <aside className="w-64 shrink-0 border-r border-border">
         <Sidebar />
       </aside>
-      <main className="p-10">
-        <Outlet />
+      <main className="flex-1 overflow-auto p-10">
+        <Outlet context={{ user }} />
       </main>
     </div>
   );

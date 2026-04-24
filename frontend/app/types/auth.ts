@@ -1,7 +1,9 @@
 export type Role = "ADMIN" | "STAFF" | "MANAGER";
 
 export interface User {
-  id: string;
-  email: string;
+  id: number;
+  username: string;
+  firstName: string;
+  surname: string;
   role: Role;
 }
