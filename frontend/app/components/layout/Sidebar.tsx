@@ -15,7 +15,7 @@ export default function Sidebar() {
 
   return (
     <div className="flex flex-col h-full p-4 bg-background">
-      <div className="mb-10 px-4 pt-4">
+      <div className="mb-10 px-4 pt-5">
         <h2 className="text-xl font-bold tracking-tight text-foreground">
           Naprawy
         </h2>

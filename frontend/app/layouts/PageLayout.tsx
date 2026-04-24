@@ -12,7 +12,7 @@ import {
 interface PageLayoutWrapperProps {
   title: string;
   actions?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export default function PageLayout({
@@ -34,9 +34,9 @@ export default function PageLayout({
     });
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between pb-6 border-b border-border mb-6">
-        <div className="flex flex-col">
+    <div className="flex flex-col h-full bg-background p-8 rounded-2xl ">
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col gap-5">
           {breadcrumbs && breadcrumbs.length > 0 && (
             <Breadcrumb>
               <BreadcrumbList>
