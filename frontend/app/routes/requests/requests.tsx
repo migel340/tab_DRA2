@@ -1,22 +1,25 @@
-import PageLayoutWrapper from "~/components/layout/PageLayoutWrapper";
-import { Button } from "~/components/ui/button"; 
-import { Link } from "react-router"; 
+import PageLayout from "~/layouts/PageLayout";
+import { Button } from "~/components/ui/button";
+import { Link } from "react-router";
+
+export const handle = {
+  breadcrumb: () => "Lista zgłoszeń",
+};
 
 export default function Requests() {
   return (
-    <PageLayoutWrapper
+    <PageLayout
       title="Lista zgłoszeń"
-      breadcrumbs={[
-        { label: "Dashboard", to: "/" },
-        { label: "Zgłoszenia" },
-      ]}
-      actions={<Button asChild><Link to="/requests/new">+ Dodaj zgłoszenie</Link></Button>}
+      actions={
+        <Button asChild>
+          <Link to="/requests/new">+ Dodaj zgłoszenie</Link>
+        </Button>
+      }
     >
-      {/* Tutaj będzie właściwa zawartość strony z listą zgłoszeń */}
       <div>
         <p>To jest zawartość strony z listą zgłoszeń.</p>
         <p>Powyżej powinieneś widzieć tytuł, breadcrumbs i przycisk akcji.</p>
       </div>
-    </PageLayoutWrapper>
+    </PageLayout>
   );
 }
