@@ -34,34 +34,32 @@ export default function PageLayout({
     });
 
   return (
-    <div className="flex flex-col h-full bg-background p-8 rounded-2xl ">
+    <div className="flex flex-col h-full bg-background p-8 rounded-2xl gap-5 ">
+      {breadcrumbs && breadcrumbs.length > 0 && (
+        <Breadcrumb>
+          <BreadcrumbList>
+            {breadcrumbs.map(({ label, isLast, path }) => (
+              <Fragment key={path}>
+                <BreadcrumbItem>
+                  {isLast ? (
+                    <BreadcrumbPage>{label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <Link to={path}>{label}</Link>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+                {!isLast && <BreadcrumbSeparator />}
+              </Fragment>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+      )}
       <div className="flex items-center justify-between mb-5">
-        <div className="flex flex-col gap-5">
-          {breadcrumbs && breadcrumbs.length > 0 && (
-            <Breadcrumb>
-              <BreadcrumbList>
-                {breadcrumbs.map(({ label, isLast, path }) => (
-                  <Fragment key={path}>
-                    <BreadcrumbItem>
-                      {isLast ? (
-                        <BreadcrumbPage>{label}</BreadcrumbPage>
-                      ) : (
-                        <BreadcrumbLink asChild>
-                          <Link to={path}>{label}</Link>
-                        </BreadcrumbLink>
-                      )}
-                    </BreadcrumbItem>
-                    {!isLast && <BreadcrumbSeparator />}
-                  </Fragment>
-                ))}
-              </BreadcrumbList>
-            </Breadcrumb>
-          )}
-          <h1 className="text-2xl font-bold">{title}</h1>
-        </div>
+        <h1 className="text-3xl font-bold">{title}</h1>
         {actions && <div className="flex items-center gap-2">{actions}</div>}
       </div>
-      <div className="flex-1">{children}</div>{" "}
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

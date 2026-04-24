@@ -9,7 +9,7 @@ export const handle = {
 export default function Requests() {
   return (
     <PageLayout
-      title="Lista zgłoszeń"
+      title="Zgłoszenia"
       actions={
         <Button asChild>
           <Link to="/requests/new">+ Dodaj zgłoszenie</Link>
