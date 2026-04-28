@@ -5,5 +5,5 @@ export const MOCK_USER = {
   username: "Mock User",
   firstName: "Jan",
   surname: "Kowalski",
-  role: "MANAGER",
+  role: "ADMIN",
 } as User;
