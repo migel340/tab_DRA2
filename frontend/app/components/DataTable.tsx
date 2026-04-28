@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import {
   TableBody,
   TableCell,
@@ -10,13 +11,20 @@ import { flexRender, type Table as TableType } from "@tanstack/react-table";
 
 interface DataTableProps<TData> {
   table: TableType<TData>;
+  children?: ReactNode;
+  onRowClick?: (objectId: number) => void;
 }
 
-export function DataTable<TData>({ table }: DataTableProps<TData>) {
+export function DataTable<TData extends { id: number }>({
+  table,
+  children,
+  onRowClick,
+}: DataTableProps<TData>) {
   return (
     <div className="overflow-hidden rounded-md border">
+      {children && <div className="p-5">{children}</div>}
       <Table>
-        <TableHeader>
+        <TableHeader className="bg-stone-100">
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => {
@@ -39,7 +47,9 @@ export function DataTable<TData>({ table }: DataTableProps<TData>) {
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
+                onClick={() => onRowClick?.(row.original.id)}
                 data-state={row.getIsSelected() && "selected"}
+                className={`${onRowClick && "cursor-pointer"}`}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>
