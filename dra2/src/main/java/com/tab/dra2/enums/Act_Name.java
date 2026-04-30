@@ -1,4 +1,4 @@
-package  main.java.com.tab.dra2.enums;
+package  com.tab.dra2.enums;
 
 public enum Act_Name {
     DIAGNOSIS,

@@ -1,16 +1,16 @@
-package main.java.com.tab.dra2.entity;
+package com.tab.dra2.entity;
 
+import com.tab.dra2.enums.Act_Name;
 import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
-
-    
 @Entity
 @Table(name = "activity_type")
 @Getter 
 @Setter
 @Builder
+
 public class Activity_Type {
     
     @Id
@@ -19,7 +19,7 @@ public class Activity_Type {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(length = 13)
-    private Activity_Type act_type;
+    @Column(name = "act_type", length = 13)
+    private Act_Name actType;
 
 }

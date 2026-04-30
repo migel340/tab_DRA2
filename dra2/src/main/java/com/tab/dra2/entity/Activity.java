@@ -1,7 +1,8 @@
-package main.java.com.tab.dra2.entity;
+package com.tab.dra2.entity;
 
 import java.beans.ConstructorProperties;
 
+import java.time.LocalDateTime;
 import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,6 +13,7 @@ import lombok.*;
 @Getter 
 @Setter
 @Builder
+
 public class Activity {
     
     @Id
@@ -19,11 +21,11 @@ public class Activity {
     @Column(name = "id_activity")
     private Long id;
 
-    @Column (name = act_type, nullable = false)
+   @Column(name = "act_type", nullable = false)
     private int activityType;
 
-    @Column (nullable = false)
-    private int id_request;
+   @Column(name = "id_request")
+    private int idRequest;
 
     private int id_personel;
 
@@ -31,7 +33,7 @@ public class Activity {
     private String seq_no;
 
     @Column(length=255,nullable=false)
-    private String descirition;
+    private String description;
 
     @Column(length=255,nullable=false)
     private String result;
@@ -39,12 +41,11 @@ public class Activity {
     @Column(nullable=false)
     private String status;
 
-    @Column (nullable=false)
-    private DateTime date_register;
+   @Column(name = "date_register", nullable = false)
+private LocalDateTime dateRegister;
 
-    @Column (nullable=false)
-     private DateTime date_finished_canceled;
-
+     @Column(name = "date_finished_canceled", nullable = false)
+    private LocalDateTime dateFinishedCanceled;
     
 
 }
