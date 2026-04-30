@@ -15,7 +15,7 @@ export default [
       route("/requests", "routes/requests/requests.tsx"),
     ]),
 
-    layout("layouts/PersonelLayout.tsx", [
+    layout("routes/personel/layout.tsx", [
       route("/personel", "routes/personel/personel.tsx"),
     ]),
   ]),

@@ -1,4 +1,3 @@
-import type { Role } from "~/types/auth";
 import type { Personel } from "~/types/personel";
 
 export const MOCK_PERSONEL_LIST: Personel[] = [
@@ -6,7 +5,7 @@ export const MOCK_PERSONEL_LIST: Personel[] = [
     id: 1,
     firstName: "John",
     surname: "Doe",
-    role: "MANAGER" as Role,
+    role: "MANAGER",
     username: "jdoe_mgr",
     active: true,
   },
@@ -14,7 +13,7 @@ export const MOCK_PERSONEL_LIST: Personel[] = [
     id: 2,
     firstName: "Jane",
     surname: "Smith",
-    role: "WORKER" as Role,
+    role: "WORKER",
     username: "jsmith_wrk",
     active: true,
   },
@@ -22,7 +21,7 @@ export const MOCK_PERSONEL_LIST: Personel[] = [
     id: 3,
     firstName: "Robert",
     surname: "Brown",
-    role: "WORKER" as Role,
+    role: "WORKER",
     username: "rbrown_wrk",
     active: false,
   },
@@ -30,7 +29,7 @@ export const MOCK_PERSONEL_LIST: Personel[] = [
     id: 4,
     firstName: "Emily",
     surname: "Davis",
-    role: "MANAGER" as Role,
+    role: "MANAGER",
     username: "edavis_mgr",
     active: true,
   },
@@ -38,7 +37,7 @@ export const MOCK_PERSONEL_LIST: Personel[] = [
     id: 5,
     firstName: "Michael",
     surname: "Wilson",
-    role: "WORKER" as Role,
+    role: "WORKER",
     username: "mwilson_wrk",
     active: true,
   },

@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { AccountStatusBadge } from "~/components/Badge";
 import DeleteButton from "~/components/DeleteButton";
-import { Badge } from "~/components/ui/badge";
+import { SortableHeader } from "~/components/SortableHeader";
 import type { Personel } from "~/types/personel";
 
 export const columns: ColumnDef<Personel>[] = [
@@ -17,20 +18,21 @@ export const columns: ColumnDef<Personel>[] = [
       );
     },
   },
+
+  {
+    accessorKey: "username",
+    header: ({ column }) => <SortableHeader label="Login" column={column} />,
+    cell: ({ getValue }) => (
+      <span className="font-mono text-xs">{getValue() as string}</span>
+    ),
+  },
   {
     accessorKey: "role",
-    header: "Role",
+    header: ({ column }) => <SortableHeader label="Role" column={column} />,
     cell: ({ row }) => {
       const role = row.getValue("role") as string;
       return role;
     },
-  },
-  {
-    accessorKey: "username",
-    header: "Username",
-    cell: ({ getValue }) => (
-      <span className="font-mono text-xs">{getValue() as string}</span>
-    ),
   },
   {
     accessorKey: "active",
@@ -39,11 +41,7 @@ export const columns: ColumnDef<Personel>[] = [
       const active = row.getValue("active") as boolean;
       return (
         <div className="flex items-center">
-          <Badge
-            className={` ${active ? "px-4 bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500" : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500"}`}
-          >
-            {active ? "Aktywny" : "Nieaktywny"}
-          </Badge>
+          <AccountStatusBadge status={active ? "ACTIVE" : "INACTIVE"} />
         </div>
       );
     },
