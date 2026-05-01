@@ -1,4 +1,5 @@
 import { Card, CardContent, CardTitle } from "./ui/card";
+import { FieldSet } from "./ui/field";
 import { Separator } from "./ui/separator";
 
 interface SectionProps {
@@ -16,7 +17,9 @@ export default function Section({
     <Card className="rounded-xl shadow-none ring-stone-300 py-8 px-4">
       <CardTitle className="pl-4">{headerName} </CardTitle>
       <Separator />
-      <CardContent className={className}>{children}</CardContent>
+      <CardContent className={className}>
+        <FieldSet>{children}</FieldSet>
+      </CardContent>
     </Card>
   );
 }

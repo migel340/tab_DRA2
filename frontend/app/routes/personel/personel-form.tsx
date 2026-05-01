@@ -11,6 +11,7 @@ import {
   type PersonelUpdateFormData,
 } from "~/types/personel";
 import { AccountStatusSelect, PersonelRoleSelect } from "~/components/Select";
+import { FieldSet } from "~/components/ui/field";
 
 export type PersonelFormValues =
   | PersonelCreateFormData
@@ -49,7 +50,7 @@ export default function PersonelForm({
   return (
     <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
       <Section headerName={"Informacje"} className="flex flex-col gap-5">
-        <div className="flex flex-col md:flex-row gap-5">
+        <FieldSet className="flex flex-col md:flex-row gap-5">
           <Controller
             name="firstName"
             control={control}
@@ -75,9 +76,9 @@ export default function PersonelForm({
               />
             )}
           />
-        </div>
+        </FieldSet>
 
-        <div className="flex flex-col md:flex-row gap-5">
+        <FieldSet className="flex flex-col md:flex-row gap-5">
           <Controller
             name="username"
             control={control}
@@ -103,9 +104,9 @@ export default function PersonelForm({
               />
             )}
           />
-        </div>
+        </FieldSet>
 
-        <div className="flex w-fit items-center flex-row md:flex-row gap-5 ">
+        <FieldSet className="flex w-fit items-center flex-row md:flex-row gap-5 ">
           <Controller
             name="role"
             control={control}
@@ -131,10 +132,10 @@ export default function PersonelForm({
               />
             )}
           />
-        </div>
+        </FieldSet>
       </Section>
 
-      <div className="flex items-center gap-3">
+      <FieldSet className="flex items-center gap-3">
         <Button type="submit" size="lg">
           {isEdit ? "Zapisz" : "Stwórz"}
         </Button>
@@ -146,7 +147,7 @@ export default function PersonelForm({
         >
           Anuluj
         </Button>
-      </div>
+      </FieldSet>
     </Form>
   );
 }
