@@ -3,10 +3,12 @@ import { columns } from "./columns";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
 import { DataTable } from "~/components/DataTable";
 import type { Route } from "./+types/personel";
-import { personelService } from "~/routes/personel/personelService";
+import { personelService } from "~/routes/personel/personel-service";
 import { FilterSchema } from "./schema";
 import { useNavigate } from "react-router";
 import { PersonelFiltersForm } from "./personel-filters-form";
+import { Button } from "~/components/ui/button";
+import { Plus } from "lucide-react";
 
 export const handle = {
   breadcrumb: () => "Lista",
@@ -55,7 +57,18 @@ export default function Personel({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <PageLayout title="Użytkownicy">
+    <PageLayout
+      title="Użytkownicy"
+      actions={
+        <Button
+          variant={"secondary"}
+          onClick={() => navigate("/personel/create")}
+        >
+          <Plus />
+          Dodaj użytkownika
+        </Button>
+      }
+    >
       <DataTable table={table} onRowClick={(id) => console.log(id)}>
         <PersonelFiltersForm initialValues={params} />
       </DataTable>

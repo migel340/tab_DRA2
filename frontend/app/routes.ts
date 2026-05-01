@@ -17,6 +17,8 @@ export default [
 
     layout("routes/personel/layout.tsx", [
       route("/personel", "routes/personel/personel.tsx"),
+      route("/personel/create", "routes/personel/personel-create.tsx"),
+      route("/personel/:id", "routes/personel/personel-edit.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;
