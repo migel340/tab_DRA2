@@ -9,7 +9,6 @@ import { useNavigate } from "react-router";
 import { PersonelFiltersForm } from "./personel-filters-form";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
-import { PersonelListSchema } from "~/types/personel";
 
 export const handle = {
   breadcrumb: () => "Lista",
@@ -20,9 +19,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const params = FilterSchema.parse(Object.fromEntries(url.searchParams));
 
-  const personelList = PersonelListSchema.parse(
-    await personelService.fetchPersonelList(params),
-  );
+  const personelList = await personelService.fetchPersonelList(params);
   return { personelList, params };
 }
 

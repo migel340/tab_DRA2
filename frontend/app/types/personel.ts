@@ -5,7 +5,7 @@ import { AccountStatusSchema, type AccountStatus } from "~/types/status";
 export const PersonelRoleSchema = z.enum(["WORKER", "MANAGER"]);
 export type PersonelRole = z.infer<typeof PersonelRoleSchema>;
 
-export const PersonelSchema = z.object({
+export const PersonelDbSchema = z.object({
   id: z.number(),
   firstName: z.string().trim().min(1, "Imię jest wymagane"),
   surname: z.string().trim().min(1, "Nazwisko jest wymagane"),
@@ -14,9 +14,9 @@ export const PersonelSchema = z.object({
   active: z.boolean(),
 });
 
-export type Personel = z.infer<typeof PersonelSchema>;
+export type PersonelDB = z.infer<typeof PersonelDbSchema>;
 
-const basePersonelFields = PersonelSchema.omit({
+const basePersonelFields = PersonelDbSchema.omit({
   id: true,
   active: true,
 });
@@ -60,7 +60,7 @@ export type PersonelFormInput = PersonelCreateFormData | PersonelUpdateFormData;
 export type PersonelCreatePayload = z.output<typeof PersonelCreateApiSchema>;
 export type PersonelUpdatePayload = z.output<typeof PersonelUpdateApiSchema>;
 
-export const PersonelViewSchema = PersonelSchema.transform((data) => {
+export const PersonelSchema = PersonelDbSchema.transform((data) => {
   const { active, ...rest } = data;
   return {
     ...rest,
@@ -68,8 +68,8 @@ export const PersonelViewSchema = PersonelSchema.transform((data) => {
   };
 });
 
-export type PersonelView = z.output<typeof PersonelViewSchema>;
+export type Personel = z.output<typeof PersonelSchema>;
 
-export const PersonelListSchema = z.array(PersonelViewSchema);
+export const PersonelListSchema = z.array(PersonelSchema);
 
-export const PersonelDetailSchema = PersonelViewSchema;
+export const PersonelDetailSchema = PersonelSchema;

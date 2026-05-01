@@ -1,6 +1,6 @@
-import type { Personel } from "~/types/personel";
+import type { PersonelDB } from "~/types/personel";
 
-export const MOCK_PERSONEL_LIST: Personel[] = [
+export const MOCK_PERSONEL_LIST: PersonelDB[] = [
   {
     id: 1,
     firstName: "John",

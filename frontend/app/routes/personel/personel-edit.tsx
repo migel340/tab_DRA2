@@ -70,9 +70,8 @@ export default function PersonelEditPage({
       firstName: personel.firstName,
       surname: personel.surname,
       username: personel.username,
-      password: "",
       role: personel.role,
-      status: personel.active ? "ACTIVE" : "INACTIVE",
+      status: personel.status,
     }),
     [personel],
   );
