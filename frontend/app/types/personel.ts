@@ -1,6 +1,6 @@
 import z from "zod";
 import { passwordSchema } from "~/lib/schema";
-import { AccountStatusSchema } from "~/types/status";
+import { AccountStatusSchema, type AccountStatus } from "~/types/status";
 
 export const PersonelRoleSchema = z.enum(["WORKER", "MANAGER"]);
 export type PersonelRole = z.infer<typeof PersonelRoleSchema>;
@@ -60,8 +60,16 @@ export type PersonelFormInput = PersonelCreateFormData | PersonelUpdateFormData;
 export type PersonelCreatePayload = z.output<typeof PersonelCreateApiSchema>;
 export type PersonelUpdatePayload = z.output<typeof PersonelUpdateApiSchema>;
 
-export const PersonelListSchema = z.array(PersonelSchema);
-
-export const PersonelDetailSchema = PersonelSchema.extend({
-  // Tutaj możesz dodać specyficzne pola tylko dla widoku detali
+export const PersonelViewSchema = PersonelSchema.transform((data) => {
+  const { active, ...rest } = data;
+  return {
+    ...rest,
+    status: (active ? "ACTIVE" : "INACTIVE") as AccountStatus,
+  };
 });
+
+export type PersonelView = z.output<typeof PersonelViewSchema>;
+
+export const PersonelListSchema = z.array(PersonelViewSchema);
+
+export const PersonelDetailSchema = PersonelViewSchema;

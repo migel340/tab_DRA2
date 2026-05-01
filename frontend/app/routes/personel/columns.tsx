@@ -2,9 +2,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { AccountStatusBadge } from "~/components/Badge";
 import DeleteButton from "~/components/DeleteButton";
 import { SortableHeader } from "~/components/SortableHeader";
-import type { Personel } from "~/types/personel";
+import type { PersonelView } from "~/types/personel";
+import type { AccountStatus, AccountStatusSchema } from "~/types/status";
 
-export const columns: ColumnDef<Personel>[] = [
+export const columns: ColumnDef<PersonelView>[] = [
   {
     id: "fullName",
     header: () => <div className="w-full">Staff Member</div>,
@@ -35,13 +36,13 @@ export const columns: ColumnDef<Personel>[] = [
     },
   },
   {
-    accessorKey: "active",
+    accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const active = row.getValue("active") as boolean;
+      const status = row.getValue("status") as AccountStatus;
       return (
         <div className="flex items-center">
-          <AccountStatusBadge status={active ? "ACTIVE" : "INACTIVE"} />
+          <AccountStatusBadge status={status} />
         </div>
       );
     },
