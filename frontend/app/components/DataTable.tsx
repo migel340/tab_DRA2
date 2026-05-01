@@ -47,7 +47,18 @@ export function DataTable<TData extends { id: number }>({
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                onClick={() => onRowClick?.(row.original.id)}
+                onClick={(e) => {
+                  // Prevent row navigation if clicking on interactive elements
+                  const target = e.target as HTMLElement;
+                  if (
+                    target.closest("button") ||
+                    target.closest("[role='dialog']") ||
+                    target.closest("[data-slot='alert-action']")
+                  ) {
+                    return;
+                  }
+                  onRowClick?.(row.original.id);
+                }}
                 data-state={row.getIsSelected() && "selected"}
                 className={`${onRowClick && "cursor-pointer"}`}
               >
