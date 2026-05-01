@@ -5,7 +5,7 @@ import type {
   PersonelCreatePayload,
   PersonelUpdatePayload,
 } from "~/types/personel";
-import type { FilterValues } from "./schema";
+import type { PersonelFilterParams } from "./schema";
 
 export const personelService = {
   getPersonelById: async (id: number): Promise<Personel | undefined> => {
@@ -15,7 +15,9 @@ export const personelService = {
     return PersonelSchema.parse(raw);
   },
 
-  fetchPersonelList: async (filters: FilterValues): Promise<Personel[]> => {
+  fetchPersonelList: async (
+    params: PersonelFilterParams,
+  ): Promise<Personel[]> => {
     const rawList = await personelApi.getAll();
 
     return PersonelListSchema.parse(rawList);
