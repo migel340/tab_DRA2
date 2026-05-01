@@ -29,6 +29,7 @@ export default function DeleteButton({
       }
       variant="destructive"
       confirmText="Usuń"
+      data-slot="alert-action"
     >
       <Button
         variant="destructive"
