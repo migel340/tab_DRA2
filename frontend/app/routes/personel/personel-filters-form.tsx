@@ -1,5 +1,5 @@
 import { Form, useSubmit } from "react-router";
-import { FilterSchema, type FilterValues } from "./schema";
+import { PersonelFilterSchema, type PersonelFilterParams } from "./schema";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,16 +8,16 @@ import SearchBar from "~/components/SearchBar";
 export function PersonelFiltersForm({
   initialValues,
 }: {
-  initialValues: FilterValues;
+  initialValues: PersonelFilterParams;
 }) {
   const submit = useSubmit();
 
   const { watch, handleSubmit, control, register } = useForm({
-    resolver: zodResolver(FilterSchema),
+    resolver: zodResolver(PersonelFilterSchema),
     defaultValues: initialValues,
   });
 
-  function onSubmit(data: FilterValues) {
+  function onSubmit(data: PersonelFilterParams) {
     submit(data, { replace: true });
   }
 

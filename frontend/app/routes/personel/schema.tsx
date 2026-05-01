@@ -1,9 +1,8 @@
 import * as z from "zod";
+import { BaseTableParamsSchema } from "~/types/table";
 
-export const FilterSchema = z.object({
-  q: z.string().catch(""),
-  sortBy: z.string().catch("id"),
-  order: z.enum(["asc", "desc"]).catch("asc"),
+export const PersonelFilterSchema = BaseTableParamsSchema.extend({
+  q: z.string().optional(),
 });
 
-export type FilterValues = z.infer<typeof FilterSchema>;
+export type PersonelFilterParams = z.infer<typeof PersonelFilterSchema>;
