@@ -9,7 +9,7 @@ import {
   PersonelUpdateApiSchema,
   type PersonelUpdateFormData,
 } from "~/types/personel";
-import { useActionToast } from "~/lib/hooks/useActionToast";
+import { useActionToast } from "~/hooks/useActionToast";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const { id } = params;
