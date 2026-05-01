@@ -94,11 +94,11 @@ export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
 ) {
   return (
     <BaseSelect
+      showAllOption
       {...props}
       label="Status konta"
       options={accountStatusOptions}
       renderItem={(status) => <AccountStatusBadge status={status} />}
-      showAllOption
     />
   );
 }

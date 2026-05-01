@@ -87,7 +87,6 @@ export default function PersonelForm({
                 field={field}
                 fieldState={fieldState}
                 placeholder="jkowalski"
-                disabled={isEdit}
               />
             )}
           />
@@ -128,6 +127,7 @@ export default function PersonelForm({
                 field={field}
                 fieldState={fieldState}
                 label="Status konta"
+                showAllOption={false}
               />
             )}
           />
