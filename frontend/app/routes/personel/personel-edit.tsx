@@ -4,13 +4,12 @@ import z from "zod";
 import { personelService } from "./personel-service";
 import PersonelForm, { type PersonelFormValues } from "./personel-form";
 import { useMemo } from "react";
-import { useSubmit, redirect } from "react-router";
+import { useSubmit } from "react-router";
 import {
   PersonelUpdateApiSchema,
   type PersonelUpdateFormData,
 } from "~/types/personel";
-import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
+import { useActionToast } from "~/lib/hooks/useActionToast";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const { id } = params;
@@ -46,16 +45,18 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   if (!parseResult.success) {
     return {
-      errors: z.treeifyError(parseResult.error),
+      errors: z.flattenError(parseResult.error).fieldErrors,
       status: 400,
     };
   }
 
-  await personelService.updatePersonel(result.data, parseResult.data);
+  try {
+    await personelService.updatePersonel(result.data, parseResult.data);
 
-  throw redirect(`/personel/${result.data}`, {
-    headers: { "X-Remix-Replace": "true" },
-  });
+    return { success: true };
+  } catch (error) {
+    return { message: "Błąd serwera podczas aktualizacji", success: false };
+  }
 }
 
 export default function PersonelEditPage({
@@ -64,6 +65,8 @@ export default function PersonelEditPage({
 }: Route.ComponentProps) {
   const { personel } = loaderData;
   const submit = useSubmit();
+
+  useActionToast(actionData);
 
   const initValues = useMemo<Omit<PersonelUpdateFormData, "id">>(
     () => ({
@@ -84,13 +87,6 @@ export default function PersonelEditPage({
 
   return (
     <PageLayout title="Edycja użytkownika">
-      {actionData?.message && (
-        <Alert variant="destructive" className="mb-5">
-          <AlertCircleIcon />
-          <AlertTitle>Wystąpił Błąd</AlertTitle>
-          <AlertDescription> {actionData.message}</AlertDescription>
-        </Alert>
-      )}
       <PersonelForm
         onSubmit={onSubmit}
         initialValues={initValues}

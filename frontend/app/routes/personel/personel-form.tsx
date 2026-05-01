@@ -136,7 +136,7 @@ export default function PersonelForm({
 
       <div className="flex items-center gap-3">
         <Button type="submit" size="lg">
-          Stwórz
+          {isEdit ? "Zapisz" : "Stwórz"}
         </Button>
         <Button
           variant="secondary"
