@@ -3,7 +3,7 @@ import { AccountStatusBadge } from "~/components/Badge";
 import DeleteButton from "~/components/DeleteButton";
 import { SortableHeader } from "~/components/SortableHeader";
 import type { PersonelView } from "~/types/personel";
-import type { AccountStatus, AccountStatusSchema } from "~/types/status";
+import type { AccountStatus } from "~/types/status";
 
 export const columns: ColumnDef<PersonelView>[] = [
   {
