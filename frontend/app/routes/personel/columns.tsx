@@ -2,10 +2,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { AccountStatusBadge } from "~/components/Badge";
 import DeleteButton from "~/components/DeleteButton";
 import { SortableHeader } from "~/components/SortableHeader";
-import type { PersonelView } from "~/types/personel";
+import type { Personel } from "~/types/personel";
 import type { AccountStatus } from "~/types/status";
 
-export const columns: ColumnDef<PersonelView>[] = [
+export const columns: ColumnDef<Personel>[] = [
   {
     id: "fullName",
     header: () => <div className="w-full">Staff Member</div>,
@@ -52,7 +52,11 @@ export const columns: ColumnDef<PersonelView>[] = [
     cell: ({ row }) => {
       const personel = row.original;
       return (
-        <DeleteButton size={"icon"} onClick={() => console.log(personel.id)} />
+        <DeleteButton
+          onConfirm={() => {}}
+          size={"icon"}
+          onClick={() => console.log(personel.id)}
+        />
       );
     },
   },
