@@ -1,13 +1,13 @@
 import PageLayout from "~/layouts/PageLayout";
 import PersonelForm, { type PersonelFormValues } from "./personel-form";
-import { redirect, useSubmit } from "react-router";
+import { useEffect } from "react";
+import { useNavigate, useSubmit } from "react-router";
 import type { Route } from "./+types/personel-create";
 import { getUser } from "~/lib/auth";
 import z from "zod";
 import { personelService } from "./personel-service";
-import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { AlertCircleIcon } from "lucide-react";
 import { PersonelCreateApiSchema } from "~/types/personel";
+import { useActionToast } from "~/hooks/useActionToast";
 
 export const handle = {
   breadcrumb: () => "nowy",
@@ -35,21 +35,31 @@ export async function action({ request }: Route.ActionArgs) {
   if (!result.success) {
     return {
       success: false,
-      errors: z.treeifyError(result.error),
+      errors: z.flattenError(result.error).fieldErrors,
       status: 400,
     };
   }
 
   const createdPersonel = await personelService.createPersonel(result.data);
-  throw redirect(`/personel/${createdPersonel.id}`, {
-    headers: { "X-Remix-Replace": "true" },
-  });
+
+  return {
+    success: true,
+    id: createdPersonel.id,
+  };
 }
 
 export default function PersonelCreatePage({
   actionData,
 }: Route.ComponentProps) {
+  const navigate = useNavigate();
   const submit = useSubmit();
+  useActionToast(actionData, "Pomyślnie utworzono użytkownika!");
+
+  useEffect(() => {
+    if (actionData?.success && actionData.id) {
+      navigate(`/personel/${actionData.id}`, { replace: true });
+    }
+  }, [actionData, navigate]);
 
   const onSubmit = (data: PersonelFormValues) => {
     submit(data, {
@@ -59,15 +69,6 @@ export default function PersonelCreatePage({
 
   return (
     <PageLayout title="Dodaj nowego użytkownika">
-      {actionData && !actionData.success && (
-        <Alert variant="destructive" className="mb-5">
-          <AlertCircleIcon />
-          <AlertTitle>Wystąpił Błąd</AlertTitle>
-          <AlertDescription>
-            {actionData.message && actionData.message}
-          </AlertDescription>
-        </Alert>
-      )}
       <PersonelForm onSubmit={onSubmit} />
     </PageLayout>
   );

@@ -11,6 +11,10 @@ import {
 } from "~/types/personel";
 import { useActionToast } from "~/hooks/useActionToast";
 
+export const handle = {
+  breadcrumb: () => "edycja",
+};
+
 export async function loader({ params }: Route.LoaderArgs) {
   const { id } = params;
   const result = z.coerce.number().safeParse(id);
@@ -73,6 +77,7 @@ export default function PersonelEditPage({
       firstName: personel.firstName,
       surname: personel.surname,
       username: personel.username,
+      password: undefined,
       role: personel.role,
       status: personel.status,
     }),
