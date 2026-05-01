@@ -48,7 +48,6 @@ export function DataTable<TData extends { id: number }>({
               <TableRow
                 key={row.id}
                 onClick={(e) => {
-                  // Prevent row navigation if clicking on interactive elements
                   const target = e.target as HTMLElement;
                   if (
                     target.closest("button") ||
