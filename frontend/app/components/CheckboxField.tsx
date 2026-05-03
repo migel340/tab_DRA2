@@ -1,15 +1,45 @@
+import type {
+  ControllerFieldState,
+  ControllerRenderProps,
+  FieldValues,
+  Path,
+} from "react-hook-form";
 import { Checkbox } from "./ui/checkbox";
-import { Field, FieldLabel } from "./ui/field";
+import { BaseField } from "./BaseField";
+import type { ComponentProps } from "react";
 
-interface CheckboxFieldProps extends React.ComponentProps<typeof Checkbox> {
+interface CheckboxFieldProps<
+  TFieldValues extends FieldValues,
+  TName extends Path<TFieldValues>,
+> extends ComponentProps<typeof Checkbox> {
+  field: ControllerRenderProps<TFieldValues, TName>;
+  fieldState: ControllerFieldState;
   label: string;
 }
 
-export default function CheckboxField({ label, ...props }: CheckboxFieldProps) {
+export default function CheckboxField<
+  TFieldValues extends FieldValues,
+  TName extends Path<TFieldValues>,
+>({
+  field,
+  fieldState,
+  label,
+  ...checkboxProps
+}: CheckboxFieldProps<TFieldValues, TName>) {
   return (
-    <Field orientation="horizontal">
-      <Checkbox {...props} />
-      <FieldLabel>{label}</FieldLabel>
-    </Field>
+    <BaseField
+      label={label}
+      error={fieldState.error?.message}
+      htmlFor={field.name}
+      className="w-fit"
+    >
+      <Checkbox
+        {...field}
+        {...checkboxProps}
+        checked={field.value}
+        onCheckedChange={field.onChange}
+        aria-invalid={fieldState.invalid}
+      />
+    </BaseField>
   );
 }

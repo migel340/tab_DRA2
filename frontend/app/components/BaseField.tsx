@@ -6,6 +6,7 @@ interface BaseFieldProps {
   description?: string;
   children: React.ReactNode;
   htmlFor?: string;
+  className?: string;
 }
 
 export function BaseField({
@@ -14,9 +15,10 @@ export function BaseField({
   description,
   children,
   htmlFor,
+  className,
 }: BaseFieldProps) {
   return (
-    <Field>
+    <Field className={className}>
       {label && <FieldLabel htmlFor={htmlFor}>{label}</FieldLabel>}
       {children}
       {description && <FieldDescription> {description}</FieldDescription>}

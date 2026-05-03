@@ -38,6 +38,7 @@ export default function Sidebar() {
               }
             `}
           >
+            {link.icon && link.icon}
             <span className="font-medium text-sm">{link.label}</span>
           </NavLink>
         ))}
