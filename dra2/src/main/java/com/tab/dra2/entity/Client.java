@@ -13,6 +13,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 @Table(name = "client")
@@ -29,9 +30,10 @@ public class Client {
     @NotBlank
     private int id;
 
-    @Column(name = "id_device")
-    @NotBlank
-    private int idDevice;
+
+    @ManyToOne
+    @JoinColumn(name = "id_device", insertable = false, updatable = false)
+    private Device device;
 
     @Column(name = "surname", length = 20)
     @NotBlank
@@ -51,4 +53,8 @@ public class Client {
     @Column(name = "birth_date")
     @NotBlank
     private Date birthDate;
+
+    @ManyToOne
+    @JoinColumn(name = "id_address", insertable = false, updatable = false) 
+    private Address address;
 }

@@ -28,6 +28,5 @@ public class Address {
      @Column(length = 20,nullable=false)
     private String country;
 
-     @Column(nullable=false)
-    private Int id_client;
+    
 }

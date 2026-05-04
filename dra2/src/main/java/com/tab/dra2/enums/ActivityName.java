@@ -1,6 +1,6 @@
 package  com.tab.dra2.enums;
 
-public enum Act_Name {
+public enum ActivityName {
     DIAGNOSIS,
     REPAIR,
     INSTALLATION,

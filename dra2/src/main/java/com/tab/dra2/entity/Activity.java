@@ -6,7 +6,8 @@ import java.time.LocalDateTime;
 import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
-
+import jakarta.persistence.manytoone.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 @Table(name = "activity")
@@ -24,10 +25,13 @@ public class Activity {
    @Column(name = "act_type", nullable = false)
     private int activityType;
 
-   @Column(name = "id_request")
-    private int idRequest;
+    @ManyToOne
+    @JoinColumn(name = "id_request", insertable = false, updatable = false)
+    private Request request;
 
-    private int id_personel;
+    @ManyToOne
+    @JoinColumn(name = "id_personel", insertable = false, updatable = false)
+    private Personel personel;
 
     @Column(length=20)
     private String seq_no;

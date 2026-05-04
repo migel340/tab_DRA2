@@ -5,6 +5,9 @@ import java.sql.Date;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.util.List;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 @Table(name = "request")
@@ -21,12 +24,14 @@ public class Request {
 private int id;
 
 @NotBlank
-@Column(name = "id_device")
-private int idDevice;
+@ManyToOne
+@JoinColumn(name = "id_device", insertable = false, updatable = false)
+private Device device;
 
 @NotBlank
-@Column(name = "id_manager")
-private int idManager;
+@ManyToOne
+@JoinColumn(name = "id_manager", insertable = false, updatable = false)
+private Personel manager;
 
 @NotBlank
 @Column(name = "description", length = 255)
@@ -43,5 +48,8 @@ private Date dateRegistration;
 @NotBlank
 @Column(name = "date_finished_cancelled")
 private Date dateFinishedCancelled;
+
+@OneToMany(mappedBy = "request")
+private List<Activity> activities;
 
 }

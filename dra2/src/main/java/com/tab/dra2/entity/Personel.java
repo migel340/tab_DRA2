@@ -1,8 +1,12 @@
 package com.tab.dra2.entity;
 
+import java.util.List;
+
 import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
+import jakarta.persistence.OneToMany;
 
 @Entity
 @Table(name = "personel")
@@ -35,4 +39,10 @@ public class Personel {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @OneToMany(mappedBy = "manager")
+    private List<Request> requests;
+
+    @OneToMany(mappedBy = "personel")
+    private List<Activity> activities;
 }
