@@ -1,12 +1,9 @@
 package com.tab.dra2.entity;
 
-import java.beans.ConstructorProperties;
 
 import java.time.LocalDateTime;
-import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
-import jakarta.persistence.manytoone.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity

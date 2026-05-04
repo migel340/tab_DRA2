@@ -5,7 +5,6 @@ import java.util.List;
 import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.List;
 import jakarta.persistence.OneToMany;
 
 @Entity
