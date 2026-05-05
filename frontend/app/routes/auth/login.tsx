@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
 import { LoginSchema, type LoginData } from "~/types/auth";
 import { authService } from "./auth-service";
-import { getUserErrorMessage } from "~/lib/api";
+import { getUserErrorMessage } from "~/lib/api.server";
 import type { Route } from "./+types/login";
 import z from "zod";
 import { createUserSession, getUserFromRequest } from "~/lib/auth.server";

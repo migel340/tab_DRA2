@@ -41,7 +41,7 @@ export default function PersonelForm({
       surname: "",
       username: "",
       password: "",
-      role: "WORKER",
+      role: "STAFF",
       status: "ACTIVE",
     },
     reValidateMode: "onBlur",

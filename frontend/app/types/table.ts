@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const BaseTableParamsSchema = z.object({
-  sortBy: z.string().optional().nullable(),
-  order: z.enum(["asc", "desc"]).optional().nullable().default("asc"),
+  orderBy: z.string().optional().nullable(),
+  sort: z.enum(["asc", "desc"]).optional().nullable().default("asc"),
 });
 
 export const PagedTableParamsSchema = BaseTableParamsSchema.extend({

@@ -21,7 +21,7 @@ export async function loader({ request }: Route.LoaderArgs) {
     Object.fromEntries(url.searchParams),
   );
 
-  const personelList = await personelService.fetchPersonelList(params);
+  const personelList = await personelService.fetchPersonelList(request, params);
   return { personelList, params };
 }
 

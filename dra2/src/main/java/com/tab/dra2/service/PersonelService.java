@@ -5,6 +5,7 @@ import com.tab.dra2.dto.PersonelListResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
 import com.tab.dra2.entity.Personel;
+import com.tab.dra2.enums.Role;
 import com.tab.dra2.repository.PersonelRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,7 +42,7 @@ public class PersonelService {
         Sort.Direction direction = resolveSortDirection(sort);
 
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(direction, normalizedOrderBy));
-        Page<Personel> result = personelRepository.findAll(buildFilterSpecification(q), pageable);
+        Page<Personel> result = personelRepository.findAll(buildListSpecification(q), pageable);
 
         return PersonelListResponse.builder()
                 .data(result.getContent().stream().map(this::toResponse).toList())
@@ -105,17 +106,21 @@ public class PersonelService {
         return toResponse(personelRepository.save(personel));
     }
 
-    private Specification<Personel> buildFilterSpecification(String q) {
+    private Specification<Personel> buildListSpecification(String q) {
+        Specification<Personel> specification = (root, query, cb) -> cb.notEqual(root.get("role"), Role.ADMIN);
+
         if (q == null || q.isBlank()) {
-            return null;
+            return specification;
         }
 
         String pattern = "%%%s%%".formatted(q.toLowerCase(Locale.ROOT).trim());
-        return (root, query, cb) -> cb.or(
+        Specification<Personel> searchSpecification = (root, query, cb) -> cb.or(
                 cb.like(cb.lower(root.get("firstName")), pattern),
                 cb.like(cb.lower(root.get("surname")), pattern),
                 cb.like(cb.lower(root.get("username")), pattern)
         );
+
+        return specification.and(searchSpecification);
     }
 
     private String resolveOrderBy(String orderBy) {

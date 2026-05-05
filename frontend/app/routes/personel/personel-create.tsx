@@ -29,7 +29,10 @@ export async function action({ request }: Route.ActionArgs) {
     };
   }
 
-  const createdPersonel = await personelService.createPersonel(result.data);
+  const createdPersonel = await personelService.createPersonel(
+    result.data,
+    request,
+  );
 
   return {
     success: true,

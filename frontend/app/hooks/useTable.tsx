@@ -22,8 +22,8 @@ export function useTable<TData, TParams extends BaseTableParams>({
   const navigate = useNavigate();
   const { search, pathname } = useLocation();
 
-  const sorting: SortingState = params.sortBy
-    ? [{ id: params.sortBy, desc: params.order === "desc" }]
+  const sorting: SortingState = params.orderBy
+    ? [{ id: params.orderBy, desc: params.sort === "desc" }]
     : [];
 
   const onSortingChange: OnChangeFn<SortingState> = (updater) => {
@@ -31,11 +31,11 @@ export function useTable<TData, TParams extends BaseTableParams>({
     const newParams = new URLSearchParams(search);
 
     if (next.length > 0) {
-      newParams.set("sortBy", next[0].id);
-      newParams.set("order", next[0].desc ? "desc" : "asc");
+      newParams.set("orderBy", next[0].id);
+      newParams.set("sort", next[0].desc ? "desc" : "asc");
     } else {
-      newParams.delete("sortBy");
-      newParams.delete("order");
+      newParams.delete("orderBy");
+      newParams.delete("sort");
     }
 
     navigate(`${pathname}?${newParams.toString()}`, { replace: true });

@@ -1,4 +1,5 @@
 import z from "zod";
+import type { BaseTableParams } from "./table";
 
 export const ApiErrorBodySchema = z.object({
   message: z.string().optional(),
@@ -26,4 +27,5 @@ export class ApiError extends Error {
 
 export interface ApiRequestOptions extends RequestInit {
   withAuth?: boolean;
+  params?: BaseTableParams;
 }

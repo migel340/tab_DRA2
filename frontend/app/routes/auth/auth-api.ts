@@ -1,4 +1,4 @@
-import { api } from "~/lib/api";
+import { api } from "~/lib/api.server";
 import type { LoginData, AuthResponse } from "~/types/auth";
 
 export const authApi = {

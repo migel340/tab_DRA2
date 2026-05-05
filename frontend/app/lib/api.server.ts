@@ -1,4 +1,5 @@
-import { z, ZodError } from "zod";
+import { ZodError } from "zod";
+import { logoutUser, requireUser } from "~/lib/auth.server";
 import {
   ApiError,
   ApiErrorBodySchema,
@@ -29,9 +30,10 @@ async function safeParseJson(response: Response): Promise<unknown | undefined> {
 export async function api<T>(
   endpoint: string,
   options: ApiRequestOptions = {},
+  request?: Request,
 ): Promise<T> {
   const headers = new Headers(options.headers);
-
+  const queryString = options.params ? stringifyParams(options.params) : "";
   if (
     !headers.has("Content-Type") &&
     options.body &&
@@ -40,16 +42,31 @@ export async function api<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-    ...options,
-    headers,
-  });
+  if (request) {
+    const user = await requireUser(request);
+    if (user) {
+      console.log(user);
+      headers.set("Authorization", `Bearer ${user.token}`);
+    }
+  }
+
+  const response = await fetch(
+    `${API_BASE_URL}${endpoint}${queryString ? "?" + queryString : ""}`,
+    {
+      ...options,
+      headers,
+    },
+  );
 
   const raw = await safeParseJson(response);
 
   if (!response.ok) {
     const parsedBody = ApiErrorBodySchema.safeParse(raw);
     const body = parsedBody.success ? parsedBody.data : undefined;
+
+    if (response.status === 401 && request) {
+      throw await logoutUser(request);
+    }
 
     throw new ApiError(
       getApiErrorMessage(response.status, body),
@@ -76,3 +93,11 @@ export function getUserErrorMessage(error: unknown): string {
 
   return DEFAULT_ERROR_MESSAGE;
 }
+
+const stringifyParams = (params: Record<string, any>): string => {
+  const clean = Object.entries(params)
+    .filter(([_, v]) => v != null)
+    .reduce((acc, [k, v]) => ({ ...acc, [k]: String(v) }), {});
+
+  return new URLSearchParams(clean).toString();
+};

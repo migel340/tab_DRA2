@@ -8,35 +8,41 @@ import type {
 import type { PersonelFilterParams } from "./schema";
 
 export const personelService = {
-  getPersonelById: async (id: number): Promise<Personel | undefined> => {
-    const raw = await personelApi.getOne(id);
+  getPersonelById: async (
+    request: Request,
+    id: number,
+  ): Promise<Personel | undefined> => {
+    const raw = await personelApi.getOne(request, id);
     if (!raw) return undefined;
 
     return PersonelSchema.parse(raw);
   },
 
   fetchPersonelList: async (
+    request: Request,
     params: PersonelFilterParams,
   ): Promise<Personel[]> => {
-    const rawList = await personelApi.getAll();
+    const result = await personelApi.getAll(params, request);
 
-    return PersonelListSchema.parse(rawList);
+    return PersonelListSchema.parse(result.data);
   },
 
-  createPersonel: async (data: PersonelCreatePayload): Promise<Personel> => {
-    const { password, ...dbPayload } = data;
-
-    const createdRaw = await personelApi.create(dbPayload);
+  createPersonel: async (
+    data: PersonelCreatePayload,
+    request: Request,
+  ): Promise<Personel> => {
+    const createdRaw = await personelApi.create(data, request);
     return PersonelSchema.parse(createdRaw);
   },
 
   updatePersonel: async (
     id: number,
     data: PersonelUpdatePayload,
+    request: Request,
   ): Promise<Personel> => {
-    const { id: _id, password, ...dbPayload } = data;
+    const { id: _id, ...dbPayload } = data;
 
-    const updatedRaw = await personelApi.update(id, dbPayload);
+    const updatedRaw = await personelApi.update(id, dbPayload, request);
     return PersonelSchema.parse(updatedRaw);
   },
 };
