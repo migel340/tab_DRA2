@@ -1,28 +1,25 @@
-import { Outlet, useNavigate } from "react-router";
-import { useEffect, useState } from "react";
-import Sidebar from "~/components/layout/Sidebar";
-import { getUser, isAuthenticated } from "~/lib/auth";
+import { Outlet, redirect } from "react-router";
+import Sidebar from "~/components/Sidebar";
+import type { Route } from "./+types/DashboardLayout";
+import { getUserFromRequest } from "~/lib/auth.server";
 
-export default function DashboardLayout() {
-  const navigate = useNavigate();
-  const [ready, setReady] = useState(false);
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getUserFromRequest(request);
 
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/login", { replace: true });
-    } else {
-      setReady(true);
-    }
-  }, [navigate]);
+  if (!user) {
+    throw redirect("/login");
+  }
 
-  if (!ready) return null;
+  return { user };
+}
 
-  const user = getUser();
+export default function DashboardLayout({ loaderData }: Route.ComponentProps) {
+  const { user } = loaderData;
 
   return (
     <div className="flex h-screen">
       <aside className="w-64 shrink-0 border-r border-border">
-        <Sidebar />
+        <Sidebar user={user} />
       </aside>
       <main className="flex-1 overflow-auto my-3 mx-8">
         <Outlet context={{ user }} />

@@ -1,31 +1,37 @@
 import { useEffect } from "react";
-import { Form, useActionData, useNavigate } from "react-router";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { redirect, useSubmit } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "~/components/ui/alert";
-import { saveAuth } from "~/lib/auth";
-import { LoginSchema, type LoginData, type AuthResponse } from "~/types/auth";
+import { LoginSchema, type LoginData } from "~/types/auth";
 import { authService } from "./auth-service";
 import { getUserErrorMessage } from "~/lib/api";
 import type { Route } from "./+types/login";
 import z from "zod";
+import { createUserSession, getUserFromRequest } from "~/lib/auth.server";
 
 interface ActionData {
-  success?: boolean;
   message?: string;
   fieldErrors?: Record<string, string[]>;
-  authResponse?: AuthResponse;
+}
+
+export async function loader({ request }: Route.LoaderArgs) {
+  const user = await getUserFromRequest(request);
+
+  if (user) {
+    throw redirect("/personel");
+  }
+
+  return null;
 }
 
 export async function action({
   request,
-}: {
-  request: Request;
-}): Promise<ActionData> {
+}: Route.ActionArgs): Promise<ActionData | Response> {
   if (request.method !== "POST") {
     return { message: "Method not allowed" };
   }
@@ -41,7 +47,7 @@ export async function action({
 
   try {
     const authResponse = await authService.login(parsed.data);
-    return { success: true, authResponse };
+    return createUserSession(authResponse, "/personel");
   } catch (err) {
     const message = getUserErrorMessage(err);
     return { message };
@@ -49,10 +55,11 @@ export async function action({
 }
 
 export default function LoginPage({ actionData }: Route.ComponentProps) {
-  const navigate = useNavigate();
+  const submit = useSubmit();
 
   const {
     control,
+    handleSubmit,
     setError,
     formState: { isSubmitting },
   } = useForm<LoginData>({
@@ -73,12 +80,9 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
     }
   }, [actionData?.fieldErrors, setError]);
 
-  useEffect(() => {
-    if (actionData?.success && actionData?.authResponse) {
-      saveAuth(actionData.authResponse);
-      navigate("/");
-    }
-  }, [actionData?.success, actionData?.authResponse, navigate]);
+  const onSubmit = (values: LoginData) => {
+    submit(values, { method: "post" });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
@@ -87,8 +91,8 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
           <CardTitle className="text-2xl">Login</CardTitle>
         </CardHeader>
         <CardContent>
-          <Form method="post" className="space-y-4">
-            {actionData?.message && !actionData?.success && (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {actionData?.message && (
               <Alert variant="destructive">
                 <AlertTitle>Error</AlertTitle>
                 <AlertDescription>{actionData.message}</AlertDescription>
@@ -151,7 +155,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
                 Register
               </a>
             </p>
-          </Form>
+          </form>
         </CardContent>
       </Card>
     </div>

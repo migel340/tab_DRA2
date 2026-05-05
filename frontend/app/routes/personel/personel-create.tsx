@@ -3,29 +3,18 @@ import PersonelForm, { type PersonelFormValues } from "./personel-form";
 import { useEffect } from "react";
 import { useNavigate, useSubmit } from "react-router";
 import type { Route } from "./+types/personel-create";
-import { getUser } from "~/lib/auth";
 import z from "zod";
 import { personelService } from "./personel-service";
 import { PersonelCreateApiSchema } from "~/types/personel";
 import { useActionToast } from "~/hooks/useActionToast";
+import { requireAdmin } from "~/lib/auth.server";
 
 export const handle = {
   breadcrumb: () => "nowy",
 };
 
 export async function action({ request }: Route.ActionArgs) {
-  const user = getUser();
-  if (!user) {
-    return { message: "Unauthorized", status: 401 };
-  }
-
-  if (user.role !== "ADMIN") {
-    return {
-      success: false,
-      message: "Forbidden: You don't have permission",
-      status: 403,
-    };
-  }
+  await requireAdmin(request);
 
   const formData = await request.formData();
   const object = Object.fromEntries(formData.entries());
