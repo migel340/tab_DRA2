@@ -1,53 +1,110 @@
-const API_URL = "http://localhost:8080";
+import { z, ZodError } from "zod";
+import { getToken, logout } from "~/lib/auth";
 
-export interface LoginData {
-  username: string;
-  password: string;
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
+const DEFAULT_ERROR_MESSAGE = "Coś poszło nie tak. Spróbuj ponownie.";
+
+const ApiErrorBodySchema = z.object({
+  message: z.string().optional(),
+  error: z.string().optional(),
+  errors: z.record(z.string(), z.array(z.string())).optional(),
+});
+
+type ApiErrorBody = z.output<typeof ApiErrorBodySchema>;
+
+export class ApiError extends Error {
+  status: number;
+  fieldErrors?: Record<string, string[]>;
+
+  constructor(
+    message: string,
+    status: number,
+    fieldErrors?: Record<string, string[]>,
+  ) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.fieldErrors = fieldErrors;
+  }
 }
 
-export interface RegisterData {
-  firstName: string;
-  surname: string;
-  username: string;
-  password: string;
+interface ApiRequestOptions extends RequestInit {
+  withAuth?: boolean;
 }
 
-export interface AuthResponse {
-  token: string;
-  id: number;
-  username: string;
-  firstName: string;
-  surname: string;
-  role: "ADMIN" | "MANAGER" | "STAFF";
+function getApiErrorMessage(status: number, body?: ApiErrorBody): string {
+  if (body?.message) return body.message;
+  if (body?.error) return body.error;
+  if (status === 401) return "Sesja wygasła. Zaloguj się ponownie.";
+  if (status === 403) return "Nie masz uprawnień do tej akcji.";
+  if (status === 404) return "Nie znaleziono zasobu.";
+  return DEFAULT_ERROR_MESSAGE;
 }
 
-async function request(url: string, options: RequestInit) {
-  console.log(`→ ${options.method} ${url}`, options.body ?? "");
+async function safeParseJson(response: Response): Promise<unknown | undefined> {
+  try {
+    return await response.json();
+  } catch {
+    return undefined;
+  }
+}
 
-  const res = await fetch(url, options);
-  const data = await res.json().catch(() => ({}));
+export async function api<T>(
+  endpoint: string,
+  options: ApiRequestOptions = {},
+): Promise<T> {
+  const token = options.withAuth === false ? null : getToken();
+  const headers = new Headers(options.headers);
 
-  console.log(`← ${res.status} ${url}`, data);
-
-  if (!res.ok) {
-    throw new Error(data.error || `Błąd ${res.status}`);
+  if (
+    !headers.has("Content-Type") &&
+    options.body &&
+    !(options.body instanceof FormData)
+  ) {
+    headers.set("Content-Type", "application/json");
   }
 
-  return data;
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers,
+  });
+
+  const raw = await safeParseJson(response);
+
+  if (!response.ok) {
+    const parsedBody = ApiErrorBodySchema.safeParse(raw);
+    const body = parsedBody.success ? parsedBody.data : undefined;
+
+    if (response.status === 401 && options.withAuth !== false) {
+      logout();
+    }
+
+    throw new ApiError(
+      getApiErrorMessage(response.status, body),
+      response.status,
+      body?.errors,
+    );
+  }
+
+  return raw as T;
 }
 
-export async function login(data: LoginData): Promise<AuthResponse> {
-  return request(`${API_URL}/api/auth/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-}
+export function getUserErrorMessage(error: unknown): string {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
 
-export async function register(data: RegisterData): Promise<AuthResponse> {
-  return request(`${API_URL}/api/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
+  if (error instanceof ZodError) {
+    return error.issues[0]?.message ?? "Niepoprawne dane wejściowe.";
+  }
+
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
+  return DEFAULT_ERROR_MESSAGE;
 }

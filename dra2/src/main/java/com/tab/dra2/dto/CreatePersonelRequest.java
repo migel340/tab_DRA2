@@ -1,7 +1,6 @@
 package com.tab.dra2.dto;
 
 import com.tab.dra2.enums.Role;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;

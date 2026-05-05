@@ -1,7 +1,6 @@
 import { MOCK_USER } from "~/mocks/auth";
-import type { AuthResponse } from "./api";
 import { shouldSkipAuth } from "./utils";
-import type { User } from "~/types/auth";
+import type { AuthResponse, User } from "~/types/auth";
 
 const TOKEN_KEY = "dra2_token";
 const USER_KEY = "dra2_user";
