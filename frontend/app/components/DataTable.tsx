@@ -52,7 +52,8 @@ export function DataTable<TData extends { id: number }>({
                   if (
                     target.closest("button") ||
                     target.closest("[role='dialog']") ||
-                    target.closest("[data-slot='alert-action']")
+                    target.closest("[data-slot='alert-action']") ||
+                    target.closest("[data-slot='alert-dialog-overlay']")
                   ) {
                     return;
                   }
