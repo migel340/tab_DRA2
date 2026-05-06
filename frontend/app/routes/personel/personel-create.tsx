@@ -13,6 +13,12 @@ export const handle = {
   breadcrumb: () => "nowy",
 };
 
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireAdmin(request);
+
+  return null;
+}
+
 export async function action({ request }: Route.ActionArgs) {
   await requireAdmin(request);
 

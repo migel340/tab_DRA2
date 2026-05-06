@@ -23,7 +23,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const user = await getUserFromRequest(request);
 
   if (user) {
-    throw redirect("/personel");
+    throw redirect("/");
   }
 
   return null;
@@ -47,7 +47,7 @@ export async function action({
 
   try {
     const authResponse = await authService.login(parsed.data);
-    return createUserSession(authResponse, "/personel");
+    return createUserSession(authResponse);
   } catch (err) {
     const message = getUserErrorMessage(err);
     return { message };

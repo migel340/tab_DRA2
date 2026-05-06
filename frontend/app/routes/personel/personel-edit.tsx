@@ -17,6 +17,8 @@ export const handle = {
 };
 
 export async function loader({ request, params }: Route.LoaderArgs) {
+  await requireAdmin(request);
+
   const { id } = params;
   const result = z.coerce.number().safeParse(id);
   if (!result.success) {
@@ -34,13 +36,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+  await requireAdmin(request);
+
   const { id } = params;
   const result = z.coerce.number().safeParse(id);
   if (!result.success) {
     return { message: "Invalid ID", status: 400 };
   }
-
-  await requireAdmin(request);
 
   const formData = await request.formData();
   const object = Object.fromEntries(formData.entries());

@@ -9,12 +9,15 @@ import { PersonelFiltersForm } from "./personel-filters-form";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTable } from "~/hooks/useTable";
+import { requireAdmin } from "~/lib/auth.server";
 
 export const handle = {
   breadcrumb: () => "Lista",
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireAdmin(request);
+
   const url = new URL(request.url);
 
   const params = PersonelFilterSchema.parse(

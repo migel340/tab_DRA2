@@ -4,7 +4,7 @@ import {
   destroySession,
   getSession,
 } from "~/lib/sessions.server";
-import type { AuthResponse } from "~/types/auth";
+import type { AuthResponse, UserRole } from "~/types/auth";
 
 const AUTH_SESSION_KEY = "user";
 
@@ -21,18 +21,27 @@ export async function requireUser(request: Request): Promise<AuthResponse> {
   return user;
 }
 
-export async function requireAdmin(request: Request): Promise<AuthResponse> {
+export async function requireRole(
+  request: Request,
+  allowedRoles: UserRole[],
+): Promise<AuthResponse> {
   const user = await requireUser(request);
-  if (user.role !== "ADMIN") {
+  if (!allowedRoles.includes(user.role)) {
+    console.log("fsdafasd");
     throw new Response("Forbidden", { status: 403 });
   }
   return user;
 }
 
-export async function createUserSession(
-  user: AuthResponse,
-  redirectTo = "/personel",
-) {
+export async function requireAdmin(request: Request): Promise<AuthResponse> {
+  return requireRole(request, ["ADMIN"]);
+}
+
+export async function requireManager(request: Request): Promise<AuthResponse> {
+  return requireRole(request, ["MANAGER"]);
+}
+
+export async function createUserSession(user: AuthResponse, redirectTo = "/") {
   const session = await getSession();
   session.set(AUTH_SESSION_KEY, user);
 

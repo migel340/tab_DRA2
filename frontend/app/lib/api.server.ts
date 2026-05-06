@@ -45,7 +45,6 @@ export async function api<T>(
   if (request) {
     const user = await requireUser(request);
     if (user) {
-      console.log(user);
       headers.set("Authorization", `Bearer ${user.token}`);
     }
   }

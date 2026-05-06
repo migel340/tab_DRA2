@@ -2,14 +2,10 @@ import { Outlet, redirect } from "react-router";
 import Sidebar from "~/components/Sidebar";
 import type { Route } from "./+types/DashboardLayout";
 import { getUserFromRequest } from "~/lib/auth.server";
+import { userContext } from "~/context";
 
-export async function loader({ request }: Route.LoaderArgs) {
-  const user = await getUserFromRequest(request);
-
-  if (!user) {
-    throw redirect("/login");
-  }
-
+export async function loader({ context }: Route.LoaderArgs) {
+  const user = context.get(userContext);
   return { user };
 }
 
@@ -27,3 +23,13 @@ export default function DashboardLayout({ loaderData }: Route.ComponentProps) {
     </div>
   );
 }
+
+async function authMiddleware({ request, context }: Route.LoaderArgs) {
+  const user = await getUserFromRequest(request);
+  if (!user) {
+    throw redirect("/login");
+  }
+  context.set(userContext, user);
+}
+
+export const middleware: Route.MiddlewareFunction[] = [authMiddleware];
