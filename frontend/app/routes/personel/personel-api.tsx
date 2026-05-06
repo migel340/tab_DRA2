@@ -1,6 +1,6 @@
 import { api } from "~/lib/api.server";
 import type { PersonelDB } from "~/types/personel";
-import type { PersonelFilterParams } from "./schema";
+import type { PersonelFilterParams, PersonelResponse } from "./schema";
 
 const ENDPOINT = "/personels";
 
@@ -16,7 +16,7 @@ export const personelApi = {
   },
 
   getAll: async (params: PersonelFilterParams, request: Request) =>
-    api<{ data: PersonelDB[]; meta: Object }>(
+    api<PersonelResponse>(
       ENDPOINT,
       {
         method: "GET",

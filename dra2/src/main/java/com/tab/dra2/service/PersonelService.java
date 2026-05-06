@@ -52,7 +52,7 @@ public class PersonelService {
                         .totalItems(result.getTotalElements())
                         .totalPages(result.getTotalPages())
                         .orderBy(normalizedOrderBy)
-                        .sort(direction.name())
+                        .sort(direction.name().toLowerCase())
                         .q(q)
                         .build())
                 .build();

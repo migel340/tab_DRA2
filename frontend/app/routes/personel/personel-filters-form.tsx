@@ -37,8 +37,8 @@ export function PersonelFiltersForm({
           <SearchBar field={field} fieldState={fieldState} />
         )}
       />
-      <input type="hidden" {...register("sortBy")} />
-      <input type="hidden" {...register("order")} />
+      <input type="hidden" {...register("orderBy")} />
+      <input type="hidden" {...register("sort")} />
     </Form>
   );
 }

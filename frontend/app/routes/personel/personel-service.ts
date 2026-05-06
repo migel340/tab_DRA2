@@ -1,11 +1,15 @@
 import { personelApi } from "./personel-api";
-import { PersonelSchema, PersonelListSchema } from "~/types/personel";
+import { PersonelSchema } from "~/types/personel";
 import type {
   Personel,
   PersonelCreatePayload,
   PersonelUpdatePayload,
 } from "~/types/personel";
-import type { PersonelFilterParams } from "./schema";
+import {
+  PersonelResponseSchema,
+  type PersonelFilterParams,
+  type PersonelResponse,
+} from "./schema";
 
 export const personelService = {
   getPersonelById: async (
@@ -21,10 +25,10 @@ export const personelService = {
   fetchPersonelList: async (
     request: Request,
     params: PersonelFilterParams,
-  ): Promise<Personel[]> => {
+  ): Promise<PersonelResponse> => {
     const result = await personelApi.getAll(params, request);
 
-    return PersonelListSchema.parse(result.data);
+    return PersonelResponseSchema.parse(result);
   },
 
   createPersonel: async (

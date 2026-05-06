@@ -8,6 +8,7 @@ import {
   Table,
 } from "./ui/table";
 import { flexRender, type Table as TableType } from "@tanstack/react-table";
+import { DataTablePagination } from "./DataTablePagination";
 
 interface DataTableProps<TData> {
   table: TableType<TData>;
@@ -81,6 +82,7 @@ export function DataTable<TData extends { id: number }>({
           )}
         </TableBody>
       </Table>
+      <DataTablePagination table={table} />
     </div>
   );
 }

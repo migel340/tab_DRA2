@@ -1,5 +1,13 @@
-import z from "zod";
+import z, { ZodType } from "zod";
 import type { BaseTableParams } from "./table";
+import { BaseTableParamsSchema } from "./table";
+
+export const BasePaginatedMetaSchema = BaseTableParamsSchema.extend({
+  totalItems: z.number(),
+  totalPages: z.number(),
+});
+
+export type BasePaginatedMeta = z.infer<typeof BasePaginatedMetaSchema>;
 
 export const ApiErrorBodySchema = z.object({
   message: z.string().optional(),
@@ -29,3 +37,17 @@ export interface ApiRequestOptions extends RequestInit {
   withAuth?: boolean;
   params?: BaseTableParams;
 }
+
+export interface ApiPaginatedResponse<TData> {
+  data: TData[];
+  meta: BasePaginatedMeta;
+}
+
+export const createPaginatedResponseSchema = <T extends ZodType>(
+  itemSchema: T,
+) => {
+  return z.object({
+    data: z.array(itemSchema),
+    meta: BasePaginatedMetaSchema,
+  });
+};
