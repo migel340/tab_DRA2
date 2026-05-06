@@ -41,4 +41,13 @@ export const personelApi = {
       },
       request,
     ),
+
+  delete: async (id: number, request: Request) =>
+    api<void>(
+      ENDPOINT + `/${id}`,
+      {
+        method: "DELETE",
+      },
+      request,
+    ),
 };

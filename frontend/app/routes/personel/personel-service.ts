@@ -45,4 +45,8 @@ export const personelService = {
     const updatedRaw = await personelApi.update(id, dbPayload, request);
     return PersonelSchema.parse(updatedRaw);
   },
+
+  deletePersonel: async (id: number, request: Request): Promise<void> => {
+    await personelApi.delete(id, request);
+  },
 };

@@ -1,7 +1,9 @@
 import type { ColumnDef } from "@tanstack/react-table";
+import { useFetcher } from "react-router";
 import { AccountStatusBadge } from "~/components/Badge";
 import DeleteButton from "~/components/DeleteButton";
 import { SortableHeader } from "~/components/SortableHeader";
+import { useActionToast } from "~/hooks/useActionToast";
 import type { Personel } from "~/types/personel";
 import type { AccountStatus } from "~/types/status";
 
@@ -51,11 +53,20 @@ export const columns: ColumnDef<Personel>[] = [
     id: "actions",
     cell: ({ row }) => {
       const personel = row.original;
+      const fetcher = useFetcher();
+      useActionToast(fetcher.data);
       return (
         <DeleteButton
-          onConfirm={() => {}}
+          confirmDescription={`Czy na pewno chcesz usunąć ${personel.firstName} ${personel.surname}? Operacja jest nieodwracalna.`}
+          confirmTitle="Usuwanie Użytkownika"
+          onConfirm={() => {
+            fetcher.submit(null, {
+              method: "DELETE",
+              action: `/personel/${personel.id}/delete`,
+            });
+          }}
           size={"icon"}
-          onClick={() => console.log(personel.id)}
+          disabled={fetcher.state !== "idle"}
         />
       );
     },

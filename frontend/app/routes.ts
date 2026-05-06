@@ -19,6 +19,7 @@ export default [
       route("/personel", "routes/personel/personel.tsx"),
       route("/personel/create", "routes/personel/personel-create.tsx"),
       route("/personel/:id", "routes/personel/personel-edit.tsx"),
+      route("/personel/:id/delete", "routes/personel/personel-delete.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;
