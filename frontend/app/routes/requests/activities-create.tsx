@@ -3,17 +3,11 @@ import { Controller, useForm } from "react-hook-form";
 import { Form, useNavigate, useSubmit, useParams, useActionData, type ActionFunctionArgs, redirect } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import PageLayout from "~/layouts/PageLayout";
 import { MOCK_ACTIVITY_TYPES, MOCK_EXECUTORS } from "~/mocks/requests";
+import { SelectField } from "~/components/Select";
 import { NewActivityFormSchema, type NewActivityFormData } from "./schema";
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -65,54 +59,29 @@ export default function ActivityCreatePage() {
           <div className="flex flex-col gap-6">
             {/* Rząd z listami rozwijanymi (2 kolumny) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              
-              {/* Pole Typ */}
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="type">Typ</Label>
-                <Controller
-                  name="type"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="type" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz typ" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_ACTIVITY_TYPES.map((t) => (
-                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {actionData?.fieldErrors?.type && (
-                  <span className="text-xs text-destructive">{actionData.fieldErrors.type[0]}</span>
-                )}
-              </div>
+              <SelectField
+                name="type"
+                control={control}
+                label="Typ"
+                placeholder="Wybierz typ"
+                options={MOCK_ACTIVITY_TYPES.map((type) => ({
+                  id: type.id,
+                  label: type.name,
+                }))}
+                error={actionData?.fieldErrors?.type?.[0]}
+              />
 
-              {/* Pole Wykonawca */}
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="executor">Wykonawca</Label>
-                <Controller
-                  name="executor"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="executor" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz wykonawcę" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_EXECUTORS.map((e) => (
-                          <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {actionData?.fieldErrors?.executor && (
-                  <span className="text-xs text-destructive">{actionData.fieldErrors.executor[0]}</span>
-                )}
-              </div>
+              <SelectField
+                name="executor"
+                control={control}
+                label="Wykonawca"
+                placeholder="Wybierz wykonawcę"
+                options={MOCK_EXECUTORS.map((executor) => ({
+                  id: executor.id,
+                  label: executor.name,
+                }))}
+                error={actionData?.fieldErrors?.executor?.[0]}
+              />
             </div>
 
             {/* Pole Opis (Textarea) */}

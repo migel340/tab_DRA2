@@ -1,6 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { SortableHeader } from "~/components/SortableHeader";
-import { Progress } from "~/components/ui/progress";
+import { ProgressField } from "~/components/ProgressField";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
@@ -56,15 +56,7 @@ export const columns: ColumnDef<RequestItem>[] = [
   {
     accessorKey: "progress",
     header: ({ column }) => <SortableHeader label="Postęp" column={column} />,
-    cell: ({ getValue }) => {
-      const progress = getValue() as number;
-      return (
-        <div className="flex items-center gap-3 w-[120px]">
-          <span className="text-xs font-medium text-gray-600 w-8">{progress}%</span>
-          <Progress value={progress} className="h-2 w-[80px] bg-gray-100 [&>div]:bg-black" />
-        </div>
-      );
-    },
+    cell: ({ getValue }) => <ProgressField value={getValue() as number} />,
   },
   {
     accessorKey: "status",

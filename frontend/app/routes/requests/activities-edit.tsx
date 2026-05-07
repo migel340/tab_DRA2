@@ -3,17 +3,11 @@ import { Controller, useForm } from "react-hook-form";
 import { Form, useNavigate, useSubmit, useParams, useActionData, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
+import { RepairStatusSelect, SelectField } from "~/components/Select";
 import { MOCK_ACTIVITY_TYPES, MOCK_EXECUTORS, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
 import { EditActivityFormSchema, type EditActivityFormData } from "./schema";
 
@@ -101,77 +95,42 @@ export default function ActivityEditPage() {
             {/* Środkowy wiersz z Selectami (3 kolumny) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               
-              {/* Pole Typ */}
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="type">Typ</Label>
-                <Controller
-                  name="type"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="type" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz typ" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_ACTIVITY_TYPES.map((t) => (
-                          <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {actionData?.fieldErrors?.type && <span className="text-xs text-destructive">{actionData.fieldErrors.type[0]}</span>}
-              </div>
+              <SelectField
+                name="type"
+                control={control}
+                label="Typ"
+                placeholder="Wybierz typ"
+                options={MOCK_ACTIVITY_TYPES.map((type) => ({
+                  id: type.id,
+                  label: type.name,
+                }))}
+                error={actionData?.fieldErrors?.type?.[0]}
+              />
 
-              {/* Pole Wykonawca */}
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="executor">Wykonawca</Label>
-                <Controller
-                  name="executor"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="executor" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz wykonawcę" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_EXECUTORS.map((e) => (
-                          <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {actionData?.fieldErrors?.executor && <span className="text-xs text-destructive">{actionData.fieldErrors.executor[0]}</span>}
-              </div>
+              <SelectField
+                name="executor"
+                control={control}
+                label="Wykonawca"
+                placeholder="Wybierz wykonawcę"
+                options={MOCK_EXECUTORS.map((executor) => ({
+                  id: executor.id,
+                  label: executor.name,
+                }))}
+                error={actionData?.fieldErrors?.executor?.[0]}
+              />
 
-              {/* Pole Status */}
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Controller
-                  name="status"
-                  control={control}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="status" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_STATUSES.map((s) => (
-                          <SelectItem key={s.id} value={s.id}>
-                            {s.id === 'closed' ? (
-                              <span className="text-green-600 bg-green-50 px-2 py-0.5 rounded-md font-medium">{s.name}</span>
-                            ) : (
-                              s.name
-                            )}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                {actionData?.fieldErrors?.status && <span className="text-xs text-destructive">{actionData.fieldErrors.status[0]}</span>}
-              </div>
+              <Controller
+                name="status"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <RepairStatusSelect
+                    field={field}
+                    fieldState={fieldState}
+                    label="Status"
+                    showAllOption={false}
+                  />
+                )}
+              />
             </div>
 
             {/* Pola Textarea (Opis i Wynik) */}
