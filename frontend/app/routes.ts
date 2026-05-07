@@ -23,6 +23,8 @@ export default [
 
     layout("routes/client/layout.tsx", [
       route("/client", "routes/client/client.tsx"),
+      route("/client/create", "routes/client/client-create.tsx"),
+      route("/client/:id", "routes/client/client-edit.tsx"),
     ]),
   ]),
 ] satisfies RouteConfig;

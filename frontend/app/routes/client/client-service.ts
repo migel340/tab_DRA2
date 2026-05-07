@@ -1,6 +1,10 @@
 import { clientApi } from "./client-api";
 import { ClientSchema } from "~/types/client";
-import type { Client } from "~/types/client";
+import type {
+  Client,
+  ClientCreatePayload,
+  ClientUpdatePayload,
+} from "~/types/client";
 import {
   ClientResponseSchema,
   type ClientFilterParams,
@@ -25,5 +29,24 @@ export const clientService = {
     const result = await clientApi.getAll(params, request);
 
     return ClientResponseSchema.parse(result);
+  },
+
+  createClient: async (
+    data: ClientCreatePayload,
+    request: Request,
+  ): Promise<Client> => {
+    const createdRaw = await clientApi.create(data, request);
+    return ClientSchema.parse(createdRaw);
+  },
+
+  updateClient: async (
+    id: number,
+    data: ClientUpdatePayload,
+    request: Request,
+  ): Promise<Client> => {
+    const { id: _id, ...dbPayload } = data;
+
+    const updatedRaw = await clientApi.update(id, dbPayload, request);
+    return ClientSchema.parse(updatedRaw);
   },
 };

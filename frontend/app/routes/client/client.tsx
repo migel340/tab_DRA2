@@ -8,6 +8,8 @@ import { useNavigate } from "react-router";
 import { ClientFiltersForm } from "./client-filters-form";
 import { useTable } from "~/hooks/useTable";
 import { requireManager } from "~/lib/auth.server";
+import { Button } from "~/components/ui/button";
+import { Plus } from "lucide-react";
 
 export const handle = {
   breadcrumb: () => "Klienci",
@@ -39,7 +41,15 @@ export default function Client({ loaderData }: Route.ComponentProps) {
   });
 
   return (
-    <PageLayout title="Klienci">
+    <PageLayout
+      title="Klienci"
+      actions={
+        <Button variant={"secondary"} onClick={() => navigate("/client/create")}>
+          <Plus />
+          Dodaj klienta
+        </Button>
+      }
+    >
       <DataTable table={table} onRowClick={(id) => navigate(`/client/${id}`)}>
         <ClientFiltersForm initialValues={params} />
       </DataTable>
