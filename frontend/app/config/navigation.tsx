@@ -14,4 +14,10 @@ export const ALL_APP_LINKS: NavItem[] = [
     roles: ["ADMIN"],
     icon: <User />,
   },
+
+  {
+    to: "/client",
+    label: "Klienci",
+    roles: ["MANAGER"],
+  },
 ];

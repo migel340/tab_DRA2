@@ -1,0 +1,81 @@
+import type { ClientDB } from "~/types/client";
+
+export const MOCK_CLIENTS: ClientDB[] = [
+  {
+    id: 1,
+    idDevice: 101,
+    surname: "Kowalski",
+    firstName: "Jan",
+    secondName: "Adam",
+    tel: "123456789",
+    birthDate: new Date("1985-03-15"),
+  },
+  {
+    id: 2,
+    idDevice: 102,
+    surname: "Nowak",
+    firstName: "Maria",
+    secondName: undefined,
+    tel: "987654321",
+    birthDate: new Date("1990-07-22"),
+  },
+  {
+    id: 3,
+    idDevice: 103,
+    surname: "Lewandowski",
+    firstName: "Piotr",
+    secondName: "Krzysztof",
+    tel: "555666777",
+    birthDate: new Date("1988-11-08"),
+  },
+  {
+    id: 4,
+    idDevice: 104,
+    surname: "Wójcik",
+    firstName: "Anna",
+    secondName: undefined,
+    tel: "111222333",
+    birthDate: new Date("1992-05-30"),
+  },
+  {
+    id: 5,
+    idDevice: 105,
+    surname: "Zieliński",
+    firstName: "Tomasz",
+    secondName: "Marek",
+    tel: "444555666",
+    birthDate: new Date("1987-09-12"),
+  },
+];
+
+// Helper function to filter and paginate mock data
+export function filterMockClients(
+  query?: string,
+  limit: number = 10,
+  offset: number = 0,
+) {
+  let filtered = MOCK_CLIENTS;
+
+  if (query) {
+    const q = query.toLowerCase();
+    filtered = MOCK_CLIENTS.filter((client) => {
+      const fullName =
+        `${client.firstName} ${client.secondName || ""} ${client.surname}`.toLowerCase();
+      const tel = client.tel.toLowerCase();
+      return fullName.includes(q) || tel.includes(q);
+    });
+  }
+
+  const total = filtered.length;
+  const paginated = filtered.slice(offset, offset + limit);
+
+  return {
+    data: paginated,
+    meta: {
+      page: Math.floor(offset / limit) + 1,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      totalItems: total,
+    },
+  };
+}

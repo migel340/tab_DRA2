@@ -20,5 +20,9 @@ export default [
       route("/personel/create", "routes/personel/personel-create.tsx"),
       route("/personel/:id", "routes/personel/personel-edit.tsx"),
     ]),
+
+    layout("routes/client/layout.tsx", [
+      route("/client", "routes/client/client.tsx"),
+    ]),
   ]),
 ] satisfies RouteConfig;
