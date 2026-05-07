@@ -13,6 +13,12 @@ export default [
     index("routes/dashboard/DashboardGuard.tsx"),
     layout("layouts/RequestsLayout.tsx", [
       route("/requests", "routes/requests/requests.tsx"),
+      route("/requests/create", "routes/requests/requests-create.tsx"),
+      route("/requests/:id", "routes/requests/requests-edit.tsx"),
+      layout("routes/requests/layout.tsx", [
+        route("/requests/:id/activities/new", "routes/requests/activities-create.tsx"),
+        route("/requests/:id/activities/:activityId", "routes/requests/activities-edit.tsx"),
+      ]),
     ]),
 
     layout("routes/personel/layout.tsx", [

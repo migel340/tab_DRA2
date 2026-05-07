@@ -8,12 +8,12 @@ import type { AccountStatus } from "~/types/status";
 export const columns: ColumnDef<Personel>[] = [
   {
     id: "fullName",
-    header: () => <div className="w-full">Staff Member</div>,
+    header: () => <div className="w-full pl-6">Staff Member</div>,
     accessorFn: (row) => `${row.firstName} ${row.surname}`,
     cell: ({ row }) => {
       const { firstName, surname } = row.original;
       return (
-        <div className="font-medium">
+        <div className="font-medium pl-6">
           {firstName} {surname}
         </div>
       );
