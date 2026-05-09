@@ -1,31 +1,38 @@
-# Compiled class file
-*.class
-
-# Log file
-*.log
-
-# BlueJ files
-*.ctxt
-
-# Mobile Tools for Java (J2ME)
-.mtj.tmp/
-
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# ==================== OGÓLNE ====================
 .DS_Store
-.env
-/node_modules/
+Thumbs.db
+*.log
+*.swp
+*.swo
+*~
 
-/.react-router/
-/build/
-/.vite/deps
+# ==================== IDE ====================
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# ==================== BACKEND (dra2/) ====================
+# Maven
+dra2/target/
+dra2/.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+dra2/*.jar
+dra2/*.war
+
+# ==================== FRONTEND (frontend/) ====================
+# Node
+frontend/node_modules/
+frontend/.react-router/
+frontend/build/
+frontend/.cache/
+
+# Env
+frontend/.env
+frontend/.env.local
+frontend/.env.*.local
