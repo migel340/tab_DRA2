@@ -16,6 +16,30 @@ export type ClientFormValues =
   | ClientCreateFormData
   | Omit<ClientUpdateFormData, "id">;
 
+export function flattenClientFormValues(data: ClientFormValues) {
+  return {
+    ...data,
+    "address.city": data.address.city,
+    "address.state": data.address.state,
+    "address.postalCode": data.address.postalCode,
+    "address.country": data.address.country,
+  };
+}
+
+export function buildClientFormValuesFromFormData(formData: FormData) {
+  const object = Object.fromEntries(formData.entries());
+
+  return {
+    ...object,
+    address: {
+      city: String(object["address.city"] ?? ""),
+      state: String(object["address.state"] ?? ""),
+      postalCode: String(object["address.postalCode"] ?? ""),
+      country: String(object["address.country"] ?? ""),
+    },
+  };
+}
+
 interface ClientFormProps {
   initialValues?: Omit<ClientUpdateFormData, "id">;
   isEdit?: boolean;
@@ -40,12 +64,17 @@ export default function ClientForm({
   } = useForm<ClientFormValues>({
     resolver: zodResolver(schema),
     defaultValues: initialValues || {
-      idDevice: "",
       surname: "",
       firstName: "",
       secondName: "",
       tel: "",
       birthDate: "",
+      address: {
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "",
+      },
     },
     reValidateMode: "onBlur",
   });
@@ -114,21 +143,6 @@ export default function ClientForm({
 
         <FieldSet className="flex flex-col md:flex-row gap-5">
           <Controller
-            name="idDevice"
-            control={control}
-            render={({ field, fieldState }) => (
-              <InputField
-                label="ID urządzenia"
-                field={field}
-                fieldState={fieldState}
-                type="number"
-                min={1}
-                placeholder="101"
-              />
-            )}
-          />
-
-          <Controller
             name="birthDate"
             control={control}
             render={({ field, fieldState }) => (
@@ -140,10 +154,76 @@ export default function ClientForm({
               />
             )}
           />
+
+          <div className="hidden md:block flex-1" />
+        </FieldSet>
+      </Section>
+      <Section
+        headerName={"Adres"}
+        className="flex flex-col gap-5 border rounded-lg p-4"
+      >
+        <FieldSet className="flex flex-col md:flex-row gap-5">
+          <Controller
+            name="address.city"
+            control={control}
+            render={({ field, fieldState }) => (
+              <InputField
+                label="Miasto"
+                field={field}
+                fieldState={fieldState}
+                placeholder="Warszawa"
+                maxLength={20}
+              />
+            )}
+          />
+
+          <Controller
+            name="address.state"
+            control={control}
+            render={({ field, fieldState }) => (
+              <InputField
+                label="Województwo"
+                field={field}
+                fieldState={fieldState}
+                placeholder="Mazowieckie"
+                maxLength={20}
+              />
+            )}
+          />
+        </FieldSet>
+
+        <FieldSet className="flex flex-col md:flex-row gap-5">
+          <Controller
+            name="address.postalCode"
+            control={control}
+            render={({ field, fieldState }) => (
+              <InputField
+                label="Kod pocztowy"
+                field={field}
+                fieldState={fieldState}
+                placeholder="00-001"
+                maxLength={6}
+              />
+            )}
+          />
+
+          <Controller
+            name="address.country"
+            control={control}
+            render={({ field, fieldState }) => (
+              <InputField
+                label="Kraj"
+                field={field}
+                fieldState={fieldState}
+                placeholder="Polska"
+                maxLength={20}
+              />
+            )}
+          />
         </FieldSet>
       </Section>
 
-      <FieldSet className="flex items-center gap-3">
+      <FieldSet className="flex flex-row items-center gap-3">
         <Button type="submit" size="lg" disabled={isSubmitting}>
           {isEdit ? "Zapisz" : "Stwórz"}
         </Button>

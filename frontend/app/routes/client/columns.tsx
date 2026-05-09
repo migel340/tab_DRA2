@@ -21,9 +21,7 @@ export const columns: ColumnDef<Client>[] = [
 
   {
     accessorKey: "tel",
-    header: ({ column }) => (
-      <SortableHeader label="Telefon" column={column} />
-    ),
+    header: ({ column }) => <SortableHeader label="Telefon" column={column} />,
     cell: ({ getValue }) => (
       <span className="font-mono text-xs">{getValue() as string}</span>
     ),
@@ -41,9 +39,9 @@ export const columns: ColumnDef<Client>[] = [
   },
 
   {
-    accessorKey: "idDevice",
+    accessorKey: "deviceCount",
     header: ({ column }) => (
-      <SortableHeader label="ID urządzenia" column={column} />
+      <SortableHeader label="Liczba urządzeń" column={column} />
     ),
     cell: ({ getValue }) => getValue(),
   },

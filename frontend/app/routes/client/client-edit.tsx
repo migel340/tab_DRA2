@@ -3,6 +3,10 @@ import type { Route } from "./+types/client-edit";
 import z from "zod";
 import { clientService } from "./client-service";
 import ClientForm, { type ClientFormValues } from "./client-form";
+import {
+  buildClientFormValuesFromFormData,
+  flattenClientFormValues,
+} from "./client-form";
 import { useMemo } from "react";
 import { useSubmit } from "react-router";
 import {
@@ -43,7 +47,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const formData = await request.formData();
-  const object = Object.fromEntries(formData.entries());
+  const object = buildClientFormValuesFromFormData(formData);
 
   const parseResult = ClientUpdateApiSchema.safeParse({
     ...object,
@@ -77,18 +81,18 @@ export default function ClientEditPage({
 
   const initialValues = useMemo<Omit<ClientUpdateFormData, "id">>(
     () => ({
-      idDevice: String(client.idDevice),
       surname: client.surname,
       firstName: client.firstName,
       secondName: client.secondName ?? "",
       tel: client.tel,
       birthDate: client.birthDate.toISOString().split("T")[0],
+      address: client.address,
     }),
     [client],
   );
 
   const onSubmit = (data: ClientFormValues) => {
-    submit(data, {
+    submit(flattenClientFormValues(data), {
       method: "POST",
     });
   };

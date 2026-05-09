@@ -1,5 +1,9 @@
 import PageLayout from "~/layouts/PageLayout";
 import ClientForm, { type ClientFormValues } from "./client-form";
+import {
+  buildClientFormValuesFromFormData,
+  flattenClientFormValues,
+} from "./client-form";
 import { useEffect } from "react";
 import { useNavigate, useSubmit } from "react-router";
 import type { Route } from "./+types/client-create";
@@ -23,7 +27,7 @@ export async function action({ request }: Route.ActionArgs) {
   await requireManager(request);
 
   const formData = await request.formData();
-  const object = Object.fromEntries(formData.entries());
+  const object = buildClientFormValuesFromFormData(formData);
 
   const result = ClientCreateApiSchema.safeParse(object);
 
@@ -56,7 +60,7 @@ export default function ClientCreatePage({ actionData }: Route.ComponentProps) {
   }, [actionData, navigate]);
 
   const onSubmit = (data: ClientFormValues) => {
-    submit(data, {
+    submit(flattenClientFormValues(data), {
       method: "POST",
     });
   };

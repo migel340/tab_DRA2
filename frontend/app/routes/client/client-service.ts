@@ -6,7 +6,7 @@ import type {
   ClientUpdatePayload,
 } from "~/types/client";
 import {
-  ClientResponseSchema,
+  ClientResponseFromDbSchema,
   type ClientFilterParams,
   type ClientResponse,
 } from "./schema";
@@ -28,7 +28,7 @@ export const clientService = {
   ): Promise<ClientResponse> => {
     const result = await clientApi.getAll(params, request);
 
-    return ClientResponseSchema.parse(result);
+    return ClientResponseFromDbSchema.parse(result);
   },
 
   createClient: async (

@@ -12,7 +12,7 @@ import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 
 export const handle = {
-  breadcrumb: () => "Klienci",
+  breadcrumb: () => "Lista",
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -44,7 +44,10 @@ export default function Client({ loaderData }: Route.ComponentProps) {
     <PageLayout
       title="Klienci"
       actions={
-        <Button variant={"secondary"} onClick={() => navigate("/client/create")}>
+        <Button
+          variant={"secondary"}
+          onClick={() => navigate("/client/create")}
+        >
           <Plus />
           Dodaj klienta
         </Button>

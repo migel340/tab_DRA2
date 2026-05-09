@@ -1,6 +1,10 @@
 import { api } from "~/lib/api.server";
-import type { ClientDB } from "~/types/client";
-import type { ClientFilterParams, ClientResponse } from "./schema";
+import type {
+  ClientCreatePayload,
+  ClientDB,
+  ClientUpdatePayload,
+} from "~/types/client";
+import type { ClientDbResponse, ClientFilterParams } from "./schema";
 import { MOCK_CLIENTS, filterMockClients } from "~/mocks/client";
 
 const ENDPOINT = "/clients";
@@ -41,10 +45,10 @@ export const clientApi = {
       return {
         data: result.data,
         meta: meta,
-      } as ClientResponse;
+      } as ClientDbResponse;
     }
 
-    return api<ClientResponse>(
+    return api<ClientDbResponse>(
       ENDPOINT,
       {
         method: "GET",
@@ -54,20 +58,31 @@ export const clientApi = {
     );
   },
 
-  create: async (payload: Omit<ClientDB, "id">, request: Request) => {
+  create: async (payload: ClientCreatePayload, request: Request) => {
     if (USE_MOCK_DATA) {
       const nextId =
         MOCK_CLIENTS.length > 0
           ? Math.max(...MOCK_CLIENTS.map((client) => client.id)) + 1
           : 1;
 
-      const created: ClientDB = {
+      const { address } = payload;
+
+      const createdDb: ClientDB = {
         id: nextId,
-        ...payload,
+        surname: payload.surname,
+        firstName: payload.firstName,
+        secondName: payload.secondName,
+        tel: payload.tel,
+        birthDate: payload.birthDate,
+        city: address.city,
+        state: address.state,
+        postal_code: address.postalCode,
+        country: address.country,
+        device_count: 0,
       };
 
-      MOCK_CLIENTS.push(created);
-      return created;
+      MOCK_CLIENTS.push(createdDb);
+      return createdDb;
     }
 
     return api<ClientDB>(
@@ -77,7 +92,11 @@ export const clientApi = {
     );
   },
 
-  update: async (id: number, payload: Partial<ClientDB>, request: Request) => {
+  update: async (
+    id: number,
+    payload: Omit<ClientUpdatePayload, "id">,
+    request: Request,
+  ) => {
     if (USE_MOCK_DATA) {
       const existingIndex = MOCK_CLIENTS.findIndex(
         (client) => client.id === id,
@@ -87,9 +106,20 @@ export const clientApi = {
         throw new Error("Client not found");
       }
 
+      const current = MOCK_CLIENTS[existingIndex];
+      const { address } = payload;
+
       const updated: ClientDB = {
-        ...MOCK_CLIENTS[existingIndex],
-        ...payload,
+        ...current,
+        surname: payload.surname,
+        firstName: payload.firstName,
+        secondName: payload.secondName,
+        tel: payload.tel,
+        birthDate: payload.birthDate,
+        city: address.city,
+        state: address.state,
+        postal_code: address.postalCode,
+        country: address.country,
         id,
       };
 
