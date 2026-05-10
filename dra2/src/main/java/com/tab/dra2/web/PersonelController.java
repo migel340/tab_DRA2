@@ -4,6 +4,7 @@ import com.tab.dra2.dto.CreatePersonelRequest;
 import com.tab.dra2.dto.PersonelListResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
+import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.service.PersonelService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -25,41 +26,67 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RestController
 @RequestMapping({"/api/personnel", "/api/personels"})
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN')")
 @Validated
 public class PersonelController {
 
     private final PersonelService personelService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<PersonelListResponse> list(
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PersonelListResponse>> list(
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "page must be > 0") int page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit
     ) {
-        return ResponseEntity.ok(personelService.getList(q, orderBy, sort, page, limit));
+        PersonelListResponse data = personelService.getList(q, orderBy, sort, page, limit);
+        ApiResponse<PersonelListResponse> response = ApiResponse.<PersonelListResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
-    public ResponseEntity<PersonelResponse> getById(@PathVariable Long id) {
-        return ResponseEntity.ok(personelService.getById(id));
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PersonelResponse>> getById(@PathVariable Long id) {
+        PersonelResponse data = personelService.getById(id);
+        ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PersonelResponse> create(@Valid @RequestBody CreatePersonelRequest request) {
-        return ResponseEntity.ok(personelService.create(request));
+    public ResponseEntity<ApiResponse<PersonelResponse>> create(@Valid @RequestBody CreatePersonelRequest request) {
+        PersonelResponse data = personelService.create(request);
+        ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
+                .success(true)
+                .message("Created")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<PersonelResponse> update(@PathVariable Long id, @Valid @RequestBody UpdatePersonelRequest request) {
-        return ResponseEntity.ok(personelService.update(id, request));
-        
+    public ResponseEntity<ApiResponse<PersonelResponse>> update(@PathVariable Long id, @Valid @RequestBody UpdatePersonelRequest request) {
+        PersonelResponse data = personelService.update(id, request);
+        ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
 }

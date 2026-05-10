@@ -1,6 +1,7 @@
 package com.tab.dra2.web;
 
 import com.tab.dra2.dto.AuthResponse;
+import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.dto.LoginRequest;
 import com.tab.dra2.dto.RegisterRequest;
 import com.tab.dra2.service.AuthService;
@@ -21,13 +22,27 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse data = authService.login(request);
+        ApiResponse<AuthResponse> resp = ApiResponse.<AuthResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(resp);
     }
 
     @PostMapping("/register")
     @Operation(summary = "Register new member (default role: STAFF)")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@Valid @RequestBody RegisterRequest request) {
+        AuthResponse data = authService.register(request);
+        ApiResponse<AuthResponse> resp = ApiResponse.<AuthResponse>builder()
+                .success(true)
+                .message("Created")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(resp);
     }
 }
