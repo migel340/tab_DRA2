@@ -31,6 +31,7 @@ export default [
       route("/activities", "routes/activities/activities.tsx"),
       route("/activities/:id", "routes/activities/activities-edit.tsx"),
       route("/activities/request-details/:id", "routes/activities/activities-request-details.tsx"),
+      route("/activities/request/:id/activity/:activityId", "routes/activities/activities-request-activity.tsx"),
     ]),
   ])
 ] satisfies RouteConfig;

@@ -11,15 +11,6 @@ export const EditActivityFormSchema = z.object({
 
 export type EditActivityFormData = z.infer<typeof EditActivityFormSchema>;
 
-export const EditRequestFormSchema = z.object({
-  clientId: z.string().readonly(),
-  deviceId: z.string().readonly(),
-  status: z.string().readonly(),
-  description: z.string().readonly(),
-  result: z.string().optional().readonly(),
-});
-
-export type EditRequestFormData = z.infer<typeof EditRequestFormSchema>;
 
 export const EditPersonelActivityFormSchema = z.object({
   status: z.string().min(1, "Wybierz status"),

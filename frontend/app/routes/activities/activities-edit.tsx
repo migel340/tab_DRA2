@@ -7,7 +7,7 @@ import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
-import { RepairStatusSelect} from "~/components/Select";
+import { RepairStatusSelect } from "~/components/Select";
 import { MOCK_CLIENTS, MOCK_DEVICES, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
 import { EditPersonelActivityFormSchema, type EditPersonelActivityFormData } from "./schema";
 import {
@@ -21,7 +21,7 @@ import {
 
 export async function loader({ params }: LoaderFunctionArgs) {
   const { id } = params;
-  
+
   // TODO: Docelowo pobranie z API np. await activitiesService.getById(id)
   const activity = MOCK_ACTIVITIES.find(a => a.id.toString() === id);
   if (!activity) throw new Response("Not Found", { status: 404 });
@@ -33,20 +33,20 @@ export async function loader({ params }: LoaderFunctionArgs) {
     description: "Klient zgłasza brak reakcji na przycisk zasilania.",
     status: "W trakcie"
   };
-  
+
   return { activity, request };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
   const payload = await request.json();
   const parsed = EditPersonelActivityFormSchema.safeParse(payload);
-  
+
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
   }
 
   // TODO: wywołanie API np: await activitiesService.update(params.id, parsed.data)
-  
+
   return redirect(`/activities`);
 }
 
@@ -76,53 +76,45 @@ export default function PersonelActivityEditPage() {
   return (
     <PageLayout title="Edytuj aktywność">
       <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-        
+
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-            <h2 className="text-lg font-semibold mb-2 text-gray-900">Zgłoszenie</h2>
-            <Separator className="mb-6" />
+          <h2 className="text-lg font-semibold mb-2 text-gray-900">Zgłoszenie</h2>
+          <Separator className="mb-6" />
 
-            <div className="flex flex-col gap-6">
-              {/* Rząd 1: Grid 3 kolumny */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Klient */}
-                <div className="flex flex-col gap-2">
-                  <Label>Klient</Label>
-                  <Input disabled value={`#${request.client}`} className="bg-gray-100 text-gray-500 font-medium" />
-                </div>
-
-                {/* Urządzenie */}
-                <div className="flex flex-col gap-2">
-                  <Label>Urządzenie</Label>
-                  <Input disabled value={`#${request.device}`} className="bg-gray-100 text-gray-500 font-medium" />
-                </div>
-
-                {/* Status */}
-                <div className="flex flex-col gap-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Controller name="status" control={control} render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="status" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_STATUSES.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
-                      </SelectContent>
-                    </Select>
-                  )} />
-                </div>
+          <div className="flex flex-col gap-6">
+            {/* Rząd 1: Grid 3 kolumny */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Klient */}
+              <div className="flex flex-col gap-2">
+                <Label>Klient</Label>
+                <Input disabled value={`${request.client}`} className="bg-gray-100 text-gray-500 font-medium" />
               </div>
 
-              {/* Rząd 2 i 3: Opis i Rezultat */}
+              {/* Urządzenie */}
               <div className="flex flex-col gap-2">
-                <Label>Opis</Label>
-                <Textarea id="description" disabled value={request.description} className="bg-gray-100 text-gray-500 min-h-[100px]" />
+                <Label>Urządzenie</Label>
+                <Input disabled value={`${request.device}`} className="bg-gray-100 text-gray-500 font-medium" />
+              </div>
+
+              {/* Status */}
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="status">Status</Label>
+                <Input disabled value={`${request.status}`} className="bg-gray-100 text-gray-500 font-medium" />
+              </div>
+            </div>
+
+            {/* Rząd 2 i 3: Opis i Rezultat */}
+            <div className="flex flex-col gap-2">
+              <Label>Opis</Label>
+              <Textarea id="description" disabled value={request.description} className="bg-gray-100 text-gray-500 min-h-[100px]" />
+            </div>
+            {/* Przyciski Akcji Formularza */}
+            <div className="flex items-center gap-3">
+              <Button type="button" className="bg-black text-white hover:bg-gray-800" onClick={() => navigate(`/activities/request-details/${request.id}`)}>Zobacz</Button>
             </div>
           </div>
 
-          {/* Przyciski Akcji Formularza */}
-          <div className="flex items-center gap-3">
-            <Button type="button" className="bg-black text-white hover:bg-gray-800" onClick={() => navigate(`/activities/request-details/${request.id}`)}>Zobacz</Button>
-          </div>
+
 
         </div>
         {/* Informacje o aktywności */}
@@ -131,12 +123,12 @@ export default function PersonelActivityEditPage() {
           <Separator className="mb-6" />
 
           <div className="flex flex-col gap-6">
-            
+
             {/* Górny wiersz (Read-only) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Numer Sekwencji</Label>
-                <Input disabled value={`#${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input disabled value={`${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Utworzono</Label>
@@ -152,7 +144,7 @@ export default function PersonelActivityEditPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Typ</Label>
-                <Input disabled value={`#${activity.type}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input disabled value={`${activity.type}`} className="bg-gray-100 text-gray-500 font-medium" />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Wykonawca</Label>
@@ -197,10 +189,10 @@ export default function PersonelActivityEditPage() {
           <Button type="submit" className="bg-black text-white hover:bg-gray-800">
             Zapisz
           </Button>
-          <Button 
-            type="button" 
-            variant="secondary" 
-            className="bg-gray-100 text-black hover:bg-gray-200" 
+          <Button
+            type="button"
+            variant="secondary"
+            className="bg-gray-100 text-black hover:bg-gray-200"
             onClick={() => navigate(`/activities`)}
           >
             Anuluj
