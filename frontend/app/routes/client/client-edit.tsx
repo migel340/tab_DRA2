@@ -8,13 +8,21 @@ import {
   flattenClientFormValues,
 } from "./client-form";
 import { useMemo } from "react";
-import { useSubmit } from "react-router";
+import { useNavigate, useSubmit } from "react-router";
 import {
   ClientUpdateApiSchema,
   type ClientUpdateFormData,
 } from "~/types/client";
 import { useActionToast } from "~/hooks/useActionToast";
 import { requireManager } from "~/lib/auth.server";
+import { deviceService } from "~/routes/device/device-service";
+import { DeviceFilterSchema } from "~/types/device";
+import { DataTable } from "~/components/DataTable";
+import { columns } from "~/routes/device/columns";
+import { useTable } from "~/hooks/useTable";
+import { Button } from "~/components/ui/button";
+import { Plus } from "lucide-react";
+import Section from "~/components/Section";
 
 export const handle = {
   breadcrumb: () => "edycja",
@@ -34,7 +42,17 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  return { client };
+  const url = new URL(request.url);
+  const rawParams = Object.fromEntries(url.searchParams);
+  const deviceParams = DeviceFilterSchema.parse(rawParams);
+
+  const deviceList = await deviceService.fetchDeviceList(
+    request,
+    parsedId.data,
+    deviceParams,
+  );
+
+  return { client, deviceList };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -63,7 +81,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   try {
     await clientService.updateClient(parsedId.data, parseResult.data, request);
-
     return { success: true };
   } catch {
     return { message: "Błąd serwera podczas aktualizacji", success: false };
@@ -74,8 +91,9 @@ export default function ClientEditPage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { client } = loaderData;
+  const { client, deviceList } = loaderData;
   const submit = useSubmit();
+  const navigate = useNavigate();
 
   useActionToast(actionData);
 
@@ -92,18 +110,42 @@ export default function ClientEditPage({
   );
 
   const onSubmit = (data: ClientFormValues) => {
-    submit(flattenClientFormValues(data), {
-      method: "POST",
-    });
+    submit(flattenClientFormValues(data), { method: "POST" });
   };
+
+  const { table } = useTable({
+    data: deviceList.data,
+    columns,
+    params: deviceList.meta,
+    pageCount: deviceList.meta.totalPages,
+  });
 
   return (
     <PageLayout title="Edycja klienta">
-      <ClientForm
-        onSubmit={onSubmit}
-        initialValues={initialValues}
-        isEdit={true}
-      />
+      <div className="flex flex-col gap-5">
+        <ClientForm
+          onSubmit={onSubmit}
+          initialValues={initialValues}
+          isEdit={true}
+        />
+
+        <Section headerName="Urządzenia">
+          <div className="flex justify-end mb-3">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => navigate(`/client/${client.id}/devices/create`)}
+            >
+              <Plus />
+              Dodaj urządzenie
+            </Button>
+          </div>
+          <DataTable
+            table={table}
+            onRowClick={(id) => navigate(`/client/${client.id}/devices/${id}`)}
+          />
+        </Section>
+      </div>
     </PageLayout>
   );
 }

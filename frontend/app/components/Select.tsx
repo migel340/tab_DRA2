@@ -1,4 +1,9 @@
 import { AccountStatusSchema, RepairStatusSchema } from "~/types/status";
+import {
+  DeviceTypeSchema,
+  DEVICE_TYPE_LABELS,
+  type DeviceType,
+} from "~/types/device";
 import { BaseField } from "./BaseField";
 import {
   Select,
@@ -115,6 +120,24 @@ export function PersonelRoleSelect<T extends FieldValues, N extends Path<T>>(
       options={personelRoleOptions}
       placeholder="Wybierz role"
       renderItem={(r) => <span className="capitalize">{r}</span>}
+    />
+  );
+}
+
+const deviceTypeOptions = DeviceTypeSchema.options;
+
+export function DeviceTypeSelect<T extends FieldValues, N extends Path<T>>(
+  props: Omit<BaseSelectProps<T, N, string>, "options" | "renderItem">,
+) {
+  return (
+    <BaseSelect
+      {...props}
+      label="Typ"
+      placeholder="Wybierz typ"
+      options={deviceTypeOptions}
+      renderItem={(type) => (
+        <span>{DEVICE_TYPE_LABELS[type as DeviceType]}</span>
+      )}
     />
   );
 }

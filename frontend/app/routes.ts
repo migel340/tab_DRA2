@@ -25,6 +25,17 @@ export default [
       route("/client", "routes/client/client.tsx"),
       route("/client/create", "routes/client/client-create.tsx"),
       route("/client/:id", "routes/client/client-edit.tsx"),
+
+      layout("routes/device/layout.tsx", [
+        route(
+          "/client/:clientId/devices/create",
+          "routes/device/device-create.tsx",
+        ),
+        route(
+          "/client/:clientId/devices/:deviceId",
+          "routes/device/device-edit.tsx",
+        ),
+      ]),
     ]),
   ]),
 ] satisfies RouteConfig;
