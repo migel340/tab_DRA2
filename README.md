@@ -62,7 +62,7 @@ npm run dev
 | ------- | -------------------------- |
 | ADMIN   | Pełen dostęp do systemu    |
 | MANAGER | Zarządzanie zgłoszeniami   |
-| STAFF   | Obsługa przypisanych zadań |
+| PERSONEL| Obsługa przypisanych zadań |
 
 ## Wymagania
 

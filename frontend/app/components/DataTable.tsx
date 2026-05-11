@@ -12,10 +12,10 @@ import { flexRender, type Table as TableType } from "@tanstack/react-table";
 interface DataTableProps<TData> {
   table: TableType<TData>;
   children?: ReactNode;
-  onRowClick?: (objectId: number) => void;
+  onRowClick?: (objectId: number | string) => void;
 }
 
-export function DataTable<TData extends { id: number }>({
+export function DataTable<TData extends { id: number | string }>({
   table,
   children,
   onRowClick,

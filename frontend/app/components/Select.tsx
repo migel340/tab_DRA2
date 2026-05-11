@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { Controller, type Control, type ControllerRenderProps, type ControllerFieldState, type FieldValues, type Path } from "react-hook-form";
 import { AccountStatusSchema, RepairStatusSchema } from "~/types/status";
 import { BaseField } from "./BaseField";
 import {
@@ -7,14 +9,67 @@ import {
   SelectValue,
   SelectItem,
 } from "./ui/select";
-import type {
-  ControllerRenderProps,
-  ControllerFieldState,
-  FieldValues,
-  Path,
-} from "react-hook-form";
 import { AccountStatusBadge, RepairStatusBadge } from "./Badge";
 import { PersonelRoleSchema } from "~/types/personel";
+
+export interface SelectFieldOption {
+  id: string;
+  label: ReactNode;
+}
+
+interface SelectFieldProps<
+  TFieldValues extends FieldValues,
+  TName extends Path<TFieldValues>,
+> {
+  name: TName;
+  control: Control<TFieldValues>;
+  label?: string;
+  placeholder?: string;
+  options: readonly SelectFieldOption[];
+  showAllOption?: boolean;
+  error?: string;
+}
+
+export function SelectField<
+  TFieldValues extends FieldValues,
+  TName extends Path<TFieldValues>,
+>({
+  name,
+  control,
+  label,
+  placeholder = "Wybierz...",
+  options,
+  showAllOption = false,
+  error,
+}: SelectFieldProps<TFieldValues, TName>) {
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field, fieldState }) => (
+        <BaseField
+          label={label}
+          htmlFor={field.name}
+          error={error ?? fieldState.error?.message}
+        >
+          <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+            <SelectTrigger id={field.name} className="bg-gray-50/50">
+              <SelectValue placeholder={placeholder} />
+            </SelectTrigger>
+            <SelectContent>
+              {showAllOption && <SelectItem value="all">Wszystkie</SelectItem>}
+              {options.map((option) => (
+                <SelectItem key={option.id} value={option.id}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </BaseField>
+      )}
+    />
+  );
+}
 
 interface BaseSelectProps<
   TFieldValues extends FieldValues,
