@@ -1,24 +1,20 @@
 import PageLayout from "~/layouts/PageLayout";
 import { DataTable } from "~/components/DataTable";
 import { columns } from "./columns";
+import type { Route } from "./+types/requests";
 import { requestsService } from "./requests-service";
 import { RequestsFilterSchema } from "./schema";
 import { useNavigate } from "react-router";
 import { RequestsFiltersForm } from "./requests-filters-form";
 import { Button } from "~/components/ui/button";
-import { Link } from "react-router";
-import type { Route } from "./+types/requests";
-import { requireManager } from "~/lib/auth.server";
-import { useTable } from "~/hooks/useTable";
 import { Plus } from "lucide-react";
+import { useTable } from "~/hooks/useTable";
 
 export const handle = {
   breadcrumb: () => "lista",
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
-  await requireManager(request);
-
   const url = new URL(request.url);
   const params = RequestsFilterSchema.parse(
     Object.fromEntries(url.searchParams),
