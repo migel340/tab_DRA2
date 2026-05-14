@@ -2,7 +2,7 @@ import { api } from "~/lib/api.server";
 import type { PersonelDB } from "~/types/personel";
 import type { PersonelFilterParams, PersonelResponse } from "./schema";
 
-const ENDPOINT = "/api/personels";
+const ENDPOINT = "/personels";
 
 export const personelApi = {
   getOne: async (request: Request, id: number) => {
