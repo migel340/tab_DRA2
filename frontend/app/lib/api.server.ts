@@ -5,6 +5,7 @@ import {
   ApiErrorBodySchema,
   type ApiErrorBody,
   type ApiRequestOptions,
+  type ApiResponse,
 } from "~/types/api";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "";
@@ -19,7 +20,9 @@ function getApiErrorMessage(status: number, body?: ApiErrorBody): string {
   return DEFAULT_ERROR_MESSAGE;
 }
 
-async function safeParseJson(response: Response): Promise<unknown | undefined> {
+async function safeParseJson<T>(
+  response: Response,
+): Promise<unknown | undefined> {
   try {
     return await response.json();
   } catch {
@@ -60,7 +63,7 @@ export async function api<T>(
   const raw = await safeParseJson(response);
 
   if (!response.ok) {
-    const parsedBody = ApiErrorBodySchema.safeParse(raw);
+    const parsedBody = ApiErrorBodySchema.safeParse(raw ?? {});
     const body = parsedBody.success ? parsedBody.data : undefined;
 
     if (response.status === 401 && request) {
@@ -72,6 +75,23 @@ export async function api<T>(
       response.status,
       body?.errors,
     );
+  }
+
+  if (!raw) {
+    throw new ApiError(DEFAULT_ERROR_MESSAGE, response.status);
+  }
+
+  const apiResp = raw as ApiResponse<T>;
+
+  if (typeof apiResp.success === "boolean") {
+    if (!apiResp.success) {
+      throw new ApiError(
+        apiResp.message ?? DEFAULT_ERROR_MESSAGE,
+        response.status,
+      );
+    }
+
+    return apiResp.data as T;
   }
 
   return raw as T;

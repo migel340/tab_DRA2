@@ -51,3 +51,11 @@ export const createPaginatedResponseSchema = <T extends ZodType>(
     meta: BasePaginatedMetaSchema,
   });
 };
+
+export type ApiResponse<T> = {
+  data: T;
+  errors?: string;
+  message: string;
+  success: boolean;
+  timestamp: string;
+};
