@@ -1,9 +1,11 @@
 import { Form, useSubmit } from "react-router";
 import { PersonelFilterSchema, type PersonelFilterParams } from "./schema";
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import SearchBar from "~/components/SearchBar";
+import { InputGroupButton } from "~/components/ui/input-group";
+import { X } from "lucide-react";
 
 export function PersonelFiltersForm({
   initialValues,
@@ -12,24 +14,29 @@ export function PersonelFiltersForm({
 }) {
   const submit = useSubmit();
 
-  const { watch, handleSubmit, control, register } = useForm({
+  const { handleSubmit, control, register, setValue } = useForm({
     resolver: zodResolver(PersonelFilterSchema),
     defaultValues: initialValues,
   });
 
+  const searchQuery = useWatch({ control, name: "q" });
+
   function onSubmit(data: PersonelFilterParams) {
     submit(data, { replace: true });
   }
-
   useEffect(() => {
-    const { unsubscribe } = watch(() => {
+    if (searchQuery?.trim() === "") {
       handleSubmit(onSubmit)();
-    });
-    return () => unsubscribe();
-  }, [watch, handleSubmit]);
+    }
+  }, [searchQuery, handleSubmit]);
 
   return (
-    <Form method="get" action="/personel" id="filter-form">
+    <Form
+      method="get"
+      action="/personel"
+      id="filter-form"
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <Controller
         name="q"
         control={control}
