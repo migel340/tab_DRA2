@@ -4,9 +4,10 @@ import java.sql.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -26,14 +27,12 @@ import jakarta.persistence.ManyToOne;
 public class Client {
     
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_client")
-    @NotBlank
-    private int id;
-
+    private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "id_device", insertable = false, updatable = false)
+    @JoinColumn(name = "id_device")
     private Device device;
 
     @Column(name = "surname", length = 20)
@@ -52,10 +51,9 @@ public class Client {
     private String phoneNumber;
 
     @Column(name = "birth_date")
-    @NotBlank
     private Date birthDate;
 
     @ManyToOne
-    @JoinColumn(name = "id_address", insertable = false, updatable = false) 
+    @JoinColumn(name = "id_address")
     private Address address;
 }

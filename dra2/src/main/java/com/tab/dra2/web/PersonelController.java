@@ -1,0 +1,92 @@
+package com.tab.dra2.web;
+
+import com.tab.dra2.dto.CreatePersonelRequest;
+import com.tab.dra2.dto.PersonelListResponse;
+import com.tab.dra2.dto.PersonelResponse;
+import com.tab.dra2.dto.UpdatePersonelRequest;
+import com.tab.dra2.dto.ApiResponse;
+import com.tab.dra2.service.PersonelService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
+
+
+@RestController
+@RequestMapping({"/api/personnel", "/api/personels"})
+@RequiredArgsConstructor
+@Validated
+public class PersonelController {
+
+    private final PersonelService personelService;
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PersonelListResponse>> list(
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "id") String orderBy,
+            @RequestParam(defaultValue = "ASC") String sort,
+            @RequestParam(defaultValue = "1") @Min(value = 1, message = "page must be > 0") int page,
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit
+    ) {
+        PersonelListResponse data = personelService.getList(q, orderBy, sort, page, limit);
+        ApiResponse<PersonelListResponse> response = ApiResponse.<PersonelListResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PersonelResponse>> getById(@PathVariable Long id) {
+        PersonelResponse data = personelService.getById(id);
+        ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PersonelResponse>> create(@Valid @RequestBody CreatePersonelRequest request) {
+        PersonelResponse data = personelService.create(request);
+        ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
+                .success(true)
+                .message("Created")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(response);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<PersonelResponse>> update(@PathVariable Long id, @Valid @RequestBody UpdatePersonelRequest request) {
+        PersonelResponse data = personelService.update(id, request);
+        ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+}

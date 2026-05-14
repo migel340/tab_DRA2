@@ -1,6 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table";
 import { AccountStatusBadge } from "~/components/Badge";
-import DeleteButton from "~/components/DeleteButton";
 import { SortableHeader } from "~/components/SortableHeader";
 import type { Personel } from "~/types/personel";
 import type { AccountStatus } from "~/types/status";
@@ -44,19 +43,6 @@ export const columns: ColumnDef<Personel>[] = [
         <div className="flex items-center">
           <AccountStatusBadge status={status} />
         </div>
-      );
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => {
-      const personel = row.original;
-      return (
-        <DeleteButton
-          onConfirm={() => {}}
-          size={"icon"}
-          onClick={() => console.log(personel.id)}
-        />
       );
     },
   },

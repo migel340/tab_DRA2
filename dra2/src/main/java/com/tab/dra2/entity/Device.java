@@ -5,6 +5,7 @@ import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -22,14 +23,12 @@ import jakarta.persistence.ManyToOne;
 public class Device {
     
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_device")
-    @NotBlank
-    private int id;
+    private Integer id;
 
-    @NotBlank
     @ManyToOne
-    @JoinColumn(name = "id_device_type", insertable = false, updatable = false)
+    @JoinColumn(name = "id_device_type")
     private DeviceType deviceType;
     
     @Column(name = "device_name", length = 100, nullable = false)

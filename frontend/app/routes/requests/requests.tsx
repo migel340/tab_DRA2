@@ -7,7 +7,9 @@ import { RequestsFilterSchema } from "./schema";
 import { useNavigate } from "react-router";
 import { RequestsFiltersForm } from "./requests-filters-form";
 import { Button } from "~/components/ui/button";
-import { Plus } from "lucide-react";
+import { Link, Plus } from "react-router";
+import type { Route } from "./+types/requests";
+import { requireManager } from "~/lib/auth.server";
 import { useTable } from "~/hooks/useTable";
 
 export const handle = {
@@ -15,6 +17,8 @@ export const handle = {
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireManager(request);
+
   const url = new URL(request.url);
   const params = RequestsFilterSchema.parse(Object.fromEntries(url.searchParams));
   const requestsList = await requestsService.fetchRequestsList(params);

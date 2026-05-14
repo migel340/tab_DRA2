@@ -7,7 +7,7 @@ import {
 
 export default [
   route("/login", "routes/auth/login.tsx"),
-  route("/register", "routes/auth/register.tsx"),
+  route("/logout", "routes/auth/logout.tsx"),
 
   layout("layouts/DashboardLayout.tsx", { id: "_root" }, [
     index("routes/dashboard/DashboardGuard.tsx"),

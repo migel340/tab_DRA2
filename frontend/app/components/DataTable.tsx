@@ -8,6 +8,7 @@ import {
   Table,
 } from "./ui/table";
 import { flexRender, type Table as TableType } from "@tanstack/react-table";
+import { DataTablePagination } from "./DataTablePagination";
 
 interface DataTableProps<TData> {
   table: TableType<TData>;
@@ -52,7 +53,8 @@ export function DataTable<TData extends { id: number | string }>({
                   if (
                     target.closest("button") ||
                     target.closest("[role='dialog']") ||
-                    target.closest("[data-slot='alert-action']")
+                    target.closest("[data-slot='alert-action']") ||
+                    target.closest("[data-slot='alert-dialog-overlay']")
                   ) {
                     return;
                   }
@@ -80,6 +82,7 @@ export function DataTable<TData extends { id: number | string }>({
           )}
         </TableBody>
       </Table>
+      <DataTablePagination table={table} />
     </div>
   );
 }

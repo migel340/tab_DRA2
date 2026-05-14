@@ -2,7 +2,7 @@ import z from "zod";
 import { passwordSchema } from "~/lib/schema";
 import { AccountStatusSchema, type AccountStatus } from "~/types/status";
 
-export const PersonelRoleSchema = z.enum(["WORKER", "MANAGER"]);
+export const PersonelRoleSchema = z.enum(["STAFF", "MANAGER"]);
 export type PersonelRole = z.infer<typeof PersonelRoleSchema>;
 
 export const PersonelDbSchema = z.object({
