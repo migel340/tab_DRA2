@@ -13,11 +13,11 @@ export default function DashboardLayout({ loaderData }: Route.ComponentProps) {
   const { user } = loaderData;
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-dvh overflow-hidden">
       <aside className="w-64 shrink-0 border-r border-border">
         <Sidebar user={user} />
       </aside>
-      <main className="flex-1 overflow-auto my-3 mx-8">
+      <main className="min-h-0 flex-1 overflow-auto overscroll-contain py-3 mx-8">
         <Outlet context={{ user }} />
       </main>
     </div>

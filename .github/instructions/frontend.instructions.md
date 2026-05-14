@@ -19,6 +19,7 @@ applyTo: frontend/app/**/*.{ts,tsx}
 - Route modules should keep default exports for page components; preserve local export style in existing component files (do not churn between named/default unless refactor requires it).
 - Align styling with existing modules: use tokens from `app.css` and `cn()` composition patterns.
 - Keep auth and role-driven navigation behavior consistent with existing helpers/modules (`lib/auth.ts` and `config/navigation.tsx`).
+- **When adding a new route:** (1) Create a `layout.tsx` file in the route folder with `handle.breadcrumb` export, (2) Wrap the route in `routes.ts` using `layout("routes/[featureName]/layout.tsx", [...routes...])`, (3) Add corresponding entry to `config/navigation.tsx` in `ALL_APP_LINKS` array with `to` (path), `label` (display name), `roles` (array of allowed roles), and optionally `icon` (lucide-react). This ensures breadcrumbs, layout context, and sidebar navigation work correctly.
 
 ## Avoid
 

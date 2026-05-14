@@ -19,11 +19,13 @@ Process / Workflow
 - Create a Zod schema for inputs and export a type via `z.infer`.
 - Use `useForm({ resolver: zodResolver(schema) })` and derive TS type from schema.
 - Use `Controller` for composed/custom fields (Select, Combobox).
-- Disable submit button while `formState.isSubmitting` to avoid duplicate posts.
+- Disable submit button while `formState.isSubmitting` to avoid duplicate posts: `<button disabled={formState.isSubmitting}>Submit</button>`.
 - On submit use `useSubmit` or the framework `<Form>` to send data to the route action.
-- Map server `fieldErrors` into `setError(name, { message })` for each field.
+- **Server Error Mapping (Two Patterns):**
+  - **(A) Field-level `setError` mapping (Recommended):** Read `actionData.errors` from route action, flatten nested errors, and call `setError(fieldName, { message })` for each field. Centralize this logic in a small helper used across forms.
+  - **(B) Bulk notification with `useActionToast` (Current Codebase Pattern):** Use `useActionToast()` hook to show bulk toast notifications for server errors. See `personel-form.tsx` for implementation.
+- Access `actionData` from the route action using `const actionData = useActionData<typeof action>();` to read validation errors or success payloads.
 - Flatten nested server errors into single-level `fieldErrors` before mapping.
-- Centralize server->client error mapping in a small helper used across forms.
 - Ensure accessible labels, error messaging, and focus on first error.
 
 Validation checklist
@@ -33,8 +35,9 @@ Validation checklist
 - `zodResolver` configured on `useForm`.
 - `Controller` used for composed fields.
 - Submit disabled during `isSubmitting`.
-- Server errors flattened and set via `setError`.
+- Server errors read via `useActionData()` and mapped into form state (either via field-level `setError` or bulk `useActionToast` notification).
 - Form uses `useSubmit` or framework form wrapper for route submissions.
+- Action payload types are explicitly imported (e.g., `import { action } from './personel-create'`) to enable `useActionData<typeof action>()` typing.
 
 Connected skills
 

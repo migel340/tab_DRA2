@@ -27,7 +27,6 @@ export async function requireRole(
 ): Promise<AuthResponse> {
   const user = await requireUser(request);
   if (!allowedRoles.includes(user.role)) {
-    console.log("fsdafasd");
     throw new Response("Forbidden", { status: 403 });
   }
   return user;
@@ -38,7 +37,7 @@ export async function requireAdmin(request: Request): Promise<AuthResponse> {
 }
 
 export async function requireManager(request: Request): Promise<AuthResponse> {
-  return requireRole(request, ["MANAGER"]);
+  return requireRole(request, ["MANAGER", "ADMIN"]);
 }
 
 export async function createUserSession(user: AuthResponse, redirectTo = "/") {
