@@ -13,6 +13,12 @@ export default [
     index("routes/dashboard/DashboardGuard.tsx"),
     layout("layouts/RequestsLayout.tsx", [
       route("/requests", "routes/requests/requests.tsx"),
+      route("/requests/create", "routes/requests/requests-create.tsx"),
+      route("/requests/:id", "routes/requests/requests-edit.tsx"),
+      layout("routes/requests/layout.tsx", [
+        route("/requests/:id/activities/new", "routes/requests/activities-create.tsx"),
+        route("/requests/:id/activities/:activityId", "routes/requests/activities-edit.tsx"),
+      ]),
     ]),
 
     layout("routes/personel/layout.tsx", [
@@ -20,5 +26,12 @@ export default [
       route("/personel/create", "routes/personel/personel-create.tsx"),
       route("/personel/:id", "routes/personel/personel-edit.tsx"),
     ]),
-  ]),
+
+    layout("layouts/ActivitiesLayout.tsx", [
+      route("/activities", "routes/activities/activities.tsx"),
+      route("/activities/:id", "routes/activities/activities-edit.tsx"),
+      route("/activities/request-details/:id", "routes/activities/activities-request-details.tsx"),
+      route("/activities/request/:id/activity/:activityId", "routes/activities/activities-request-activity.tsx"),
+    ]),
+  ])
 ] satisfies RouteConfig;
