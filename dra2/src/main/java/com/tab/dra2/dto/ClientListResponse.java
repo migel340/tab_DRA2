@@ -20,6 +20,5 @@ public class ClientListResponse {
         private int totalPages;
         private String orderBy;
         private String sort;
-        private String q;
     }
 }

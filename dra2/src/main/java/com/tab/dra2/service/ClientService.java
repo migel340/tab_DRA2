@@ -1,7 +1,7 @@
 package com.tab.dra2.service;
 
-import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.ClientListResponse;
+import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.CreateClientDto;
 import com.tab.dra2.entity.Address;
 import com.tab.dra2.entity.Client;
@@ -17,11 +17,25 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class ClientService {
+    private static final int MIN_PAGE = 1;
+    private static final int MIN_LIMIT = 1;
+    private static final int MAX_LIMIT = 100;
+    private static final String DEFAULT_ORDER_BY = "id";
+    private static final Set<String> ORDER_BY_FIELDS = Set.of(
+            "id",
+            "firstName",
+            "secondName",
+            "surname",
+            "phoneNumber",
+            "birthDate"
+    );
 
     private final ClientRepository clientRepository;
     private final DeviceRepository deviceRepository;
@@ -48,22 +62,62 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ClientListResponse list(int page, int limit, String orderBy, String sort) {
-        Sort.Direction direction = Sort.Direction.fromString(sort == null ? "ASC" : sort);
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(direction, orderBy == null ? "id" : orderBy));
+        int resolvedPage = resolvePage(page);
+        int resolvedLimit = resolveLimit(limit);
+        String resolvedOrderBy = resolveOrderBy(orderBy);
+        Sort.Direction direction = resolveSortDirection(sort);
+        Pageable pageable = PageRequest.of(resolvedPage - 1, resolvedLimit, Sort.by(direction, resolvedOrderBy));
         Page<ClientResponse> pageData = clientRepository.findAll(pageable).map(this::toResponse);
-        
+
         return ClientListResponse.builder()
                 .data(pageData.getContent())
                 .meta(ClientListResponse.Meta.builder()
-                        .page(page)
-                        .limit(limit)
-                        .orderBy(orderBy == null ? "id" : orderBy)
-                        .sort(sort == null ? "asc" : sort.toLowerCase())
+                        .page(resolvedPage)
+                        .limit(resolvedLimit)
+                        .orderBy(resolvedOrderBy)
+                        .sort(direction.name())
                         .totalItems(pageData.getTotalElements())
                         .totalPages(pageData.getTotalPages())
-                        .q(null)
                         .build())
                 .build();
+    }
+
+    private int resolvePage(int page) {
+        if (page < MIN_PAGE) {
+            throw new IllegalArgumentException("Invalid page value. Allowed: page >= 1");
+        }
+        return page;
+    }
+
+    private int resolveLimit(int limit) {
+        if (limit < MIN_LIMIT || limit > MAX_LIMIT) {
+            throw new IllegalArgumentException("Invalid limit value. Allowed: 1..100");
+        }
+        return limit;
+    }
+
+    private String resolveOrderBy(String orderBy) {
+        if (orderBy == null || orderBy.isBlank()) {
+            return DEFAULT_ORDER_BY;
+        }
+
+        String resolvedOrderBy = orderBy.trim();
+        if (!ORDER_BY_FIELDS.contains(resolvedOrderBy)) {
+            throw new IllegalArgumentException("Invalid orderBy value. Allowed: " + ORDER_BY_FIELDS);
+        }
+        return resolvedOrderBy;
+    }
+
+    private Sort.Direction resolveSortDirection(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.Direction.ASC;
+        }
+
+        try {
+            return Sort.Direction.valueOf(sort.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid sort value. Allowed: ASC or DESC");
+        }
     }
 
     @Transactional(readOnly = true)
