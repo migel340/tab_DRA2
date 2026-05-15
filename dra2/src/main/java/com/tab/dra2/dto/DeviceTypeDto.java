@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder
+@Builder // ???
 public class DeviceTypeDto {
     private int id;
     private String deviceTypeName;

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/device-types")
 @RequiredArgsConstructor
+
 @Tag(name = "Device Types")
 public class DeviceTypeController {
 

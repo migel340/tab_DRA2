@@ -4,11 +4,12 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
-
+import lombok.RequiredArgsConstructor;
+import java.beans.JavaBean;
 import java.sql.Date;
 
 @Data
-@Builder
+//@RequiredArgsConstructor
 public class CreateClientDto {
     @NotNull
     private Integer deviceId;
