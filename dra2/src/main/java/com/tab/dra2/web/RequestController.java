@@ -3,11 +3,11 @@ package com.tab.dra2.web;
 import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.dto.CreateRequestDto;
 import com.tab.dra2.dto.RequestResponse;
+import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.service.RequestService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,14 +36,14 @@ public class RequestController {
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<Page<RequestResponse>>> list(
+    public ResponseEntity<ApiResponse<ListResponse<RequestResponse>>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort
     ) {
-        Page<RequestResponse> data = requestService.list(page, limit, orderBy, sort);
-        ApiResponse<Page<RequestResponse>> resp = ApiResponse.<Page<RequestResponse>>builder()
+        ListResponse<RequestResponse> data = requestService.list(page, limit, orderBy, sort);
+        ApiResponse<ListResponse<RequestResponse>> resp = ApiResponse.<ListResponse<RequestResponse>>builder()
                 .success(true)
                 .message("OK")
                 .data(data)

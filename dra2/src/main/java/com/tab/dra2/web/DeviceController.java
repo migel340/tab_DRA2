@@ -3,11 +3,11 @@ package com.tab.dra2.web;
 import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.dto.CreateDeviceDto;
 import com.tab.dra2.dto.DeviceResponse;
+import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.service.DeviceService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,14 +36,14 @@ public class DeviceController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('MANAGER','ADMIN')")
-    public ResponseEntity<ApiResponse<Page<DeviceResponse>>> list(
+    public ResponseEntity<ApiResponse<ListResponse<DeviceResponse>>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort
     ) {
-        Page<DeviceResponse> data = deviceService.list(page, limit, orderBy, sort);
-        ApiResponse<Page<DeviceResponse>> resp = ApiResponse.<Page<DeviceResponse>>builder()
+        ListResponse<DeviceResponse> data = deviceService.list(page, limit, orderBy, sort);
+        ApiResponse<ListResponse<DeviceResponse>> resp = ApiResponse.<ListResponse<DeviceResponse>>builder()
                 .success(true)
                 .message("OK")
                 .data(data)

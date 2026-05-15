@@ -37,6 +37,7 @@ public class Personel {
     private String password;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @OneToMany(mappedBy = "manager")

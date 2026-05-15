@@ -1,7 +1,7 @@
 package com.tab.dra2.web;
 
 import com.tab.dra2.dto.CreatePersonelRequest;
-import com.tab.dra2.dto.PersonelListResponse;
+import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
 import com.tab.dra2.dto.ApiResponse;
@@ -33,15 +33,15 @@ public class PersonelController {
 
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<PersonelListResponse>> list(
+    public ResponseEntity<ApiResponse<ListResponse<PersonelResponse>>> list(
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "page must be > 0") int page,
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit
     ) {
-        PersonelListResponse data = personelService.getList(q, orderBy, sort, page, limit);
-        ApiResponse<PersonelListResponse> response = ApiResponse.<PersonelListResponse>builder()
+        ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit);
+        ApiResponse<ListResponse<PersonelResponse>> response = ApiResponse.<ListResponse<PersonelResponse>>builder()
                 .success(true)
                 .message("OK")
                 .data(data)

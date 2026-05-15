@@ -1,9 +1,12 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ActivityTypeDto;
+import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.ActivityType;
 import com.tab.dra2.enums.ActivityName;
 import com.tab.dra2.repository.ActivityTypeRepository;
+import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -12,11 +15,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class ActivityTypeService {
+    
+    private static final List<String> ORDER_BY_FIELDS = List.of("id", "actType");
 
     private final ActivityTypeRepository activityTypeRepository;
 
@@ -29,10 +35,26 @@ public class ActivityTypeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ActivityTypeDto> list(int page, int limit, String orderBy, String sort) {
-        Sort.Direction direction = Sort.Direction.fromString(sort == null ? "ASC" : sort);
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(direction, orderBy == null ? "id" : orderBy));
-        return activityTypeRepository.findAll(pageable).map(this::toResponse);
+    public ListResponse<ActivityTypeDto> list(int page, int limit, String orderBy, String sort) {
+        int validatedPage = PaginationValidator.validatePage(page);
+        int validatedLimit = PaginationValidator.validateLimit(limit);
+        String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
+        Sort.Direction direction = PaginationValidator.validateSort(sort);
+        
+        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
+        Page<ActivityTypeDto> pageData = activityTypeRepository.findAll(pageable).map(this::toResponse);
+        
+        return ListResponse.<ActivityTypeDto>builder()
+                .data(pageData.getContent())
+                .meta(ListResponseMeta.builder()
+                        .page(validatedPage)
+                        .limit(validatedLimit)
+                        .orderBy(validatedOrderBy)
+                        .sort(direction.name().toLowerCase())
+                        .totalItems(pageData.getTotalElements())
+                        .totalPages(pageData.getTotalPages())
+                        .build())
+                .build();
     }
 
     @Transactional(readOnly = true)

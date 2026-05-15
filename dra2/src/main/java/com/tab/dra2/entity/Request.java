@@ -3,7 +3,6 @@ package com.tab.dra2.entity;
 import java.sql.Date;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.util.List;
 import jakarta.persistence.OneToMany;
