@@ -1,6 +1,7 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ClientResponse;
+import com.tab.dra2.dto.ClientListResponse;
 import com.tab.dra2.dto.CreateClientDto;
 import com.tab.dra2.entity.Address;
 import com.tab.dra2.entity.Client;
@@ -46,10 +47,23 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public Page<ClientResponse> list(int page, int limit, String orderBy, String sort) {
+    public ClientListResponse list(int page, int limit, String orderBy, String sort) {
         Sort.Direction direction = Sort.Direction.fromString(sort == null ? "ASC" : sort);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(direction, orderBy == null ? "id" : orderBy));
-        return clientRepository.findAll(pageable).map(this::toResponse);
+        Page<ClientResponse> pageData = clientRepository.findAll(pageable).map(this::toResponse);
+        
+        return ClientListResponse.builder()
+                .data(pageData.getContent())
+                .meta(ClientListResponse.Meta.builder()
+                        .page(page)
+                        .limit(limit)
+                        .orderBy(orderBy == null ? "id" : orderBy)
+                        .sort(sort == null ? "asc" : sort.toLowerCase())
+                        .totalItems(pageData.getTotalElements())
+                        .totalPages(pageData.getTotalPages())
+                        .q(null)
+                        .build())
+                .build();
     }
 
     @Transactional(readOnly = true)

@@ -1,13 +1,13 @@
 package com.tab.dra2.web;
 
 import com.tab.dra2.dto.ApiResponse;
+import com.tab.dra2.dto.ClientListResponse;
 import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.CreateClientDto;
 import com.tab.dra2.service.ClientService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,14 +35,14 @@ public class ClientController {
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<Page<ClientResponse>>> list(
+    public ResponseEntity<ApiResponse<ClientListResponse>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort
     ) {
-        Page<ClientResponse> data = clientService.list(page, limit, orderBy, sort);
-        return ResponseEntity.ok(ApiResponse.<Page<ClientResponse>>builder()
+        ClientListResponse data = clientService.list(page, limit, orderBy, sort);
+        return ResponseEntity.ok(ApiResponse.<ClientListResponse>builder()
                 .success(true)
                 .message("OK")
                 .data(data)
