@@ -9,7 +9,7 @@ import { MOCK_DEVICES, filterMockDevices } from "~/mocks/device";
 
 const ENDPOINT = "/devices";
 
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 export const deviceApi = {
   getOne: async (request: Request, id: number) => {
