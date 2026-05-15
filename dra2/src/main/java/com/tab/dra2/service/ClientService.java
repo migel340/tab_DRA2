@@ -10,6 +10,7 @@ import com.tab.dra2.entity.Device;
 import com.tab.dra2.repository.AddressRepository;
 import com.tab.dra2.repository.ClientRepository;
 import com.tab.dra2.repository.DeviceRepository;
+import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,10 +26,6 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class ClientService {
-    private static final int MIN_PAGE = 1;
-    private static final int MIN_LIMIT = 1;
-    private static final int MAX_LIMIT = 100;
-    private static final String DEFAULT_ORDER_BY = "id";
     private static final List<String> ORDER_BY_FIELDS = List.of(
             "id",
             "firstName",
@@ -37,7 +34,6 @@ public class ClientService {
             "phoneNumber",
             "birthDate"
     );
-    private static final String ORDER_BY_FIELDS_MESSAGE = String.join(", ", ORDER_BY_FIELDS);
 
     private final ClientRepository clientRepository;
     private final DeviceRepository deviceRepository;
@@ -64,62 +60,25 @@ public class ClientService {
 
     @Transactional(readOnly = true)
     public ListResponse<ClientResponse> list(int page, int limit, String orderBy, String sort) {
-        int resolvedPage = resolvePage(page);
-        int resolvedLimit = resolveLimit(limit);
-        String resolvedOrderBy = resolveOrderBy(orderBy);
-        Sort.Direction direction = resolveSortDirection(sort);
-        Pageable pageable = PageRequest.of(resolvedPage - 1, resolvedLimit, Sort.by(direction, resolvedOrderBy));
+        int validatedPage = PaginationValidator.validatePage(page);
+        int validatedLimit = PaginationValidator.validateLimit(limit);
+        String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
+        Sort.Direction direction = PaginationValidator.validateSort(sort);
+        
+        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<ClientResponse> pageData = clientRepository.findAll(pageable).map(this::toResponse);
 
         return ListResponse.<ClientResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
-                        .page(resolvedPage)
-                        .limit(resolvedLimit)
-                        .orderBy(resolvedOrderBy)
-                        .sort(direction.name().toLowerCase(Locale.ROOT))
+                        .page(validatedPage)
+                        .limit(validatedLimit)
+                        .orderBy(validatedOrderBy)
+                        .sort(direction.name().toLowerCase())
                         .totalItems(pageData.getTotalElements())
                         .totalPages(pageData.getTotalPages())
                         .build())
                 .build();
-    }
-
-    private int resolvePage(int page) {
-        if (page < MIN_PAGE) {
-            throw new IllegalArgumentException("Invalid page value. Allowed: page >= 1");
-        }
-        return page;
-    }
-
-    private int resolveLimit(int limit) {
-        if (limit < MIN_LIMIT || limit > MAX_LIMIT) {
-            throw new IllegalArgumentException("Invalid limit value. Allowed: 1..100");
-        }
-        return limit;
-    }
-
-    private String resolveOrderBy(String orderBy) {
-        if (orderBy == null || orderBy.isBlank()) {
-            return DEFAULT_ORDER_BY;
-        }
-
-        String resolvedOrderBy = orderBy.trim();
-        if (!ORDER_BY_FIELDS.contains(resolvedOrderBy)) {
-            throw new IllegalArgumentException("Invalid orderBy value. Allowed fields: " + ORDER_BY_FIELDS_MESSAGE);
-        }
-        return resolvedOrderBy;
-    }
-
-    private Sort.Direction resolveSortDirection(String sort) {
-        if (sort == null || sort.isBlank()) {
-            return Sort.Direction.ASC;
-        }
-
-        try {
-            return Sort.Direction.valueOf(sort.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid sort value. Allowed: asc, desc (case-insensitive)");
-        }
     }
 
     @Transactional(readOnly = true)

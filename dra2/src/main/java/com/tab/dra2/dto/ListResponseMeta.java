@@ -1,5 +1,6 @@
 package com.tab.dra2.dto;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,5 +13,6 @@ public class ListResponseMeta {
     private int totalPages;
     private String orderBy;
     private String sort;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String q;
 }

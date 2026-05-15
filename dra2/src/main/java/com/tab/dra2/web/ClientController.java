@@ -39,7 +39,7 @@ public class ClientController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "asc") String sort
+            @RequestParam(defaultValue = "ASC") String sort
     ) {
         ListResponse<ClientResponse> data = clientService.list(page, limit, orderBy, sort);
         return ResponseEntity.ok(ApiResponse.<ListResponse<ClientResponse>>builder()

@@ -8,6 +8,7 @@ import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.DeviceType;
 import com.tab.dra2.repository.DeviceRepository;
 import com.tab.dra2.repository.DeviceTypeRepository;
+import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -16,11 +17,14 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class DeviceService {
+    
+    private static final List<String> ORDER_BY_FIELDS = List.of("id", "deviceName", "deviceTypeId");
 
     private final DeviceRepository deviceRepository;
     private final DeviceTypeRepository deviceTypeRepository;
@@ -40,17 +44,21 @@ public class DeviceService {
 
     @Transactional(readOnly = true)
     public ListResponse<DeviceResponse> list(int page, int limit, String orderBy, String sort) {
-        Sort.Direction dir = Sort.Direction.fromString(sort == null ? "ASC" : sort);
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(dir, orderBy == null ? "id" : orderBy));
+        int validatedPage = PaginationValidator.validatePage(page);
+        int validatedLimit = PaginationValidator.validateLimit(limit);
+        String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
+        Sort.Direction direction = PaginationValidator.validateSort(sort);
+        
+        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<DeviceResponse> pageData = deviceRepository.findAll(pageable).map(this::toResponse);
         
         return ListResponse.<DeviceResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
-                        .page(Math.max(1, page))
-                        .limit(limit)
-                        .orderBy(orderBy == null ? "id" : orderBy)
-                        .sort(dir.name().toLowerCase())
+                        .page(validatedPage)
+                        .limit(validatedLimit)
+                        .orderBy(validatedOrderBy)
+                        .sort(direction.name().toLowerCase())
                         .totalItems(pageData.getTotalElements())
                         .totalPages(pageData.getTotalPages())
                         .build())

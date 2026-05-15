@@ -10,6 +10,7 @@ import com.tab.dra2.entity.Request;
 import com.tab.dra2.repository.DeviceRepository;
 import com.tab.dra2.repository.PersonelRepository;
 import com.tab.dra2.repository.RequestRepository;
+import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -33,6 +35,8 @@ public class RequestService {
     private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
     private static final String STATUS_FINISHED = "FINISHED";
     private static final String STATUS_CANCELLED = "CANCELLED";
+    private static final List<String> ORDER_BY_FIELDS = List.of("id", "status", "dateRegistered", "description");
+    
     private final RequestRepository requestRepository;
     private final DeviceRepository deviceRepository;
     private final PersonelRepository personelRepository;
@@ -62,17 +66,21 @@ public class RequestService {
 
     @Transactional(readOnly = true)
     public ListResponse<RequestResponse> list(int page, int limit, String orderBy, String sort) {
-        Sort.Direction dir = Sort.Direction.fromString(sort == null ? "ASC" : sort);
-        Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(dir, orderBy == null ? "id" : orderBy));
+        int validatedPage = PaginationValidator.validatePage(page);
+        int validatedLimit = PaginationValidator.validateLimit(limit);
+        String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
+        Sort.Direction direction = PaginationValidator.validateSort(sort);
+        
+        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
         
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
-                        .page(Math.max(1, page))
-                        .limit(limit)
-                        .orderBy(orderBy == null ? "id" : orderBy)
-                        .sort(dir.name().toLowerCase())
+                        .page(validatedPage)
+                        .limit(validatedLimit)
+                        .orderBy(validatedOrderBy)
+                        .sort(direction.name().toLowerCase())
                         .totalItems(pageData.getTotalElements())
                         .totalPages(pageData.getTotalPages())
                         .build())
