@@ -75,7 +75,7 @@ public class ClientService {
                         .page(resolvedPage)
                         .limit(resolvedLimit)
                         .orderBy(resolvedOrderBy)
-                        .sort(direction.name())
+                        .sort(direction.name().toLowerCase(Locale.ROOT))
                         .totalItems(pageData.getTotalElements())
                         .totalPages(pageData.getTotalPages())
                         .build())
