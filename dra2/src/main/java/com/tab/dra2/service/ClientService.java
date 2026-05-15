@@ -17,9 +17,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class ClientService {
     private static final int MIN_LIMIT = 1;
     private static final int MAX_LIMIT = 100;
     private static final String DEFAULT_ORDER_BY = "id";
-    private static final Set<String> ORDER_BY_FIELDS = Set.of(
+    private static final List<String> ORDER_BY_FIELDS = List.of(
             "id",
             "firstName",
             "secondName",
@@ -36,6 +36,7 @@ public class ClientService {
             "phoneNumber",
             "birthDate"
     );
+    private static final String ORDER_BY_FIELDS_MESSAGE = String.join(", ", ORDER_BY_FIELDS);
 
     private final ClientRepository clientRepository;
     private final DeviceRepository deviceRepository;
@@ -103,7 +104,7 @@ public class ClientService {
 
         String resolvedOrderBy = orderBy.trim();
         if (!ORDER_BY_FIELDS.contains(resolvedOrderBy)) {
-            throw new IllegalArgumentException("Invalid orderBy value. Allowed: " + ORDER_BY_FIELDS);
+            throw new IllegalArgumentException("Invalid orderBy value. Allowed fields: " + ORDER_BY_FIELDS_MESSAGE);
         }
         return resolvedOrderBy;
     }
@@ -116,7 +117,7 @@ public class ClientService {
         try {
             return Sort.Direction.valueOf(sort.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Invalid sort value. Allowed: ASC or DESC");
+            throw new IllegalArgumentException("Invalid sort value. Allowed: asc, desc (case-insensitive)");
         }
     }
 
