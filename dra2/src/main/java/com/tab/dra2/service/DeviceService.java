@@ -2,6 +2,8 @@ package com.tab.dra2.service;
 
 import com.tab.dra2.dto.CreateDeviceDto;
 import com.tab.dra2.dto.DeviceResponse;
+import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.DeviceType;
 import com.tab.dra2.repository.DeviceRepository;
@@ -37,10 +39,22 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public Page<DeviceResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<DeviceResponse> list(int page, int limit, String orderBy, String sort) {
         Sort.Direction dir = Sort.Direction.fromString(sort == null ? "ASC" : sort);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(dir, orderBy == null ? "id" : orderBy));
-        return deviceRepository.findAll(pageable).map(this::toResponse);
+        Page<DeviceResponse> pageData = deviceRepository.findAll(pageable).map(this::toResponse);
+        
+        return ListResponse.<DeviceResponse>builder()
+                .data(pageData.getContent())
+                .meta(ListResponseMeta.builder()
+                        .page(Math.max(1, page))
+                        .limit(limit)
+                        .orderBy(orderBy == null ? "id" : orderBy)
+                        .sort(dir.name().toLowerCase())
+                        .totalItems(pageData.getTotalElements())
+                        .totalPages(pageData.getTotalPages())
+                        .build())
+                .build();
     }
 
     @Transactional(readOnly = true)

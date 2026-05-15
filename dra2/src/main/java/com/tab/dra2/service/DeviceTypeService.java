@@ -1,6 +1,8 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.DeviceTypeDto;
+import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.DeviceType;
 import com.tab.dra2.repository.DeviceTypeRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +29,22 @@ public class DeviceTypeService {
     }
 
     @Transactional(readOnly = true)
-    public Page<DeviceTypeDto> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<DeviceTypeDto> list(int page, int limit, String orderBy, String sort) {
         Sort.Direction direction = Sort.Direction.fromString(sort == null ? "ASC" : sort);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(direction, orderBy == null ? "id" : orderBy));
-        return deviceTypeRepository.findAll(pageable).map(this::toResponse);
+        Page<DeviceTypeDto> pageData = deviceTypeRepository.findAll(pageable).map(this::toResponse);
+        
+        return ListResponse.<DeviceTypeDto>builder()
+                .data(pageData.getContent())
+                .meta(ListResponseMeta.builder()
+                        .page(Math.max(1, page))
+                        .limit(limit)
+                        .orderBy(orderBy == null ? "id" : orderBy)
+                        .sort(direction.name().toLowerCase())
+                        .totalItems(pageData.getTotalElements())
+                        .totalPages(pageData.getTotalPages())
+                        .build())
+                .build();
     }
 
     @Transactional(readOnly = true)

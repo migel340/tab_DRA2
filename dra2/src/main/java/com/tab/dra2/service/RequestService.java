@@ -1,6 +1,8 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.CreateRequestDto;
+import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.dto.RequestResponse;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.Personel;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -60,10 +61,22 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public Page<RequestResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<RequestResponse> list(int page, int limit, String orderBy, String sort) {
         Sort.Direction dir = Sort.Direction.fromString(sort == null ? "ASC" : sort);
         Pageable pageable = PageRequest.of(Math.max(0, page - 1), limit, Sort.by(dir, orderBy == null ? "id" : orderBy));
-        return requestRepository.findAll(pageable).map(this::toResponse);
+        Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
+        
+        return ListResponse.<RequestResponse>builder()
+                .data(pageData.getContent())
+                .meta(ListResponseMeta.builder()
+                        .page(Math.max(1, page))
+                        .limit(limit)
+                        .orderBy(orderBy == null ? "id" : orderBy)
+                        .sort(dir.name().toLowerCase())
+                        .totalItems(pageData.getTotalElements())
+                        .totalPages(pageData.getTotalPages())
+                        .build())
+                .build();
     }
 
     @Transactional(readOnly = true)

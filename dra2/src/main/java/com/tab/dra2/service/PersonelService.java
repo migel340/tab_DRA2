@@ -1,9 +1,10 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.CreatePersonelRequest;
-import com.tab.dra2.dto.PersonelListResponse;
+import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.Personel;
 import com.tab.dra2.enums.Role;
 import com.tab.dra2.repository.PersonelRepository;
@@ -37,16 +38,16 @@ public class PersonelService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public PersonelListResponse getList(String q, String orderBy, String sort, int page, int limit) {
+    public ListResponse<PersonelResponse> getList(String q, String orderBy, String sort, int page, int limit) {
         String normalizedOrderBy = resolveOrderBy(orderBy);
         Sort.Direction direction = resolveSortDirection(sort);
 
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(direction, normalizedOrderBy));
         Page<Personel> result = personelRepository.findAll(buildListSpecification(q), pageable);
 
-        return PersonelListResponse.builder()
+        return ListResponse.<PersonelResponse>builder()
                 .data(result.getContent().stream().map(this::toResponse).toList())
-                .meta(PersonelListResponse.Meta.builder()
+                .meta(ListResponseMeta.builder()
                         .page(page)
                         .limit(limit)
                         .totalItems(result.getTotalElements())

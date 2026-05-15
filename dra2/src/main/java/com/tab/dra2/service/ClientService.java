@@ -1,8 +1,9 @@
 package com.tab.dra2.service;
 
-import com.tab.dra2.dto.ClientListResponse;
+import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.CreateClientDto;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.Address;
 import com.tab.dra2.entity.Client;
 import com.tab.dra2.entity.Device;
@@ -62,7 +63,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public ClientListResponse list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<ClientResponse> list(int page, int limit, String orderBy, String sort) {
         int resolvedPage = resolvePage(page);
         int resolvedLimit = resolveLimit(limit);
         String resolvedOrderBy = resolveOrderBy(orderBy);
@@ -70,9 +71,9 @@ public class ClientService {
         Pageable pageable = PageRequest.of(resolvedPage - 1, resolvedLimit, Sort.by(direction, resolvedOrderBy));
         Page<ClientResponse> pageData = clientRepository.findAll(pageable).map(this::toResponse);
 
-        return ClientListResponse.builder()
+        return ListResponse.<ClientResponse>builder()
                 .data(pageData.getContent())
-                .meta(ClientListResponse.Meta.builder()
+                .meta(ListResponseMeta.builder()
                         .page(resolvedPage)
                         .limit(resolvedLimit)
                         .orderBy(resolvedOrderBy)
