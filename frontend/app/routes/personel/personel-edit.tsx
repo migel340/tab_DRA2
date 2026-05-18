@@ -68,7 +68,6 @@ export async function action({ request, params }: Route.ActionArgs) {
 
     return { success: true };
   } catch (error) {
-    console.log(error);
     return { message: "Błąd serwera podczas aktualizacji", success: false };
   }
 }

@@ -26,7 +26,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     : ClientFilterSchema.parse({});
 
   const clientList = await clientService.fetchClientList(request, params);
-  console.log(clientList);
   return { clientList, params };
 }
 

@@ -34,7 +34,6 @@ export const columns: ColumnDef<Client>[] = [
     ),
     cell: ({ getValue }) => {
       const date = getValue() as Date;
-      console.log(date);
       return new Date(date).toLocaleDateString("pl-PL");
     },
   },
