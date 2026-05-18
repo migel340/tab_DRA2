@@ -1,0 +1,10 @@
+info:
+  name: device
+  type: folder
+  seq: 7
+
+request:
+  auth: inherit
+  variables:
+    - name: path
+      value: devices

@@ -4,8 +4,8 @@ import lombok.Builder;
 import lombok.Data;
 
 @Data
-@Builder // ???
-public class DeviceTypeDto {
+@Builder
+public class DeviceTypeResponseDto {
     private int id;
     private String deviceTypeName;
 }

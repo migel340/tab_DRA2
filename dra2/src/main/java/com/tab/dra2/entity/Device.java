@@ -16,11 +16,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Device {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_device")
@@ -29,7 +30,7 @@ public class Device {
     @ManyToOne
     @JoinColumn(name = "id_device_type")
     private DeviceType deviceType;
-    
+
     @Column(name = "device_name", length = 100, nullable = false)
     private String deviceName;
 
