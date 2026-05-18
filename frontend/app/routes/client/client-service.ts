@@ -1,5 +1,5 @@
 import { clientApi } from "./client-api";
-import { ClientSchema } from "~/types/client";
+import { ClientDetailParser } from "~/types/client";
 import type {
   Client,
   ClientCreatePayload,
@@ -19,7 +19,7 @@ export const clientService = {
     const raw = await clientApi.getOne(request, id);
     if (!raw) return undefined;
 
-    return ClientSchema.parse(raw);
+    return ClientDetailParser.parse(raw);
   },
 
   fetchClientList: async (
@@ -27,7 +27,6 @@ export const clientService = {
     params: ClientFilterParams,
   ): Promise<ClientResponse> => {
     const result = await clientApi.getAll(params, request);
-
     return ClientResponseFromDbSchema.parse(result);
   },
 
@@ -36,7 +35,7 @@ export const clientService = {
     request: Request,
   ): Promise<Client> => {
     const createdRaw = await clientApi.create(data, request);
-    return ClientSchema.parse(createdRaw);
+    return ClientDetailParser.parse(createdRaw);
   },
 
   updateClient: async (
@@ -47,6 +46,6 @@ export const clientService = {
     const { id: _id, ...dbPayload } = data;
 
     const updatedRaw = await clientApi.update(id, dbPayload, request);
-    return ClientSchema.parse(updatedRaw);
+    return ClientDetailParser.parse(updatedRaw);
   },
 };

@@ -1,16 +1,16 @@
 import { api } from "~/lib/api.server";
 import type {
   ClientCreatePayload,
-  ClientDB,
+  ClientDetailDB,
   ClientUpdatePayload,
 } from "~/types/client";
-import type { ClientDbResponse, ClientFilterParams } from "./schema";
+import type { ClientResponse, ClientFilterParams } from "./schema";
 import { MOCK_CLIENTS, filterMockClients } from "~/mocks/client";
 
 const ENDPOINT = "/clients";
 
 // Toggle mock data: set to false when backend API is ready
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 export const clientApi = {
   getOne: async (request: Request, id: number) => {
@@ -19,7 +19,7 @@ export const clientApi = {
       return client || null;
     }
 
-    return api<ClientDB>(
+    return api<ClientDetailDB>(
       ENDPOINT + `/${id}`,
       {
         method: "GET",
@@ -45,10 +45,13 @@ export const clientApi = {
       return {
         data: result.data,
         meta: meta,
-      } as ClientDbResponse;
+      };
     }
 
-    return api<ClientDbResponse>(
+    return api<{
+      data: ClientDetailDB[];
+      meta: any;
+    }>(
       ENDPOINT,
       {
         method: "GET",
@@ -67,17 +70,20 @@ export const clientApi = {
 
       const { address } = payload;
 
-      const createdDb: ClientDB = {
+      const createdDb: ClientDetailDB = {
         id: nextId,
         surname: payload.surname,
         firstName: payload.firstName,
         secondName: payload.secondName,
-        tel: payload.tel,
+        phoneNumber: payload.phoneNumber,
         birthDate: payload.birthDate,
+        address: address,
+        addressId: 1,
         city: address.city,
         state: address.state,
         postal_code: address.postalCode,
         country: address.country,
+        deviceId: 0,
         device_count: 0,
       };
 
@@ -85,7 +91,7 @@ export const clientApi = {
       return createdDb;
     }
 
-    return api<ClientDB>(
+    return api<ClientDetailDB>(
       ENDPOINT,
       { method: "POST", body: JSON.stringify(payload) },
       request,
@@ -109,13 +115,14 @@ export const clientApi = {
       const current = MOCK_CLIENTS[existingIndex];
       const { address } = payload;
 
-      const updated: ClientDB = {
+      const updated: ClientDetailDB = {
         ...current,
         surname: payload.surname,
         firstName: payload.firstName,
         secondName: payload.secondName,
-        tel: payload.tel,
+        phoneNumber: payload.phoneNumber,
         birthDate: payload.birthDate,
+        address: address,
         city: address.city,
         state: address.state,
         postal_code: address.postalCode,
@@ -127,7 +134,7 @@ export const clientApi = {
       return updated;
     }
 
-    return api<ClientDB>(
+    return api<ClientDetailDB>(
       ENDPOINT + `/${id}`,
       {
         method: "PUT",

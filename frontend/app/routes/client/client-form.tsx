@@ -67,7 +67,7 @@ export default function ClientForm({
       surname: "",
       firstName: "",
       secondName: "",
-      tel: "",
+      phoneNumber: "",
       birthDate: "",
       address: {
         city: "",
@@ -128,7 +128,7 @@ export default function ClientForm({
           />
 
           <Controller
-            name="tel"
+            name="phoneNumber"
             control={control}
             render={({ field, fieldState }) => (
               <InputField
@@ -158,10 +158,8 @@ export default function ClientForm({
           <div className="hidden md:block flex-1" />
         </FieldSet>
       </Section>
-      <Section
-        headerName={"Adres"}
-        className="flex flex-col gap-5 border rounded-lg p-4"
-      >
+
+      <Section headerName={"Adres"} className="flex flex-col gap-5">
         <FieldSet className="flex flex-col md:flex-row gap-5">
           <Controller
             name="address.city"

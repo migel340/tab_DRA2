@@ -102,9 +102,14 @@ export default function ClientEditPage({
       surname: client.surname,
       firstName: client.firstName,
       secondName: client.secondName ?? "",
-      tel: client.tel,
-      birthDate: client.birthDate.toISOString().split("T")[0],
-      address: client.address,
+      phoneNumber: client.phoneNumber,
+      birthDate: client.birthDate?.toISOString().split("T")[0] ?? "",
+      address: client.address ?? {
+        city: "",
+        state: "",
+        postalCode: "",
+        country: "",
+      },
     }),
     [client],
   );
