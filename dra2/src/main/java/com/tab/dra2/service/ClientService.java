@@ -41,19 +41,25 @@ public class ClientService {
 
     @Transactional
     public ClientResponse create(CreateClientDto dto) {
-        Device device = resolveDevice(dto.getDeviceId());
         Address address = resolveAddress(dto, true);
 
         Client client = new Client();
-        client.setDevice(device);
         client.setAddress(address);
         client.setSurname(dto.getSurname());
         client.setFirstName(dto.getFirstName());
         client.setSecondName(dto.getSecondName());
         client.setPhoneNumber(dto.getPhoneNumber());
         client.setBirthDate(dto.getBirthDate());
+        
+        Client savedClient = clientRepository.save(client);
+        
+        if (dto.getDeviceId() != null) {
+            Device device = resolveDevice(dto.getDeviceId());
+            device.setClient(savedClient);
+            deviceRepository.save(device);
+        }
 
-        return toResponse(clientRepository.save(client));
+        return toResponse(savedClient);
     }
 
     @Transactional(readOnly = true)
@@ -92,7 +98,9 @@ public class ClientService {
                 .orElseThrow(() -> new NoSuchElementException("Client not found"));
 
         if (dto.getDeviceId() != null) {
-                        client.setDevice(resolveDevice(dto.getDeviceId()));
+            Device device = resolveDevice(dto.getDeviceId());
+            device.setClient(client);
+            deviceRepository.save(device);
         }
                 if (dto.getAddress() != null || dto.getAddressId() != null) {
                         Address address = resolveAddress(dto, false);
@@ -118,8 +126,8 @@ public class ClientService {
 
         return ClientResponse.builder()
                 .id(client.getId() == null ? 0 : client.getId())
-                .deviceId(client.getDevice() != null && client.getDevice().getId() != null ? client.getDevice().getId() : 0)
-                .device_count(client.getDevice() == null ? 0 : 1)
+            .deviceId(client.getDevices() != null && !client.getDevices().isEmpty() ? client.getDevices().get(0).getId() : 0)
+            .device_count(client.getDevices() == null ? 0 : client.getDevices().size())
                 .addressId(address != null && address.getId() != null ? address.getId() : null)
                 .surname(client.getSurname())
                 .firstName(client.getFirstName())

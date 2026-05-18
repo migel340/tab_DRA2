@@ -31,6 +31,10 @@ public class Device {
     @JoinColumn(name = "id_device_type")
     private DeviceType deviceType;
 
+    @ManyToOne
+    @JoinColumn(name = "id_client")
+    private Client client;
+
     @Column(name = "device_name", length = 100, nullable = false)
     private String deviceName;
 

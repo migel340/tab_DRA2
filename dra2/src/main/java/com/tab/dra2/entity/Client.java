@@ -1,6 +1,7 @@
 package com.tab.dra2.entity;
 
 import java.sql.Date;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,13 +10,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Table;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.ManyToOne;
 
 @Entity
 @Table(name = "client")
@@ -31,9 +33,8 @@ public class Client {
     @Column(name = "id_client")
     private Integer id;
 
-    @ManyToOne
-    @JoinColumn(name = "id_device")
-    private Device device;
+    @OneToMany(mappedBy = "client")
+    private List<Device> devices;
 
     @Column(name = "surname", length = 20)
     @NotBlank
