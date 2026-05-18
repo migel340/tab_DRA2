@@ -2,6 +2,8 @@ package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ActivityResponse;
 import com.tab.dra2.dto.CreateActivityDto;
+import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.dto.UpdateActivityStatusDto;
 import com.tab.dra2.entity.Activity;
 import com.tab.dra2.entity.ActivityType;
@@ -12,6 +14,10 @@ import com.tab.dra2.repository.ActivityTypeRepository;
 import com.tab.dra2.repository.PersonelRepository;
 import com.tab.dra2.repository.RequestRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -21,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +42,30 @@ public class ActivityService {
     private final RequestRepository requestRepository;
     private final ActivityTypeRepository activityTypeRepository;
     private final PersonelRepository personelRepository;
+
+    public ListResponse<ActivityResponse> list(int page, int limit, String orderBy, String sort) {
+        Sort.Direction direction = "DESC".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(direction, orderBy));
+        Page<Activity> activities = activityRepository.findAll(pageable);
+        
+        return ListResponse.<ActivityResponse>builder()
+                .data(activities.getContent().stream().map(this::toResponse).collect(Collectors.toList()))
+                .meta(ListResponseMeta.builder()
+                        .page(page)
+                        .limit(limit)
+                        .totalItems(activities.getTotalElements())
+                        .totalPages(activities.getTotalPages())
+                        .orderBy(orderBy)
+                        .sort(sort)
+                        .build())
+                .build();
+    }
+
+    public ActivityResponse get(Long id) {
+        Activity activity = activityRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("Activity not found"));
+        return toResponse(activity);
+    }
 
     @Transactional
     public ActivityResponse create(CreateActivityDto dto) {
