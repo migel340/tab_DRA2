@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -102,6 +103,23 @@ public class GlobalExceptionHandler {
                 .build();
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+        @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+        public ResponseEntity<ApiResponse<Object>> handleMethodNotAllowed(HttpRequestMethodNotSupportedException e) {
+        String method = e.getMethod();
+        String message = method == null
+            ? "Method not allowed"
+            : "Method " + method + " not allowed";
+
+        ApiResponse<Object> response = ApiResponse.<Object>builder()
+            .success(false)
+            .message(message)
+            .errors(Map.of("error", message))
+            .timestamp(LocalDateTime.now())
+            .build();
+
+        return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(response);
+        }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Object>> handleGeneric(Exception e) {
