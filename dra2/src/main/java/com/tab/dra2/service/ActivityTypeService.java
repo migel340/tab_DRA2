@@ -1,6 +1,7 @@
 package com.tab.dra2.service;
 
-import com.tab.dra2.dto.ActivityTypeDto;
+import com.tab.dra2.dto.ActivityTypeResponseDto;
+import com.tab.dra2.dto.ActivityTypeSaveDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.ActivityType;
@@ -21,13 +22,13 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class ActivityTypeService {
-    
+
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "actType");
 
     private final ActivityTypeRepository activityTypeRepository;
 
     @Transactional
-    public ActivityTypeDto create(ActivityTypeDto dto) {
+    public ActivityTypeResponseDto create(ActivityTypeSaveDto dto) {
         ActivityType activityType = ActivityType.builder()
                 .actType(parseActivityName(dto.getActType()))
                 .build();
@@ -35,16 +36,16 @@ public class ActivityTypeService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<ActivityTypeDto> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<ActivityTypeResponseDto> list(int page, int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
-        
+
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<ActivityTypeDto> pageData = activityTypeRepository.findAll(pageable).map(this::toResponse);
-        
-        return ListResponse.<ActivityTypeDto>builder()
+        Page<ActivityTypeResponseDto> pageData = activityTypeRepository.findAll(pageable).map(this::toResponse);
+
+        return ListResponse.<ActivityTypeResponseDto>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
                         .page(validatedPage)
@@ -58,14 +59,14 @@ public class ActivityTypeService {
     }
 
     @Transactional(readOnly = true)
-    public ActivityTypeDto getById(Long id) {
+    public ActivityTypeResponseDto getById(Long id) {
         return activityTypeRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new NoSuchElementException("Activity type not found"));
     }
 
     @Transactional
-    public ActivityTypeDto update(Long id, ActivityTypeDto dto) {
+    public ActivityTypeResponseDto update(Long id, ActivityTypeSaveDto dto) {
         ActivityType activityType = activityTypeRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Activity type not found"));
 
@@ -84,8 +85,8 @@ public class ActivityTypeService {
         }
     }
 
-    private ActivityTypeDto toResponse(ActivityType activityType) {
-        return ActivityTypeDto.builder()
+    private ActivityTypeResponseDto toResponse(ActivityType activityType) {
+        return ActivityTypeResponseDto.builder()
                 .id(activityType.getId() == null ? 0 : activityType.getId().intValue())
                 .actType(activityType.getActType() != null ? activityType.getActType().name() : null)
                 .build();

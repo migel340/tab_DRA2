@@ -1,7 +1,8 @@
 package com.tab.dra2.web;
 
 import com.tab.dra2.dto.ApiResponse;
-import com.tab.dra2.dto.DeviceTypeDto;
+import com.tab.dra2.dto.DeviceTypeResponseDto;
+import com.tab.dra2.dto.DeviceTypeSaveDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.service.DeviceTypeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/device-types")
 @RequiredArgsConstructor
+
 @Tag(name = "Device Types")
 public class DeviceTypeController {
 
@@ -22,9 +24,9 @@ public class DeviceTypeController {
 
     @PostMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<DeviceTypeDto>> create(@Valid @RequestBody DeviceTypeDto dto) {
-        DeviceTypeDto data = deviceTypeService.create(dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<DeviceTypeDto>builder()
+    public ResponseEntity<ApiResponse<DeviceTypeResponseDto>> create(@Valid @RequestBody DeviceTypeSaveDto dto) {
+        DeviceTypeResponseDto data = deviceTypeService.create(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.<DeviceTypeResponseDto>builder()
                 .success(true)
                 .message("Created")
                 .data(data)
@@ -34,14 +36,13 @@ public class DeviceTypeController {
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<ListResponse<DeviceTypeDto>>> list(
+    public ResponseEntity<ApiResponse<ListResponse<DeviceTypeResponseDto>>> list(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort
-    ) {
-        ListResponse<DeviceTypeDto> data = deviceTypeService.list(page, limit, orderBy, sort);
-        return ResponseEntity.ok(ApiResponse.<ListResponse<DeviceTypeDto>>builder()
+            @RequestParam(defaultValue = "ASC") String sort) {
+        ListResponse<DeviceTypeResponseDto> data = deviceTypeService.list(page, limit, orderBy, sort);
+        return ResponseEntity.ok(ApiResponse.<ListResponse<DeviceTypeResponseDto>>builder()
                 .success(true)
                 .message("OK")
                 .data(data)
@@ -51,9 +52,9 @@ public class DeviceTypeController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<DeviceTypeDto>> getById(@PathVariable Integer id) {
-        DeviceTypeDto data = deviceTypeService.getById(id);
-        return ResponseEntity.ok(ApiResponse.<DeviceTypeDto>builder()
+    public ResponseEntity<ApiResponse<DeviceTypeResponseDto>> getById(@PathVariable Integer id) {
+        DeviceTypeResponseDto data = deviceTypeService.getById(id);
+        return ResponseEntity.ok(ApiResponse.<DeviceTypeResponseDto>builder()
                 .success(true)
                 .message("OK")
                 .data(data)
@@ -63,9 +64,10 @@ public class DeviceTypeController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<DeviceTypeDto>> update(@PathVariable Integer id, @Valid @RequestBody DeviceTypeDto dto) {
-        DeviceTypeDto data = deviceTypeService.update(id, dto);
-        return ResponseEntity.ok(ApiResponse.<DeviceTypeDto>builder()
+    public ResponseEntity<ApiResponse<DeviceTypeResponseDto>> update(@PathVariable Integer id,
+            @Valid @RequestBody DeviceTypeSaveDto dto) {
+        DeviceTypeResponseDto data = deviceTypeService.update(id, dto);
+        return ResponseEntity.ok(ApiResponse.<DeviceTypeResponseDto>builder()
                 .success(true)
                 .message("OK")
                 .data(data)

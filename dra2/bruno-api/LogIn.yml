@@ -1,0 +1,35 @@
+info:
+  name: LogIn
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: "{{host}}/auth/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+          "username" : "jarek",
+          "password" : "!12345678"
+      }
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        if (res.status === 200) {
+          console.log(res.body)
+            const {data} = res.body
+            bru.setEnvVar("token", data.token)
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,6 +1,7 @@
 package com.tab.dra2.service;
 
-import com.tab.dra2.dto.DeviceTypeDto;
+import com.tab.dra2.dto.DeviceTypeResponseDto;
+import com.tab.dra2.dto.DeviceTypeSaveDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.DeviceType;
@@ -20,29 +21,29 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class DeviceTypeService {
-    
+
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "deviceTypeName");
 
     private final DeviceTypeRepository deviceTypeRepository;
 
     @Transactional
-    public DeviceTypeDto create(DeviceTypeDto dto) {
+    public DeviceTypeResponseDto create(DeviceTypeSaveDto dto) {
         DeviceType deviceType = new DeviceType();
         deviceType.setDeviceTypeName(dto.getDeviceTypeName());
         return toResponse(deviceTypeRepository.save(deviceType));
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<DeviceTypeDto> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<DeviceTypeResponseDto> list(int page, int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
-        
+
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<DeviceTypeDto> pageData = deviceTypeRepository.findAll(pageable).map(this::toResponse);
-        
-        return ListResponse.<DeviceTypeDto>builder()
+        Page<DeviceTypeResponseDto> pageData = deviceTypeRepository.findAll(pageable).map(this::toResponse);
+
+        return ListResponse.<DeviceTypeResponseDto>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
                         .page(validatedPage)
@@ -56,14 +57,14 @@ public class DeviceTypeService {
     }
 
     @Transactional(readOnly = true)
-    public DeviceTypeDto getById(Integer id) {
+    public DeviceTypeResponseDto getById(Integer id) {
         return deviceTypeRepository.findById(id)
                 .map(this::toResponse)
                 .orElseThrow(() -> new NoSuchElementException("Device type not found"));
     }
 
     @Transactional
-    public DeviceTypeDto update(Integer id, DeviceTypeDto dto) {
+    public DeviceTypeResponseDto update(Integer id, DeviceTypeSaveDto dto) {
         DeviceType deviceType = deviceTypeRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Device type not found"));
 
@@ -74,8 +75,8 @@ public class DeviceTypeService {
         return toResponse(deviceTypeRepository.save(deviceType));
     }
 
-    private DeviceTypeDto toResponse(DeviceType deviceType) {
-        return DeviceTypeDto.builder()
+    private DeviceTypeResponseDto toResponse(DeviceType deviceType) {
+        return DeviceTypeResponseDto.builder()
                 .id(deviceType.getId() == null ? 0 : deviceType.getId())
                 .deviceTypeName(deviceType.getDeviceTypeName())
                 .build();

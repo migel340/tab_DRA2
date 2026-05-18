@@ -18,4 +18,5 @@ public class ActivityResponse {
     private String status;
     private LocalDateTime dateRegistration;
     private LocalDateTime dateFinishedCancelled;
+    
 }
