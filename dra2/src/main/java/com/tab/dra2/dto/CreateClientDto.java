@@ -1,6 +1,7 @@
 package com.tab.dra2.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -12,6 +13,7 @@ public class CreateClientDto {
 
     private Long addressId;
 
+    @Valid
     private ClientAddressDto address;
 
     @NotNull
