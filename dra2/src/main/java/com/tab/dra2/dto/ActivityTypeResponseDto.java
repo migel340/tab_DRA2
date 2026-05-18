@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ActivityTypeDto {
+public class ActivityTypeResponseDto {
     private int id;
     private String actType;
 }
