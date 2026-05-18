@@ -1,6 +1,7 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.ClientAddressDto;
 import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.CreateClientDto;
 import com.tab.dra2.dto.ListResponseMeta;
@@ -40,10 +41,8 @@ public class ClientService {
 
     @Transactional
     public ClientResponse create(CreateClientDto dto) {
-        Device device = deviceRepository.findById(dto.getDeviceId())
-                .orElseThrow(() -> new NoSuchElementException("Device not found"));
-        Address address = addressRepository.findById(dto.getAddressId())
-                .orElseThrow(() -> new NoSuchElementException("Address not found"));
+        Device device = resolveDevice(dto.getDeviceId());
+        Address address = resolveAddress(dto, true);
 
         Client client = new Client();
         client.setDevice(device);
@@ -93,13 +92,10 @@ public class ClientService {
                 .orElseThrow(() -> new NoSuchElementException("Client not found"));
 
         if (dto.getDeviceId() != null) {
-            Device device = deviceRepository.findById(dto.getDeviceId())
-                    .orElseThrow(() -> new NoSuchElementException("Device not found"));
-            client.setDevice(device);
+                        client.setDevice(resolveDevice(dto.getDeviceId()));
         }
-        if (dto.getAddressId() != null) {
-            Address address = addressRepository.findById(dto.getAddressId())
-                    .orElseThrow(() -> new NoSuchElementException("Address not found"));
+                if (dto.getAddress() != null || dto.getAddressId() != null) {
+                        Address address = resolveAddress(dto, false);
             client.setAddress(address);
         }
         if (dto.getSurname() != null) client.setSurname(dto.getSurname());
@@ -112,15 +108,73 @@ public class ClientService {
     }
 
     private ClientResponse toResponse(Client client) {
+        Address address = client.getAddress();
+        ClientAddressDto addressDto = address == null ? null : ClientAddressDto.builder()
+                .city(address.getCity())
+                .state(address.getState())
+                .postalCode(address.getPostal_code())
+                .country(address.getCountry())
+                .build();
+
         return ClientResponse.builder()
                 .id(client.getId() == null ? 0 : client.getId())
                 .deviceId(client.getDevice() != null && client.getDevice().getId() != null ? client.getDevice().getId() : 0)
-                .addressId(client.getAddress() != null && client.getAddress().getId() != null ? client.getAddress().getId() : null)
+                .device_count(client.getDevice() == null ? 0 : 1)
+                .addressId(address != null && address.getId() != null ? address.getId() : null)
                 .surname(client.getSurname())
                 .firstName(client.getFirstName())
                 .secondName(client.getSecondName())
                 .phoneNumber(client.getPhoneNumber())
+                .tel(client.getPhoneNumber())
+                .city(address == null ? null : address.getCity())
+                .state(address == null ? null : address.getState())
+                .postal_code(address == null ? null : address.getPostal_code())
+                .country(address == null ? null : address.getCountry())
+                .address(addressDto)
                 .birthDate(client.getBirthDate())
                 .build();
+    }
+
+    private Device resolveDevice(Integer deviceId) {
+        if (deviceId == null) {
+            return null;
+        }
+
+        return deviceRepository.findById(deviceId)
+                .orElseThrow(() -> new NoSuchElementException("Device not found"));
+    }
+
+    private Address resolveAddress(CreateClientDto dto, boolean required) {
+        if (dto.getAddress() != null) {
+            String city = normalize(dto.getAddress().getCity());
+            String state = normalize(dto.getAddress().getState());
+            String postalCode = normalize(dto.getAddress().getPostalCode());
+            String country = normalize(dto.getAddress().getCountry());
+
+            return addressRepository.findExisting(city, state, postalCode, country)
+                    .orElseGet(() -> {
+                        Address address = new Address();
+                        address.setCity(city);
+                        address.setState(state);
+                        address.setPostal_code(postalCode);
+                        address.setCountry(country);
+                        return addressRepository.save(address);
+                    });
+        }
+
+        if (dto.getAddressId() != null) {
+            return addressRepository.findById(dto.getAddressId())
+                    .orElseThrow(() -> new NoSuchElementException("Address not found"));
+        }
+
+        if (required) {
+            throw new IllegalArgumentException("Address is required");
+        }
+
+        return null;
+    }
+
+    private String normalize(String value) {
+        return value == null ? null : value.trim();
     }
 }
