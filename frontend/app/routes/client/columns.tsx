@@ -20,7 +20,7 @@ export const columns: ColumnDef<Client>[] = [
   },
 
   {
-    accessorKey: "tel",
+    accessorKey: "phoneNumber",
     header: ({ column }) => <SortableHeader label="Telefon" column={column} />,
     cell: ({ getValue }) => (
       <span className="font-mono text-xs">{getValue() as string}</span>
@@ -34,15 +34,14 @@ export const columns: ColumnDef<Client>[] = [
     ),
     cell: ({ getValue }) => {
       const date = getValue() as Date;
+      console.log(date);
       return new Date(date).toLocaleDateString("pl-PL");
     },
   },
 
   {
     accessorKey: "deviceCount",
-    header: ({ column }) => (
-      <SortableHeader label="Liczba urządzeń" column={column} />
-    ),
+    header: () => <div className="w-full">Liczba urządzeń</div>,
     cell: ({ getValue }) => getValue(),
   },
 ];
