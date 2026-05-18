@@ -9,7 +9,7 @@ import java.sql.Date;
 
 @Data
 public class CreateClientDto {
-    private Integer deviceId;
+    // private Integer deviceId;
 
     private Long addressId;
 

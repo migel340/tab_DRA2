@@ -2,25 +2,26 @@ package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ClientAddressDto;
+import com.tab.dra2.dto.ClientListResponse;
 import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.CreateClientDto;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.Address;
 import com.tab.dra2.entity.Client;
-import com.tab.dra2.entity.Device;
 import com.tab.dra2.repository.AddressRepository;
 import com.tab.dra2.repository.ClientRepository;
-import com.tab.dra2.repository.DeviceRepository;
 import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 
 @Service
@@ -32,11 +33,9 @@ public class ClientService {
             "secondName",
             "surname",
             "phoneNumber",
-            "birthDate"
-    );
+            "birthDate");
 
     private final ClientRepository clientRepository;
-    private final DeviceRepository deviceRepository;
     private final AddressRepository addressRepository;
 
     @Transactional
@@ -50,29 +49,24 @@ public class ClientService {
         client.setSecondName(dto.getSecondName());
         client.setPhoneNumber(dto.getPhoneNumber());
         client.setBirthDate(dto.getBirthDate());
-        
+
         Client savedClient = clientRepository.save(client);
-        
-        if (dto.getDeviceId() != null) {
-            Device device = resolveDevice(dto.getDeviceId());
-            device.setClient(savedClient);
-            deviceRepository.save(device);
-        }
 
         return toResponse(savedClient);
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<ClientResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<ClientListResponse> list(String q, int page, int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
-        
-        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<ClientResponse> pageData = clientRepository.findAll(pageable).map(this::toResponse);
 
-        return ListResponse.<ClientResponse>builder()
+        Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
+        Page<ClientListResponse> pageData = clientRepository.findAll(buildListSpecification(q), pageable)
+                .map(this::toListResponse);
+
+        return ListResponse.<ClientListResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
                         .page(validatedPage)
@@ -97,59 +91,69 @@ public class ClientService {
         Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Client not found"));
 
-        if (dto.getDeviceId() != null) {
-            Device device = resolveDevice(dto.getDeviceId());
-            device.setClient(client);
-            deviceRepository.save(device);
-        }
-                if (dto.getAddress() != null || dto.getAddressId() != null) {
-                        Address address = resolveAddress(dto, false);
+        if (dto.getAddress() != null || dto.getAddressId() != null) {
+            Address address = resolveAddress(dto, false);
             client.setAddress(address);
         }
-        if (dto.getSurname() != null) client.setSurname(dto.getSurname());
-        if (dto.getFirstName() != null) client.setFirstName(dto.getFirstName());
-        if (dto.getSecondName() != null) client.setSecondName(dto.getSecondName());
-        if (dto.getPhoneNumber() != null) client.setPhoneNumber(dto.getPhoneNumber());
-        if (dto.getBirthDate() != null) client.setBirthDate(dto.getBirthDate());
+        if (dto.getSurname() != null)
+            client.setSurname(dto.getSurname());
+        if (dto.getFirstName() != null)
+            client.setFirstName(dto.getFirstName());
+        if (dto.getSecondName() != null)
+            client.setSecondName(dto.getSecondName());
+        if (dto.getPhoneNumber() != null)
+            client.setPhoneNumber(dto.getPhoneNumber());
+        if (dto.getBirthDate() != null)
+            client.setBirthDate(dto.getBirthDate());
 
         return toResponse(clientRepository.save(client));
     }
 
+    private Specification<Client> buildListSpecification(String q) {
+        if (q == null || q.isBlank()) {
+            return Specification.unrestricted();
+        }
+
+        String pattern = "%%%s%%".formatted(q.toLowerCase(Locale.ROOT).trim());
+        Specification<Client> searchSpecification = (root, query, cb) -> cb.or(
+                cb.like(cb.lower(root.get("firstName")), pattern),
+                cb.like(cb.lower(root.get("surname")), pattern),
+                cb.like(cb.lower(root.get("secondName")), pattern));
+
+        return searchSpecification;
+    }
+
     private ClientResponse toResponse(Client client) {
         Address address = client.getAddress();
-        ClientAddressDto addressDto = address == null ? null : ClientAddressDto.builder()
-                .city(address.getCity())
-                .state(address.getState())
-                .postalCode(address.getPostal_code())
-                .country(address.getCountry())
-                .build();
+        ClientAddressDto addressDto = address == null ? null
+                : ClientAddressDto.builder()
+                        .city(address.getCity())
+                        .state(address.getState())
+                        .postalCode(address.getPostal_code())
+                        .country(address.getCountry())
+                        .build();
 
         return ClientResponse.builder()
                 .id(client.getId() == null ? 0 : client.getId())
-            .deviceId(client.getDevices() != null && !client.getDevices().isEmpty() ? client.getDevices().get(0).getId() : 0)
-            .device_count(client.getDevices() == null ? 0 : client.getDevices().size())
-                .addressId(address != null && address.getId() != null ? address.getId() : null)
+                .device_count(client.getDevices() == null ? 0 : client.getDevices().size())
                 .surname(client.getSurname())
                 .firstName(client.getFirstName())
                 .secondName(client.getSecondName())
                 .phoneNumber(client.getPhoneNumber())
-                .tel(client.getPhoneNumber())
-                .city(address == null ? null : address.getCity())
-                .state(address == null ? null : address.getState())
-                .postal_code(address == null ? null : address.getPostal_code())
-                .country(address == null ? null : address.getCountry())
                 .address(addressDto)
                 .birthDate(client.getBirthDate())
                 .build();
     }
 
-    private Device resolveDevice(Integer deviceId) {
-        if (deviceId == null) {
-            return null;
-        }
-
-        return deviceRepository.findById(deviceId)
-                .orElseThrow(() -> new NoSuchElementException("Device not found"));
+    private ClientListResponse toListResponse(Client client) {
+        return ClientListResponse.builder()
+                .id(client.getId() == null ? 0 : client.getId())
+                .firstName(client.getFirstName())
+                .surname(client.getSurname())
+                .device_count(client.getDevices() == null ? 0 : client.getDevices().size())
+                .phoneNumber(client.getPhoneNumber())
+                .birthDate(client.getBirthDate())
+                .build();
     }
 
     private Address resolveAddress(CreateClientDto dto, boolean required) {

@@ -1,6 +1,7 @@
 package com.tab.dra2.web;
 
 import com.tab.dra2.dto.ApiResponse;
+import com.tab.dra2.dto.ClientListResponse;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ClientResponse;
 import com.tab.dra2.dto.CreateClientDto;
@@ -35,14 +36,14 @@ public class ClientController {
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<ListResponse<ClientResponse>>> list(
+    public ResponseEntity<ApiResponse<ListResponse<ClientListResponse>>> list(
+            @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort
-    ) {
-        ListResponse<ClientResponse> data = clientService.list(page, limit, orderBy, sort);
-        return ResponseEntity.ok(ApiResponse.<ListResponse<ClientResponse>>builder()
+            @RequestParam(defaultValue = "ASC") String sort) {
+        ListResponse<ClientListResponse> data = clientService.list(q, page, limit, orderBy, sort);
+        return ResponseEntity.ok(ApiResponse.<ListResponse<ClientListResponse>>builder()
                 .success(true)
                 .message("OK")
                 .data(data)
@@ -64,7 +65,8 @@ public class ClientController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<ApiResponse<ClientResponse>> update(@PathVariable Integer id, @Valid @RequestBody CreateClientDto dto) {
+    public ResponseEntity<ApiResponse<ClientResponse>> update(@PathVariable Integer id,
+            @Valid @RequestBody CreateClientDto dto) {
         ClientResponse data = clientService.update(id, dto);
         return ResponseEntity.ok(ApiResponse.<ClientResponse>builder()
                 .success(true)

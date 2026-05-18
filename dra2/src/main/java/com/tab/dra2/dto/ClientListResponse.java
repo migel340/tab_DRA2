@@ -1,19 +1,17 @@
 package com.tab.dra2.dto;
 
+import java.sql.Date;
+
 import lombok.Builder;
 import lombok.Data;
 
-import java.sql.Date;
-
 @Data
 @Builder
-public class ClientResponse {
+public class ClientListResponse {
     private int id;
     private int device_count;
     private String surname;
     private String firstName;
-    private String secondName;
     private String phoneNumber;
-    private ClientAddressDto address;
     private Date birthDate;
 }
