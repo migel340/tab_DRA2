@@ -1,5 +1,6 @@
 package com.tab.dra2.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -7,11 +8,11 @@ import java.sql.Date;
 
 @Data
 public class CreateClientDto {
-    @NotNull
     private Integer deviceId;
 
-    @NotNull
     private Long addressId;
+
+    private ClientAddressDto address;
 
     @NotNull
     @Size(max = 20)
@@ -26,6 +27,7 @@ public class CreateClientDto {
 
     @NotNull
     @Size(max = 12)
+    @JsonAlias("tel")
     private String phoneNumber;
 
     @NotNull
