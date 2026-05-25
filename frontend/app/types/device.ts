@@ -2,66 +2,43 @@ import z from "zod";
 import { createPaginatedResponseSchema } from "~/types/api";
 import { BaseTableParamsSchema } from "~/types/table";
 
-export const DeviceTypeSchema = z.enum([
-  "LAPTOP",
-  "PC",
-  "SMARTPHONE",
-  "TABLET",
-  "TV",
-  "PRINTER",
-  "OTHER",
-]);
+export const DeviceTypeSchema = z.object({
+  deviceTypeName: z.string(),
+  id: z.number(),
+});
 
 export type DeviceType = z.infer<typeof DeviceTypeSchema>;
 
-export const DEVICE_TYPE_LABELS: Record<DeviceType, string> = {
-  LAPTOP: "Laptop",
-  PC: "Komputer stacjonarny",
-  SMARTPHONE: "Smartfon",
-  TABLET: "Tablet",
-  TV: "Telewizor",
-  PRINTER: "Drukarka",
-  OTHER: "Inne",
-};
-
-export const DeviceDbSchema = z.object({
-  id: z.number(),
-  name: z.string().trim().min(1, "Nazwa jest wymagana").max(100),
-  type: DeviceTypeSchema,
-  client_id: z.number(),
-});
-
-export type DeviceDB = z.infer<typeof DeviceDbSchema>;
-
-const baseDeviceFields = z.object({
-  name: z.string().trim().min(1, "Nazwa jest wymagana").max(100),
-  type: DeviceTypeSchema,
-});
-
-export const DeviceCreateFormSchema = baseDeviceFields;
-
-export const DeviceUpdateFormSchema = baseDeviceFields.extend({
+export const DeviceSchema = z.object({
   id: z.coerce.number(),
+  deviceName: z.string().trim().min(1, "Nazwa jest wymagana").max(100),
+  deviceType: DeviceTypeSchema,
 });
 
-export const DeviceCreateApiSchema = DeviceCreateFormSchema;
+export type Device = z.infer<typeof DeviceSchema>;
 
-export const DeviceUpdateApiSchema = DeviceUpdateFormSchema;
+export const CreateDeviceSchema = DeviceSchema.omit({
+  id: true,
+  deviceType: true,
+}).extend({
+  deviceTypeId: z
+    .union([z.string(), z.number()])
+    .transform((val) => Number(val))
+    .refine((val) => !isNaN(val) && val >= 1, {
+      message: "Wybierz typ urządzenia",
+    }),
+});
 
-export type DeviceCreateFormData = z.infer<typeof DeviceCreateFormSchema>;
-export type DeviceUpdateFormData = z.infer<typeof DeviceUpdateFormSchema>;
+export const UpdateDeviceSchema = DeviceSchema.omit({
+  deviceType: true,
+}).extend({
+  deviceTypeId: z.coerce.number(),
+});
 
-export type DeviceCreatePayload = z.output<typeof DeviceCreateApiSchema>;
-export type DeviceUpdatePayload = z.output<typeof DeviceUpdateApiSchema>;
+export type CreateDeviceFormInput = z.input<typeof CreateDeviceSchema>;
+export type CreateDeviceFormData = z.output<typeof CreateDeviceSchema>;
 
-export const DeviceSchema = DeviceDbSchema.transform((data) => ({
-  id: data.id,
-  name: data.name,
-  type: data.type,
-  clientId: data.client_id,
-}));
-
-export type Device = z.output<typeof DeviceSchema>;
+export type UpdateDeviceFormData = z.infer<typeof UpdateDeviceSchema>;
 
 export const DeviceFilterSchema = BaseTableParamsSchema;
 
@@ -69,10 +46,15 @@ export type DeviceFilterParams = z.infer<typeof DeviceFilterSchema>;
 
 export const DeviceResponseSchema = createPaginatedResponseSchema(DeviceSchema);
 
+export const DeviceTypeResponseSchema =
+  createPaginatedResponseSchema(DeviceTypeSchema);
+
+export type DeviceTypeResponse = z.infer<typeof DeviceTypeResponseSchema>;
+
 export type DeviceResponse = z.infer<typeof DeviceResponseSchema>;
 
 export const DeviceDbResponseSchema =
-  createPaginatedResponseSchema(DeviceDbSchema);
+  createPaginatedResponseSchema(DeviceSchema);
 
 export type DeviceDbResponse = z.infer<typeof DeviceDbResponseSchema>;
 

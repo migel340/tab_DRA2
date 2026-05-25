@@ -1,9 +1,10 @@
 import { deviceApi } from "./device-api";
 import { DeviceSchema } from "~/types/device";
 import type {
+  CreateDeviceFormData,
   Device,
-  DeviceCreatePayload,
-  DeviceUpdatePayload,
+  DeviceType,
+  UpdateDeviceFormData,
 } from "~/types/device";
 import { DeviceResponseFromDbSchema, type DeviceFilterParams } from "./schema";
 
@@ -29,7 +30,7 @@ export const deviceService = {
 
   createDevice: async (
     clientId: number,
-    data: DeviceCreatePayload,
+    data: CreateDeviceFormData,
     request: Request,
   ): Promise<Device> => {
     const raw = await deviceApi.create(clientId, data, request);
@@ -38,7 +39,7 @@ export const deviceService = {
 
   updateDevice: async (
     id: number,
-    data: DeviceUpdatePayload,
+    data: UpdateDeviceFormData,
     request: Request,
   ): Promise<Device> => {
     const { id: _id, ...payload } = data;
@@ -46,7 +47,8 @@ export const deviceService = {
     return DeviceSchema.parse(raw);
   },
 
-  deleteDevice: async (id: number, request: Request): Promise<void> => {
-    await deviceApi.delete(id, request);
+  getDevicesTypes: async (requet: Request): Promise<DeviceType[]> => {
+    const response = await deviceApi.getTypes(requet);
+    return response.data;
   },
 };

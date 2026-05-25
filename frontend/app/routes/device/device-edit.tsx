@@ -2,16 +2,11 @@ import PageLayout from "~/layouts/PageLayout";
 import type { Route } from "./+types/device-edit";
 import z from "zod";
 import { deviceService } from "./device-service";
-import DeviceForm, { type DeviceFormValues } from "./device-form";
-import { useEffect, useMemo } from "react";
-import { useNavigate, useSubmit } from "react-router";
-import {
-  DeviceUpdateApiSchema,
-  type DeviceUpdateFormData,
-} from "~/types/device";
+import DeviceForm from "./device-form";
+import { useSubmit } from "react-router";
 import { useActionToast } from "~/hooks/useActionToast";
 import { requireManager } from "~/lib/auth.server";
-import DeleteButton from "~/components/DeleteButton";
+import { UpdateDeviceSchema, type CreateDeviceFormData } from "~/types/device";
 
 export const handle = {
   breadcrumb: () => "edycja",
@@ -30,7 +25,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("Not found", { status: 404 });
   }
 
-  return { device };
+  const devicesTypes = await deviceService.getDevicesTypes(request);
+
+  return { device, devicesTypes };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -42,15 +39,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const formData = await request.formData();
-  const intent = formData.get("intent");
-
-  if (intent === "delete") {
-    await deviceService.deleteDevice(parsedId.data, request);
-    return { success: true, deleted: true };
-  }
 
   const object = Object.fromEntries(formData.entries());
-  const parseResult = DeviceUpdateApiSchema.safeParse({
+
+  const parseResult = UpdateDeviceSchema.safeParse({
     ...object,
     id: params.deviceId,
   });
@@ -74,48 +66,22 @@ export default function DeviceEditPage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { device } = loaderData;
+  const { device, devicesTypes } = loaderData;
   const submit = useSubmit();
-  const navigate = useNavigate();
 
   useActionToast(actionData);
 
-  useEffect(() => {
-    if (actionData?.success && actionData.deleted) {
-      navigate(`/client/${device.clientId}`, { replace: true });
-    }
-  }, [actionData, navigate, device.clientId]);
-
-  const initialValues = useMemo<Omit<DeviceUpdateFormData, "id">>(
-    () => ({
-      name: device.name,
-      type: device.type,
-    }),
-    [device],
-  );
-
-  const onSubmit = (data: DeviceFormValues) => {
-    submit(data as Record<string, string>, { method: "POST" });
-  };
-
-  const onDelete = () => {
-    const formData = new FormData();
-    formData.append("intent", "delete");
-    submit(formData, { method: "POST" });
+  const onSubmit = (data: CreateDeviceFormData) => {
+    submit(data, { method: "POST" });
   };
 
   return (
-    <PageLayout
-      title="Edycja urządzenia"
-      actions={
-        <DeleteButton
-          onConfirm={onDelete}
-          confirmTitle="Usuń urządzenie"
-          confirmDescription="Czy na pewno chcesz usunąć to urządzenie? Operacja jest nieodwracalna."
-        />
-      }
-    >
-      <DeviceForm onSubmit={onSubmit} initialValues={initialValues} isEdit />
+    <PageLayout title="Edycja urządzenia">
+      <DeviceForm
+        onSubmit={onSubmit}
+        initialValues={device}
+        deviceTypes={devicesTypes}
+      />
     </PageLayout>
   );
 }

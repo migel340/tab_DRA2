@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{host}}/{{path}}/1"
+  url: "{{host}}/{{path}}/4"
   headers:
     - name: Content-Type
       value: application/json
