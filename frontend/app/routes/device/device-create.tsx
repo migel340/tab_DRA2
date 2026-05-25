@@ -40,7 +40,6 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const object = Object.fromEntries(formData.entries());
 
-  console.log(object);
   const result = CreateDeviceSchema.safeParse(object);
 
   if (!result.success) {
