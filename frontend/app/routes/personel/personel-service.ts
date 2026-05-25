@@ -45,7 +45,6 @@ export const personelService = {
     request: Request,
   ): Promise<Personel> => {
     const { id: _id, ...dbPayload } = data;
-
     const updatedRaw = await personelApi.update(id, dbPayload, request);
     return PersonelSchema.parse(updatedRaw);
   },

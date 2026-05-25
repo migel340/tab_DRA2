@@ -94,6 +94,10 @@ export default function PersonelEditPage({
   );
 
   const onSubmit = (data: PersonelFormValues) => {
+    if (data.password === undefined) {
+      delete data.password;
+    }
+
     submit(data, {
       method: "POST",
     });

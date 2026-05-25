@@ -29,7 +29,7 @@ export const PersonelCreateFormSchema = basePersonelFields.extend({
 export const PersonelUpdateFormSchema = basePersonelFields.extend({
   id: z.coerce.number(),
   status: AccountStatusSchema,
-  password: passwordSchema.optional(),
+  password: passwordSchema.or(z.literal("")).optional(),
 });
 
 export const PersonelCreateApiSchema = PersonelCreateFormSchema.transform(
