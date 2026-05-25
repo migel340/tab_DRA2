@@ -171,7 +171,10 @@ export function RepairStatusSelect<T extends FieldValues, N extends Path<T>>(
 const accountStatusOptions = AccountStatusSchema.options;
 
 export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
-  props: Omit<BaseSelectProps<T, N, string>, "options" | "renderItem">,
+  props: Omit<
+    BaseSelectProps<T, N, string>,
+    "options" | "getOptionKey" | "getOptionValue" | "renderItem"
+  >,
 ) {
   return (
     <BaseSelect
@@ -189,7 +192,10 @@ export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
 const personelRoleOptions = PersonelRoleSchema.options;
 
 export function PersonelRoleSelect<T extends FieldValues, N extends Path<T>>(
-  props: Omit<BaseSelectProps<T, N, string>, "options" | "renderItem">,
+  props: Omit<
+    BaseSelectProps<T, N, string>,
+    "options" | "getOptionKey" | "getOptionValue" | "renderItem"
+  >,
 ) {
   return (
     <BaseSelect
