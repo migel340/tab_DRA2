@@ -1,13 +1,13 @@
 import PageLayout from "~/layouts/PageLayout";
-import DeviceForm, { type DeviceFormValues } from "./device-form";
+import DeviceForm from "./device-form";
 import { useEffect } from "react";
 import { useNavigate, useSubmit } from "react-router";
 import type { Route } from "./+types/device-create";
 import z from "zod";
 import { deviceService } from "./device-service";
-import { DeviceCreateApiSchema } from "~/types/device";
 import { useActionToast } from "~/hooks/useActionToast";
 import { requireManager } from "~/lib/auth.server";
+import { CreateDeviceSchema, type CreateDeviceFormData } from "~/types/device";
 
 export const handle = {
   breadcrumb: () => "nowe",
@@ -21,7 +21,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Response("Invalid client ID", { status: 400 });
   }
 
-  return { clientId: parsedClientId.data };
+  const devicesTypes = await deviceService.getDevicesTypes(request);
+
+  return { clientId: parsedClientId.data, devicesTypes };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -38,7 +40,8 @@ export async function action({ request, params }: Route.ActionArgs) {
   const formData = await request.formData();
   const object = Object.fromEntries(formData.entries());
 
-  const result = DeviceCreateApiSchema.safeParse(object);
+  console.log(object);
+  const result = CreateDeviceSchema.safeParse(object);
 
   if (!result.success) {
     return {
@@ -61,7 +64,7 @@ export default function DeviceCreatePage({
   loaderData,
   actionData,
 }: Route.ComponentProps) {
-  const { clientId } = loaderData;
+  const { clientId, devicesTypes } = loaderData;
   const navigate = useNavigate();
   const submit = useSubmit();
 
@@ -75,13 +78,13 @@ export default function DeviceCreatePage({
     }
   }, [actionData, navigate, clientId]);
 
-  const onSubmit = (data: DeviceFormValues) => {
-    submit(data as Record<string, string>, { method: "POST" });
+  const onSubmit = (data: CreateDeviceFormData) => {
+    submit(data, { method: "POST" });
   };
 
   return (
     <PageLayout title="Dodaj nowe urządzenie">
-      <DeviceForm onSubmit={onSubmit} />
+      <DeviceForm onSubmit={onSubmit} deviceTypes={devicesTypes} />
     </PageLayout>
   );
 }

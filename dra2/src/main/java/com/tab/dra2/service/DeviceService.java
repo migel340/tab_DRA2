@@ -2,6 +2,7 @@ package com.tab.dra2.service;
 
 import com.tab.dra2.dto.CreateDeviceDto;
 import com.tab.dra2.dto.DeviceResponse;
+import com.tab.dra2.dto.DeviceTypeResponseDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.Device;
@@ -23,7 +24,7 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class DeviceService {
-    
+
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "deviceName", "deviceTypeId");
 
     private final DeviceRepository deviceRepository;
@@ -48,10 +49,10 @@ public class DeviceService {
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
-        
+
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<DeviceResponse> pageData = deviceRepository.findAll(pageable).map(this::toResponse);
-        
+
         return ListResponse.<DeviceResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
@@ -82,7 +83,8 @@ public class DeviceService {
                     .orElseThrow(() -> new NoSuchElementException("Device type not found"));
             d.setDeviceType(type);
         }
-        if (dto.getDeviceName() != null) d.setDeviceName(dto.getDeviceName());
+        if (dto.getDeviceName() != null)
+            d.setDeviceName(dto.getDeviceName());
 
         Device saved = deviceRepository.save(d);
         return toResponse(saved);
@@ -91,7 +93,8 @@ public class DeviceService {
     private DeviceResponse toResponse(Device d) {
         return DeviceResponse.builder()
                 .id(d.getId() != null ? d.getId() : 0)
-                .deviceTypeId(d.getDeviceType() != null && d.getDeviceType().getId() != null ? d.getDeviceType().getId() : 0)
+                .deviceType(DeviceTypeResponseDto.builder().id(d.getDeviceType().getId())
+                        .deviceTypeName(d.getDeviceType().getDeviceTypeName()).build())
                 .deviceName(d.getDeviceName())
                 .build();
     }

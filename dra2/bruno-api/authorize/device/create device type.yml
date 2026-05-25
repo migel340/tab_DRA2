@@ -13,7 +13,7 @@ http:
     type: json
     data: |-
       {
-        "deviceTypeId" : 1,
+        "deviceTypeId" : null,
         "deviceName" : "Iphone"
       }
   auth: inherit

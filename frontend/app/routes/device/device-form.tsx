@@ -7,29 +7,25 @@ import { Button } from "~/components/ui/button";
 import { FieldSet } from "~/components/ui/field";
 import { DeviceTypeSelect } from "~/components/Select";
 import {
-  DeviceCreateFormSchema,
-  DeviceUpdateFormSchema,
-  type DeviceCreateFormData,
-  type DeviceUpdateFormData,
+  CreateDeviceSchema,
+  type CreateDeviceFormData,
+  type CreateDeviceFormInput,
+  type Device,
+  type DeviceType,
 } from "~/types/device";
 
-export type DeviceFormValues =
-  | DeviceCreateFormData
-  | Omit<DeviceUpdateFormData, "id">;
-
 interface DeviceFormProps {
-  initialValues?: Omit<DeviceUpdateFormData, "id">;
+  initialValues?: Device;
   isEdit?: boolean;
-  onSubmit: (data: DeviceFormValues) => void;
+  onSubmit: (data: CreateDeviceFormData) => void;
+  deviceTypes: DeviceType[];
 }
-
-const createSchema = DeviceCreateFormSchema;
-const editSchema = DeviceUpdateFormSchema.omit({ id: true });
 
 export default function DeviceForm({
   initialValues,
   isEdit = false,
   onSubmit,
+  deviceTypes,
 }: DeviceFormProps) {
   const navigate = useNavigate();
 
@@ -37,11 +33,11 @@ export default function DeviceForm({
     handleSubmit,
     control,
     formState: { isSubmitting },
-  } = useForm<DeviceFormValues>({
-    resolver: zodResolver(isEdit ? editSchema : createSchema),
-    defaultValues: initialValues || {
-      name: "",
-      type: undefined,
+  } = useForm<CreateDeviceFormInput, any, CreateDeviceFormData>({
+    resolver: zodResolver(CreateDeviceSchema),
+    defaultValues: {
+      deviceName: initialValues?.deviceName ?? "",
+      deviceTypeId: initialValues?.deviceType?.id ?? undefined,
     },
     reValidateMode: "onBlur",
   });
@@ -51,7 +47,7 @@ export default function DeviceForm({
       <Section headerName="Informacje" className="flex flex-col gap-5">
         <FieldSet className="flex flex-col md:flex-row gap-5">
           <Controller
-            name="name"
+            name="deviceName"
             control={control}
             render={({ field, fieldState }) => (
               <InputField
@@ -64,10 +60,14 @@ export default function DeviceForm({
           />
 
           <Controller
-            name="type"
+            name="deviceTypeId"
             control={control}
             render={({ field, fieldState }) => (
-              <DeviceTypeSelect field={field} fieldState={fieldState} />
+              <DeviceTypeSelect
+                field={field}
+                fieldState={fieldState}
+                options={deviceTypes}
+              />
             )}
           />
         </FieldSet>

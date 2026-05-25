@@ -1,19 +1,17 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { SortableHeader } from "~/components/SortableHeader";
-import { DEVICE_TYPE_LABELS, type Device } from "~/types/device";
+import { type Device, type DeviceType } from "~/types/device";
 
 export const columns: ColumnDef<Device>[] = [
   {
-    accessorKey: "name",
+    accessorKey: "deviceName",
     header: () => <div className="w-full">Nazwa</div>,
     cell: ({ getValue }) => (
       <div className="font-medium">{getValue() as string}</div>
     ),
   },
   {
-    accessorKey: "type",
-    header: ({ column }) => <SortableHeader label="Typ" column={column} />,
-    cell: ({ getValue }) =>
-      DEVICE_TYPE_LABELS[getValue() as keyof typeof DEVICE_TYPE_LABELS],
+    accessorKey: "deviceType",
+    header: ({ column }) => <div>Typ</div>,
+    cell: ({ getValue }) => (getValue() as DeviceType).deviceTypeName,
   },
 ];

@@ -7,6 +7,6 @@ import lombok.Data;
 @Builder
 public class DeviceResponse {
     private int id;
-    private int deviceTypeId;
+    private DeviceTypeResponseDto deviceType;
     private String deviceName;
 }

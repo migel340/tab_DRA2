@@ -5,7 +5,6 @@ import com.tab.dra2.dto.ActivityTypeSaveDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.entity.ActivityType;
-import com.tab.dra2.enums.ActivityName;
 import com.tab.dra2.repository.ActivityTypeRepository;
 import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,7 @@ public class ActivityTypeService {
     @Transactional
     public ActivityTypeResponseDto create(ActivityTypeSaveDto dto) {
         ActivityType activityType = ActivityType.builder()
-                .actType(parseActivityName(dto.getActType()))
+                .actType(dto.getActType())
                 .build();
         return toResponse(activityTypeRepository.save(activityType));
     }
@@ -71,24 +70,24 @@ public class ActivityTypeService {
                 .orElseThrow(() -> new NoSuchElementException("Activity type not found"));
 
         if (dto.getActType() != null) {
-            activityType.setActType(parseActivityName(dto.getActType()));
+            activityType.setActType(dto.getActType());
         }
 
         return toResponse(activityTypeRepository.save(activityType));
     }
 
-    private ActivityName parseActivityName(String value) {
-        try {
-            return ActivityName.valueOf(value);
-        } catch (Exception ex) {
-            throw new IllegalArgumentException("Invalid activity type: " + value);
+    @Transactional
+    public void delete(Long id) {
+        if (!activityTypeRepository.existsById(id)) {
+            throw new NoSuchElementException("Activity type not found");
         }
+        activityTypeRepository.deleteById(id);
     }
 
     private ActivityTypeResponseDto toResponse(ActivityType activityType) {
         return ActivityTypeResponseDto.builder()
                 .id(activityType.getId() == null ? 0 : activityType.getId().intValue())
-                .actType(activityType.getActType() != null ? activityType.getActType().name() : null)
+                .actType(activityType.getActType())
                 .build();
     }
 }

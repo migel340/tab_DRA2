@@ -6,7 +6,6 @@ import com.tab.dra2.entity.Activity;
 import com.tab.dra2.entity.ActivityType;
 import com.tab.dra2.entity.Personel;
 import com.tab.dra2.entity.Request;
-import com.tab.dra2.enums.ActivityName;
 import com.tab.dra2.enums.Role;
 import com.tab.dra2.repository.ActivityRepository;
 import com.tab.dra2.repository.ActivityTypeRepository;
@@ -134,7 +133,7 @@ class ActivityServiceTest {
     private ActivityType activityType(Long id) {
         return ActivityType.builder()
                 .id(id)
-                .actType(ActivityName.REPAIR)
+                .actType("REPAIR")
                 .build();
     }
 }

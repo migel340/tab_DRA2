@@ -75,4 +75,15 @@ public class ActivityTypeController {
                 .timestamp(java.time.LocalDateTime.now())
                 .build());
     }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+        activityTypeService.delete(id);
+        return ResponseEntity.ok(ApiResponse.<Void>builder()
+                .success(true)
+                .message("Deleted")
+                .timestamp(java.time.LocalDateTime.now())
+                .build());
+    }
 }
