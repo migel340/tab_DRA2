@@ -180,6 +180,8 @@ export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
       label="Status konta"
       options={accountStatusOptions}
       renderItem={(status) => <AccountStatusBadge status={status} />}
+      getOptionKey={(val) => val}
+      getOptionValue={(val) => val}
     />
   );
 }
@@ -196,6 +198,8 @@ export function PersonelRoleSelect<T extends FieldValues, N extends Path<T>>(
       options={personelRoleOptions}
       placeholder="Wybierz role"
       renderItem={(r) => <span className="capitalize">{r}</span>}
+      getOptionKey={(val) => val}
+      getOptionValue={(val) => val}
     />
   );
 }
