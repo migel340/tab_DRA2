@@ -13,5 +13,9 @@ export function loader({ context }: Route.LoaderArgs) {
     throw redirect("/requests");
   }
 
+  if (user.role === "STAFF") {
+    throw redirect("/activities");
+  }
+
   throw redirect("/logout");
 }
