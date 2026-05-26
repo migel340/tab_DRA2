@@ -14,7 +14,7 @@ const DEFAULT_ERROR_MESSAGE = "Coś poszło nie tak. Spróbuj ponownie.";
 function getApiErrorMessage(status: number, body?: ApiErrorBody): string {
   if (body?.message) return body.message;
   if (body?.error) return body.error;
-  if (status === 401) return "Sesja wygasła. Zaloguj się ponownie.";
+  if (status === 401) return "Wprowadzone dane logowania są nieprawidłowe.";
   if (status === 403) return "Nie masz uprawnień do tej akcji.";
   if (status === 404) return "Nie znaleziono zasobu.";
   return DEFAULT_ERROR_MESSAGE;
