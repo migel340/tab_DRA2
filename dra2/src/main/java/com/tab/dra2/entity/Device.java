@@ -5,8 +5,8 @@ import java.util.List;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,22 +16,25 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 @Entity
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Device {
-    
-    @Id
-    @GeneratedValue
-    @Column(name = "id_device")
-    @NotBlank
-    private int id;
 
-    @NotBlank
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_device")
+    private Integer id;
+
     @ManyToOne
-    @JoinColumn(name = "id_device_type", insertable = false, updatable = false)
+    @JoinColumn(name = "id_device_type")
     private DeviceType deviceType;
-    
+
+    @ManyToOne
+    @JoinColumn(name = "id_client")
+    private Client client;
+
     @Column(name = "device_name", length = 100, nullable = false)
     private String deviceName;
 

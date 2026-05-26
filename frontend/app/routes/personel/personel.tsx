@@ -9,19 +9,23 @@ import { PersonelFiltersForm } from "./personel-filters-form";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTable } from "~/hooks/useTable";
+import { requireAdmin } from "~/lib/auth.server";
 
 export const handle = {
   breadcrumb: () => "Lista",
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireAdmin(request);
+
   const url = new URL(request.url);
+  const rawParams = Object.fromEntries(url.searchParams);
+  const parsedParams = PersonelFilterSchema.safeParse(rawParams);
+  const params = parsedParams.success
+    ? parsedParams.data
+    : PersonelFilterSchema.parse({});
 
-  const params = PersonelFilterSchema.parse(
-    Object.fromEntries(url.searchParams),
-  );
-
-  const personelList = await personelService.fetchPersonelList(params);
+  const personelList = await personelService.fetchPersonelList(request, params);
   return { personelList, params };
 }
 
@@ -29,7 +33,12 @@ export default function Personel({ loaderData }: Route.ComponentProps) {
   const { personelList, params } = loaderData;
   const navigate = useNavigate();
 
-  const { table } = useTable({ data: personelList, columns, params });
+  const { table } = useTable({
+    data: personelList.data,
+    columns,
+    params: personelList.meta,
+    pageCount: personelList.meta.totalPages,
+  });
 
   return (
     <PageLayout

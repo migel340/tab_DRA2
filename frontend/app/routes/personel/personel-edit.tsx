@@ -10,12 +10,15 @@ import {
   type PersonelUpdateFormData,
 } from "~/types/personel";
 import { useActionToast } from "~/hooks/useActionToast";
+import { requireAdmin } from "~/lib/auth.server";
 
 export const handle = {
   breadcrumb: () => "edycja",
 };
 
-export async function loader({ params }: Route.LoaderArgs) {
+export async function loader({ request, params }: Route.LoaderArgs) {
+  await requireAdmin(request);
+
   const { id } = params;
   const result = z.coerce.number().safeParse(id);
   if (!result.success) {
@@ -24,7 +27,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
   const numericId = result.data;
 
-  const personel = await personelService.getPersonelById(numericId);
+  const personel = await personelService.getPersonelById(request, numericId);
   if (personel === undefined) {
     throw new Response("NOT found", { status: 404 });
   }
@@ -33,6 +36,8 @@ export async function loader({ params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
+  await requireAdmin(request);
+
   const { id } = params;
   const result = z.coerce.number().safeParse(id);
   if (!result.success) {
@@ -55,7 +60,11 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   try {
-    await personelService.updatePersonel(result.data, parseResult.data);
+    await personelService.updatePersonel(
+      result.data,
+      parseResult.data,
+      request,
+    );
 
     return { success: true };
   } catch (error) {
@@ -85,6 +94,10 @@ export default function PersonelEditPage({
   );
 
   const onSubmit = (data: PersonelFormValues) => {
+    if (data.password === undefined) {
+      delete data.password;
+    }
+
     submit(data, {
       method: "POST",
     });

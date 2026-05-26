@@ -1,0 +1,24 @@
+info:
+  name: "update device type "
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{host}}/{{path}}/1"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "actType" : "CONFIGURATION"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

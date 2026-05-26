@@ -33,7 +33,7 @@ Process / Workflow
 - [ ] 1. Inspect the existing entity example: `frontend/app/types/personel.ts` for patterns and naming.
 - [ ] 2. Identify shared primitives/enums to import (e.g. `~/lib/schema`, `~/types/status`, `~/types/table`).
 - [ ] 3. Create `EntityDbSchema` as the ground truth reflecting backend shape.
-- [ ] 4. Derive `EntityCreateFormSchema` and `EntityUpdateFormSchema` from DB schema (omit/extend as needed); coerce string ids with `z.coerce.number()`.
+- [ ] 4. Derive `EntityCreateFormSchema` and `EntityUpdateFormSchema` from DB schema (omit/extend as needed); coerce string ids with `z.coerce.number()`. For create/update flows with different requirements (e.g., password required on create but optional on update), define schema variants: `password: passwordSchema` on create, `password: passwordSchema.optional()` on update.
 - [ ] 5. Add `EntityCreateApiSchema` and `EntityUpdateApiSchema` using `.transform()` to map form fields to DB payload (e.g. status -> active).
 - [ ] 6. Define `EntitySchema` as the canonical client-facing transform of DB (use `.transform()` where domain differs).
 - [ ] 7. Export `EntityListSchema` (array) and `EntityDetailSchema` (single) and derive TypeScript types using `z.input` / `z.output` appropriately.
@@ -44,7 +44,7 @@ Validation checklist
 
 - Reused shared primitives/enums instead of duplicating validators.
 - DB schema mirrors backend fields (types and required vs optional).
-- Form schemas use `z.coerce` where inputs arrive as strings (ids, page, limit).
+- Form schemas use `z.coerce` for any string-input that arrives from URL query params or form data (page numbers, sort direction, IDs, numeric fields, etc.).
 - API schemas use `.transform()` to map form shape to DB payload (and vice versa for canonical schema).
 - Types: `z.input<typeof ApiSchema>` for form inputs; `z.output<typeof ApiSchema>` for payloads; `z.output<typeof EntitySchema>` for domain types.
 - Route/loader: use `Schema.safeParse(data)` and return flattened field errors to the client.

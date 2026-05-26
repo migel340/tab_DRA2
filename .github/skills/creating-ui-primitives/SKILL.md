@@ -9,6 +9,23 @@ Introduction
 This skill encodes repository-specific UI primitive patterns and accessibility rules for building and reviewing shared frontend components. Use it when adding, refactoring, or reviewing `components/ui/*` primitives such as `SortableHeader` and `DataTable`.
 This skill prefers shadcn primitives available under `~/components/ui` and recommends using those components as building blocks when implementing UI primitives.
 
+## Current Implementation Status
+
+**Currently Implemented in Codebase:**
+
+- Semantic HTML markup (`<table>`, `<thead>`, `<tbody>`, `<button>` for headers)
+- Keyboard navigation and focus visibility (tab order, visible focus outlines via `cn()` utility)
+- Basic button semantics and screen reader labeling
+
+**Aspirational / Planned for Future:**
+
+- `aria-sort` attributes on sortable headers
+- `aria-live` regions for announcements on sort/filter changes
+- Dynamic focus management and screen reader announcements for state changes
+- Full WCAG 2.1 AA live region integration
+
+**Note:** When implementing new primitives, use semantic markup first. ARIA attributes like `aria-sort` and `aria-live` are documented below as target best practices; current implementations in `SortableHeader.tsx` and `DataTable.tsx` provide keyboard and semantic HTML foundation but do not yet include these advanced accessibility features.
+
 <principles>
 <principle id="semantic-markup">Always prefer semantic HTML and explicit ARIA only when semantics are insufficient. Use `<table>`, `<button>`, `<thead>`, `<tbody>`, and roles like `row`/`cell` first, then augment with ARIA attributes.</principle>
 <principle id="keyboard-first">All interactive primitives must be operable by keyboard: logical tab order, `tabIndex`, clear `:focus` styles, and explicit `onKeyDown` handlers for Enter/Space where appropriate.</principle>
@@ -27,13 +44,19 @@ Process / Workflow (checklist)
 
 Validation checklist
 
+**Currently Implemented (Required):**
+
 - Frontend patterns: Uses `~` imports for internal modules and references `components/ui/*` where applicable.
 - Styling helper: Uses `cn()` utility for conditional classnames on interactive elements.
 - Semantic markup: Table headers/cells and button elements are used appropriately.
 - Keyboard: Tab order, `tabIndex`, `onKeyDown` for Enter/Space implemented and tested.
-- ARIA: `aria-sort`, `role` attributes, and `aria-live` announcements present where appropriate.
 - Focus management: Focus moved to new content when necessary and focus outlines visible.
-- Messaging: Errors and important state changes use `aria-describedby` or `aria-live` for announcements.
+
+**Recommended Enhancements (Future / Aspirational):**
+
+- ARIA: `aria-sort`, `role` attributes on sortable headers.
+- Messaging: Errors and important state changes announced via `aria-describedby` or `aria-live` regions.
+- Live regions: Update an `aria-live="polite"` region when sort order changes or filters are applied.
 
 Connected Skills
 

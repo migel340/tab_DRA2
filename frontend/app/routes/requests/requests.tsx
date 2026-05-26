@@ -16,7 +16,9 @@ export const handle = {
 
 export async function loader({ request }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const params = RequestsFilterSchema.parse(Object.fromEntries(url.searchParams));
+  const params = RequestsFilterSchema.parse(
+    Object.fromEntries(url.searchParams),
+  );
   const requestsList = await requestsService.fetchRequestsList(params);
   return { requestsList, params };
 }
@@ -31,7 +33,11 @@ export default function Requests({ loaderData }: Route.ComponentProps) {
     <PageLayout
       title="Zgłoszenia"
       actions={
-        <Button variant="outline" className="bg-white text-black border-gray-300 hover:bg-gray-50 shadow-sm" onClick={() => navigate("/requests/create")}>
+        <Button
+          variant="outline"
+          className="bg-white text-black border-gray-300 hover:bg-gray-50 shadow-sm"
+          onClick={() => navigate("/requests/create")}
+        >
           <Plus className="mr-2 h-4 w-4" /> Dodaj zgłoszenie
         </Button>
       }

@@ -2,7 +2,7 @@ import z from "zod";
 import { passwordSchema } from "~/lib/schema";
 import { AccountStatusSchema, type AccountStatus } from "~/types/status";
 
-export const PersonelRoleSchema = z.enum(["WORKER", "MANAGER"]);
+export const PersonelRoleSchema = z.enum(["STAFF", "MANAGER"]);
 export type PersonelRole = z.infer<typeof PersonelRoleSchema>;
 
 export const PersonelDbSchema = z.object({
@@ -29,7 +29,7 @@ export const PersonelCreateFormSchema = basePersonelFields.extend({
 export const PersonelUpdateFormSchema = basePersonelFields.extend({
   id: z.coerce.number(),
   status: AccountStatusSchema,
-  password: passwordSchema.optional(),
+  password: passwordSchema.or(z.literal("")).optional(),
 });
 
 export const PersonelCreateApiSchema = PersonelCreateFormSchema.transform(

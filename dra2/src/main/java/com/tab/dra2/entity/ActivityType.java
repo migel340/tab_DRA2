@@ -1,7 +1,5 @@
 package com.tab.dra2.entity;
 
-import com.tab.dra2.enums.ActivityName;
-import com.tab.dra2.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,6 +9,8 @@ import lombok.*;
 @Getter 
 @Setter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 
 public class ActivityType {
     
@@ -19,8 +19,7 @@ public class ActivityType {
     @Column(name = "id_activity_type")
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "act_type", length = 13)
-    private ActivityName actType;
+    @Column(name = "act_type", length = 100)
+    private String actType;
 
 }

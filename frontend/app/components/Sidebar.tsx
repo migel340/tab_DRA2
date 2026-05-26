@@ -1,14 +1,13 @@
-import { NavLink, useNavigate } from "react-router";
+import { Form, NavLink } from "react-router";
 import { ALL_APP_LINKS } from "~/config/navigation";
-import { getUser, logout } from "~/lib/auth";
 import { LogOut } from "lucide-react";
+import type { AuthResponse } from "~/types/auth";
 
-export default function Sidebar() {
-  const navigate = useNavigate();
-  const user = getUser();
+interface SidebarProps {
+  user: AuthResponse;
+}
 
-  if (!user) return null;
-
+export default function Sidebar({ user }: SidebarProps) {
   const visibleLinks = ALL_APP_LINKS.filter((link) =>
     link.roles.includes(user.role),
   );
@@ -45,16 +44,15 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto border-t border-border pt-4 px-2">
-        <button
-          onClick={() => {
-            logout();
-            navigate("/login");
-          }}
-          className="flex items-center gap-3 px-4 py-3 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="text-sm font-medium">Wyloguj</span>
-        </button>
+        <Form method="post" action="/logout">
+          <button
+            type="submit"
+            className="flex items-center gap-3 px-4 py-3 w-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-xl transition-all duration-200"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="text-sm font-medium">Wyloguj</span>
+          </button>
+        </Form>
       </div>
     </div>
   );

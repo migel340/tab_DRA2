@@ -5,7 +5,7 @@ export const ALL_APP_LINKS: NavItem[] = [
   {
     to: "/requests",
     label: "Zgłoszenia",
-    roles: ["MANAGER"],
+    roles: ["MANAGER", "ADMIN"],
   },
 
   {
@@ -18,6 +18,11 @@ export const ALL_APP_LINKS: NavItem[] = [
   {
     to: "/activities",
     label: "Aktywności",
-    roles: ["PERSONEL"],
+    roles: ["STAFF"],
+  },
+  {
+    to: "/client",
+    label: "Klienci",
+    roles: ["MANAGER", "ADMIN"],
   },
 ];

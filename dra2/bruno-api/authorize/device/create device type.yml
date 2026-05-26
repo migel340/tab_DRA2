@@ -1,0 +1,25 @@
+info:
+  name: create device type
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{host}}/{{path}}"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "deviceTypeId" : null,
+        "deviceName" : "Iphone"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

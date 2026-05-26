@@ -1,6 +1,11 @@
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Field, FieldContent } from "./ui/field";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "./ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from "./ui/input-group";
 import { Button } from "./ui/button";
 import type {
   ControllerRenderProps,
@@ -16,6 +21,7 @@ interface SearchBarProps<
   field: ControllerRenderProps<TFieldValues, TName>;
   fieldState: ControllerFieldState;
   placeholder?: string;
+  button?: React.ReactNode;
 }
 
 export default function SearchBar<
@@ -36,6 +42,9 @@ export default function SearchBar<
               aria-invalid={fieldState.invalid}
               placeholder={placeholder}
             />
+            <InputGroupButton onClick={() => field.onChange("")}>
+              {field.value && field.value.length > 0 && <X />}
+            </InputGroupButton>
           </InputGroup>
         </FieldContent>
       </Field>

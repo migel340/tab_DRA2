@@ -19,8 +19,9 @@ Process / Workflow
 - Create a service file per entity (personel-service.ts).
 - Import the API client (personelApi) and Zod schemas for responses.
 - Parse raw API responses with `Schema.parse(raw)` and map to domain types.
-- Expose typed methods: `getById`, `getAll`, `create`, `update`, `delete`.
+- Expose **domain-specific** typed methods (e.g., `getPersonelById`, `fetchPersonelList`—not generic names like `getById`). Naming should reflect the entity domain and be consistent across services.
 - Keep error handling consistent: throw for unexpected shapes; return undefined for 404 if that's desired.
+- Document expected error cases in inline comments (e.g., "Returns undefined for 404; throws ZodError on schema mismatch; re-throws fetch errors").
 - Do not perform routing or UI side effects in services.
 - Unit-test parsing logic with representative raw payloads.
 
@@ -28,8 +29,9 @@ Validation checklist
 
 - API responses parsed with Zod before return.
 - Methods have explicit return types derived from Zod types.
+- Methods use domain-specific names reflecting the entity (e.g., `getPersonelById` not `getById`).
 - Service does not import UI modules or route helpers.
-- Errors documented and consistent (throw vs return undefined).
+- **Error handling documented:** Each method includes inline comments explaining expected error cases (e.g., "Returns undefined on 404", "Throws ZodError if response doesn't match schema", "Re-throws fetch errors"). Methods clearly indicate throw vs return undefined behavior.
 
 Connected skills
 

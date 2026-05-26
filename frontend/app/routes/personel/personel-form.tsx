@@ -41,7 +41,7 @@ export default function PersonelForm({
       surname: "",
       username: "",
       password: "",
-      role: "WORKER",
+      role: "STAFF",
       status: "ACTIVE",
     },
     reValidateMode: "onBlur",
@@ -135,7 +135,7 @@ export default function PersonelForm({
         </FieldSet>
       </Section>
 
-      <FieldSet className="flex items-center gap-3">
+      <FieldSet className="flex flex-row items-center gap-3">
         <Button type="submit" size="lg">
           {isEdit ? "Zapisz" : "Stwórz"}
         </Button>

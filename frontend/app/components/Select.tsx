@@ -1,6 +1,14 @@
-import type { ReactNode } from "react";
-import { Controller, type Control, type ControllerRenderProps, type ControllerFieldState, type FieldValues, type Path } from "react-hook-form";
+import { useEffect, type ReactNode } from "react";
+import {
+  Controller,
+  type Control,
+  type ControllerRenderProps,
+  type ControllerFieldState,
+  type FieldValues,
+  type Path,
+} from "react-hook-form";
 import { AccountStatusSchema, RepairStatusSchema } from "~/types/status";
+import { DeviceTypeSchema, type DeviceType } from "~/types/device";
 import { BaseField } from "./BaseField";
 import {
   Select,
@@ -52,7 +60,11 @@ export function SelectField<
           htmlFor={field.name}
           error={error ?? fieldState.error?.message}
         >
-          <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+          <Select
+            name={field.name}
+            value={field.value}
+            onValueChange={field.onChange}
+          >
             <SelectTrigger id={field.name} className="bg-gray-50/50">
               <SelectValue placeholder={placeholder} />
             </SelectTrigger>
@@ -74,7 +86,7 @@ export function SelectField<
 interface BaseSelectProps<
   TFieldValues extends FieldValues,
   TName extends Path<TFieldValues>,
-  TOption extends string,
+  TOption,
 > {
   field: ControllerRenderProps<TFieldValues, TName>;
   fieldState: ControllerFieldState;
@@ -83,12 +95,14 @@ interface BaseSelectProps<
   options: readonly TOption[] | TOption[];
   renderItem: (value: TOption) => React.ReactNode;
   showAllOption?: boolean;
+  getOptionValue: (option: TOption) => string | number;
+  getOptionKey: (option: TOption) => string | number;
 }
 
 function BaseSelect<
   TFieldValues extends FieldValues,
   TName extends Path<TFieldValues>,
-  TOption extends string,
+  TOption,
 >({
   field,
   fieldState,
@@ -97,7 +111,14 @@ function BaseSelect<
   options,
   renderItem,
   showAllOption = false,
+  getOptionValue,
+  getOptionKey,
 }: BaseSelectProps<TFieldValues, TName, TOption>) {
+  const selectValue =
+    field.value !== undefined && field.value !== null
+      ? field.value.toString()
+      : undefined;
+
   return (
     <BaseField
       label={label}
@@ -106,7 +127,7 @@ function BaseSelect<
     >
       <Select
         name={field.name}
-        value={field.value}
+        value={selectValue}
         onValueChange={field.onChange}
       >
         <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
@@ -115,11 +136,16 @@ function BaseSelect<
         <SelectContent>
           {showAllOption && <SelectItem value="all">Wszystkie</SelectItem>}
 
-          {options.map((option) => (
-            <SelectItem value={option} key={option}>
-              {renderItem(option)}
-            </SelectItem>
-          ))}
+          {options.map((option) => {
+            const value = getOptionValue(option);
+            const key = getOptionKey(option);
+
+            return (
+              <SelectItem value={value.toString()} key={key}>
+                {renderItem(option)}
+              </SelectItem>
+            );
+          })}
         </SelectContent>
       </Select>
     </BaseField>
@@ -137,6 +163,8 @@ export function RepairStatusSelect<T extends FieldValues, N extends Path<T>>(
       label="Status Naprawy"
       options={repairStatusOptions}
       renderItem={(status) => <RepairStatusBadge status={status} />}
+      getOptionKey={(val) => val}
+      getOptionValue={(val) => val}
       showAllOption
     />
   );
@@ -145,7 +173,10 @@ export function RepairStatusSelect<T extends FieldValues, N extends Path<T>>(
 const accountStatusOptions = AccountStatusSchema.options;
 
 export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
-  props: Omit<BaseSelectProps<T, N, string>, "options" | "renderItem">,
+  props: Omit<
+    BaseSelectProps<T, N, string>,
+    "options" | "getOptionKey" | "getOptionValue" | "renderItem"
+  >,
 ) {
   return (
     <BaseSelect
@@ -154,6 +185,8 @@ export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
       label="Status konta"
       options={accountStatusOptions}
       renderItem={(status) => <AccountStatusBadge status={status} />}
+      getOptionKey={(val) => val}
+      getOptionValue={(val) => val}
     />
   );
 }
@@ -161,7 +194,10 @@ export function AccountStatusSelect<T extends FieldValues, N extends Path<T>>(
 const personelRoleOptions = PersonelRoleSchema.options;
 
 export function PersonelRoleSelect<T extends FieldValues, N extends Path<T>>(
-  props: Omit<BaseSelectProps<T, N, string>, "options" | "renderItem">,
+  props: Omit<
+    BaseSelectProps<T, N, string>,
+    "options" | "getOptionKey" | "getOptionValue" | "renderItem"
+  >,
 ) {
   return (
     <BaseSelect
@@ -170,6 +206,26 @@ export function PersonelRoleSelect<T extends FieldValues, N extends Path<T>>(
       options={personelRoleOptions}
       placeholder="Wybierz role"
       renderItem={(r) => <span className="capitalize">{r}</span>}
+      getOptionKey={(val) => val}
+      getOptionValue={(val) => val}
+    />
+  );
+}
+
+export function DeviceTypeSelect<T extends FieldValues, N extends Path<T>>(
+  props: Omit<
+    BaseSelectProps<T, N, DeviceType>,
+    "getOptionKey" | "getOptionValue" | "renderItem"
+  >,
+) {
+  return (
+    <BaseSelect
+      {...props}
+      label="Typ"
+      placeholder="Wybierz typ"
+      getOptionKey={(type) => type.id}
+      getOptionValue={(type) => type.id}
+      renderItem={(type) => type.deviceTypeName}
     />
   );
 }

@@ -11,7 +11,8 @@ import jakarta.persistence.ManyToOne;
 @Getter 
 @Setter
 @Builder
-
+@NoArgsConstructor
+@AllArgsConstructor
 public class Activity {
     
     @Id
@@ -19,34 +20,36 @@ public class Activity {
     @Column(name = "id_activity")
     private Long id;
 
-   @Column(name = "act_type", nullable = false)
-    private int activityType;
+    @ManyToOne
+    @JoinColumn(name = "act_type")
+    private ActivityType activityType;
 
     @ManyToOne
-    @JoinColumn(name = "id_request", insertable = false, updatable = false)
+    @JoinColumn(name = "id_request")
     private Request request;
 
     @ManyToOne
-    @JoinColumn(name = "id_personel", insertable = false, updatable = false)
+    @JoinColumn(name = "id_personel")
     private Personel personel;
-
-    @Column(length=20)
-    private String seq_no;
+    @Column(name = "seq_no", length = 20)
+    private String seqNo;
 
     @Column(length=255,nullable=false)
     private String description;
 
-    @Column(length=255,nullable=false)
+    @Column(length = 255)
     private String result;
 
-    @Column(nullable=false)
+    @Column(nullable = false)
     private String status;
 
-   @Column(name = "date_register", nullable = false)
-private LocalDateTime dateRegister;
+    @Column(name = "date_registered", nullable = false)
+    private LocalDateTime dateRegistered;
 
-     @Column(name = "date_finished_canceled", nullable = false)
+    @Column(name = "date_finished_canceled")
     private LocalDateTime dateFinishedCanceled;
     
-
 }
+
+
+

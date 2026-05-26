@@ -3,7 +3,6 @@ package com.tab.dra2.entity;
 import java.sql.Date;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.util.List;
 import jakarta.persistence.OneToMany;
@@ -16,40 +15,33 @@ import jakarta.persistence.ManyToOne;
 @AllArgsConstructor
 @Builder
 public class Request {
-    
-@Id
-@GeneratedValue
-@NotBlank
-@Column(name = "id_request")
-private int id;
 
-@NotBlank
-@ManyToOne
-@JoinColumn(name = "id_device", insertable = false, updatable = false)
-private Device device;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "id_request")
+	private Integer id;
 
-@NotBlank
-@ManyToOne
-@JoinColumn(name = "id_manager", insertable = false, updatable = false)
-private Personel manager;
+	@ManyToOne
+	@JoinColumn(name = "id_device")
+	private Device device;
 
-@NotBlank
-@Column(name = "description", length = 255)
-private String description;
+	@ManyToOne
+	@JoinColumn(name = "id_manager")
+	private Personel manager;
 
-@NotBlank
-@Column(name = "status", length = 30)
-private String status;
+	@Column(name = "description", length = 255, nullable = false)
+	private String description;
 
-@NotBlank
-@Column(name = "date_registration")
-private Date dateRegistration;
+	@Column(name = "status", length = 30, nullable = false)
+	private String status;
 
-@NotBlank
-@Column(name = "date_finished_cancelled")
-private Date dateFinishedCancelled;
+	@Column(name = "date_registered", nullable = false)
+	private Date dateRegistered;
 
-@OneToMany(mappedBy = "request")
-private List<Activity> activities;
+	@Column(name = "date_finished_canceled")
+	private Date dateFinishedCancelled;
+
+	@OneToMany(mappedBy = "request")
+	private List<Activity> activities;
 
 }
