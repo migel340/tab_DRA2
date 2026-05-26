@@ -107,17 +107,17 @@ export const ClientDetailSchema = ClientDetailParser;
 
 // Form schemas for create/update
 export const ClientAddressFormSchema = z.object({
-  city: z.string().trim().min(1, "Miasto jest wymagane").max(20),
-  state: z.string().trim().min(1, "Województwo jest wymagane").max(20),
-  postalCode: z.string().trim().min(1, "Kod pocztowy jest wymagany").max(6),
-  country: z.string().trim().min(1, "Kraj jest wymagany").max(20),
+  city: z.string().trim().min(1, "Miasto jest wymagane").max(20).regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s]+$/, "Miasto może zawierać tylko litery"),
+  state: z.string().trim().min(1, "Województwo jest wymagane").max(20).regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s\-]+$/, "Województwo może zawierać tylko litery"),
+  postalCode: z.string().trim().min(1, "Kod pocztowy jest wymagany").max(6).regex(/^\d{2}-\d{3}$/, "Nieprawidłowy kod pocztowy"),
+  country: z.string().trim().min(1, "Kraj jest wymagany").max(20).regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ\s]+$/, "Kraj może zawierać tylko litery"),
 });
 
 const baseClientFormFields = z.object({
-  firstName: z.string().trim().min(1, "Imię jest wymagane").max(50),
-  surname: z.string().trim().min(1, "Nazwisko jest wymagane").max(50),
+  firstName: z.string().trim().min(1, "Imię jest wymagane").max(50).regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/, "Imię może zawierać tylko litery"),
+  surname: z.string().trim().min(1, "Nazwisko jest wymagane").max(50).regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/, "Nazwisko może zawierać tylko litery"),
   secondName: z.string().trim().optional(),
-  phoneNumber: z.string().trim().min(1, "Numer telefonu jest wymagany"),
+  phoneNumber: z.string().trim().min(1, "Numer telefonu jest wymagany").regex(/^\d{1,9}$/, "Za długi numer telefonu"),
   birthDate: z
     .string()
     .min(1, "Data urodzenia jest wymagana")
