@@ -21,6 +21,9 @@ export default function Sidebar({ user }: SidebarProps) {
         <p className="text-xs text-muted-foreground mt-1">
           {user.firstName} {user.surname}
         </p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {getUserRole(user.role)}
+        </p>
       </div>
 
       <nav className="flex-1 space-y-2">
@@ -57,3 +60,16 @@ export default function Sidebar({ user }: SidebarProps) {
     </div>
   );
 }
+
+const getUserRole = (role: string) => {
+  switch (role) {
+    case "ADMIN":
+      return "Administrator";
+    case "MANAGER":
+      return "Manager";
+    case "STAFF":
+      return "Pracownik";
+    default:
+      return "Brak roli";
+  }
+};
