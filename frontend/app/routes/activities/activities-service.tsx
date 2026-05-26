@@ -31,7 +31,7 @@ export const activitiesService = {
       );
     }
 
-    if (parsedParams.q) {
+    if (parsedParams.q && parsedParams.q !== "undefined") {
       const query = parsedParams.q.toLowerCase();
       items = items.filter(
         (a) =>

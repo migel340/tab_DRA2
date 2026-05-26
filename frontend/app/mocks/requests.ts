@@ -9,9 +9,10 @@ export const MOCK_DEVICES = [
 ];
 
 export const MOCK_STATUSES = [
-  { id: "open", name: "Open" },
-  { id: "in_progress", name: "W realizacji" },
-  { id: "closed", name: "Zakończone" },
+  { id: "OPN", name: "OPEN" },
+  { id: "PRO", name: "PROGRESS" },
+  { id: "FIN", name: "FINISH" },
+  { id: "CAN", name: "CANCELED" },
 ];
 
 export const MOCK_ACTIVITIES = [

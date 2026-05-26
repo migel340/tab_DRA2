@@ -6,7 +6,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from "./ui/input-group";
-import { Button } from "./ui/button";
 import type {
   ControllerRenderProps,
   ControllerFieldState,
@@ -48,7 +47,6 @@ export default function SearchBar<
           </InputGroup>
         </FieldContent>
       </Field>
-      <Button type="submit">Szukaj</Button>
     </div>
   );
 }

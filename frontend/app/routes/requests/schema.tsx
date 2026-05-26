@@ -30,13 +30,14 @@ export type EditRequestFormData = z.infer<typeof EditRequestFormSchema>;
 
 export const NewActivityFormSchema = z.object({
   type: z.string().min(1, "Wybierz typ aktywności"),
-  executor: z.string().min(1, "Wybierz wykonawcę"),
+  executor: z.string().optional(),
   description: z.string().min(1, "Opis jest wymagany"),
 });
 
 export type NewActivityFormData = z.infer<typeof NewActivityFormSchema>;
 
 export const EditActivityFormSchema = z.object({
+  sequenceNumber: z.string().optional(),
   type: z.string().min(1, "Wybierz typ aktywności"),
   executor: z.string().min(1, "Wybierz wykonawcę"),
   status: z.string().min(1, "Wybierz status"),

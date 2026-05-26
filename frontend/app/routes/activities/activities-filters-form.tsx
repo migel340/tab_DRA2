@@ -15,11 +15,17 @@ export function ActivitiesFiltersForm({
 
   const { watch, handleSubmit, control, register } = useForm({
     resolver: zodResolver(ActivitiesFilterSchema),
-    defaultValues: initialValues,
+    defaultValues: {
+      ...initialValues,
+      q: initialValues.q === "undefined" ? "" : (initialValues.q ?? ""),
+    },
   });
 
   function onSubmit(data: ActivitiesFilterParams) {
-    submit(data, { replace: true });
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined && v !== "" && v !== "undefined")
+    );
+    submit(cleanData as any, { replace: true });
   }
 
   useEffect(() => {
@@ -60,7 +66,7 @@ export function ActivitiesFiltersForm({
               <SelectContent>
                 <SelectItem value="all">Wszystkie</SelectItem>
                 <SelectItem value="active">Aktywne</SelectItem>
-                <SelectItem value="completed">Zakończone</SelectItem>
+                <SelectItem value="FIN">Zakończone</SelectItem>
               </SelectContent>
             </Select>
           )}

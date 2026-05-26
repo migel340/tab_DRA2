@@ -34,7 +34,9 @@ export async function loader({ params }: LoaderFunctionArgs) {
     status: "W trakcie"
   };
 
-  return { activity, request };
+  const currentUser = { role: "MANAGER" };
+
+  return { activity, request, currentUser };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -58,16 +60,19 @@ export default function PersonelActivityEditPage() {
   const submit = useSubmit();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
-  const { activity, request } = useLoaderData<typeof loader>();
+  const { activity, request, currentUser } = useLoaderData<typeof loader>();
   //const { id } = useParams();
 
-  const { handleSubmit, control } = useForm<EditPersonelActivityFormData>({
+  const { handleSubmit, control, watch } = useForm<EditPersonelActivityFormData>({
     resolver: zodResolver(EditPersonelActivityFormSchema),
     defaultValues: {
-      status: activity.status || "closed",
+      sequenceNumber: activity.id.toString(),
+      status: activity.status || "OPN",
       result: "Wymieniono uszkodzony układ zasilania.",
     },
   });
+
+  const currentStatus = watch("status");
 
   const onSubmit = (data: EditPersonelActivityFormData) => {
     submit(data, { method: "post", encType: "application/json" });
@@ -128,16 +133,28 @@ export default function PersonelActivityEditPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Numer Sekwencji</Label>
-                <Input disabled value={`${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Controller
+                  name="sequenceNumber"
+                  control={control}
+                  render={({ field }) => (
+                    <Input 
+                      {...field}
+                      disabled={currentUser?.role !== "MANAGER"} 
+                      className={currentUser?.role === "MANAGER" ? "bg-white font-medium text-gray-900" : "bg-gray-100 text-gray-500 font-medium"} 
+                    />
+                  )}
+                />
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Utworzono</Label>
-                <Input disabled value={activity.created} className="bg-gray-100 text-gray-500" />
+                <Label>Data utworzenia</Label>
+                <Input disabled defaultValue={activity.created} className="bg-gray-100 text-gray-500" />
               </div>
-              <div className="flex flex-col gap-2">
-                <Label>Zakończono</Label>
-                <Input disabled value={activity.finished} className="bg-gray-100 text-gray-500" />
-              </div>
+              {(currentStatus === "FIN" || currentStatus === "CAN") && (
+                <div className="flex flex-col gap-2">
+                  <Label>Data zakończenia</Label>
+                  <Input disabled defaultValue={activity.finished} className="bg-gray-100 text-gray-500" />
+                </div>
+              )}
             </div>
 
             {/* Środkowy wiersz z Selectami (3 kolumny) */}
@@ -160,6 +177,8 @@ export default function PersonelActivityEditPage() {
                     fieldState={fieldState}
                     label="Status"
                     showAllOption={false}
+                    getOptionValue={(option) => option}
+                    getOptionKey={(option) => option}
                   />
                 )}
               />

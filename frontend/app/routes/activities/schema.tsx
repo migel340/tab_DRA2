@@ -2,6 +2,7 @@ import * as z from "zod";
 import { BaseTableParamsSchema } from "~/types/table";
 
 export const EditActivityFormSchema = z.object({
+  sequenceNumber: z.string().optional(),
   type: z.string().readonly(),
   executor: z.string().readonly(),
   status: z.string().min(1, "Wybierz status"),
@@ -13,6 +14,7 @@ export type EditActivityFormData = z.infer<typeof EditActivityFormSchema>;
 
 
 export const EditPersonelActivityFormSchema = z.object({
+  sequenceNumber: z.string().optional(),
   status: z.string().min(1, "Wybierz status"),
   result: z.string().optional(),
 });

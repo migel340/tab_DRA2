@@ -27,7 +27,7 @@ export async function loader({ params }: LoaderFunctionArgs) {
     finished: "-",
     desc: "Brak opisu",
     executor: "Piotr Wiśniewski",
-    status: "open",
+    status: "OPN",
     type: "diagnoza",
     result: ""
   };
@@ -56,16 +56,19 @@ export default function ActivityEditPage() {
   // --- LOGIKA UPRAWNIEŃ ---
   const isExecutor = activity.executor === currentUser.fullName;
 
-  const { handleSubmit, control } = useForm<EditActivityFormData>({
+  const { handleSubmit, control, watch } = useForm<EditActivityFormData>({
     resolver: zodResolver(EditActivityFormSchema),
     defaultValues: {
+      sequenceNumber: activity.id?.toString() || "",
       type: activity.type || "diagnoza",
       executor: "1",
-      status: activity.status || "open",
+      status: activity.status || "OPN",
       description: activity.desc || "",
       result: "",
     },
   });
+
+  const currentStatus = watch("status");
 
   // Helpery do tekstowego wyświetlania wartości w trybie ReadOnly
   const currentStatusName = MOCK_STATUSES.find(s => s.id === activity.status)?.name || activity.status;
@@ -89,16 +92,28 @@ export default function ActivityEditPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Numer Sekwencji</Label>
-                <Input disabled value={`${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Controller
+                  name="sequenceNumber"
+                  control={control}
+                  render={({ field }) => (
+                    <Input 
+                      {...field}
+                      disabled={currentUser?.role !== "MANAGER"} 
+                      className={currentUser?.role === "MANAGER" ? "bg-white font-medium text-gray-900" : "bg-gray-100 text-gray-500 font-medium"} 
+                    />
+                  )}
+                />
               </div>
               <div className="flex flex-col gap-2">
-                <Label>Utworzono</Label>
-                <Input disabled value={activity.created} className="bg-gray-100 text-gray-500 font-medium" />
+                <Label>Data utworzenia</Label>
+                <Input disabled defaultValue={activity.created} className="bg-gray-100 text-gray-500 font-medium" />
               </div>
-              <div className="flex flex-col gap-2">
-                <Label>Zakończono</Label>
-                <Input disabled value={activity.finished} className="bg-gray-100 text-gray-500 font-medium" />
-              </div>
+              {(currentStatus === "FIN" || currentStatus === "CAN") && (
+                <div className="flex flex-col gap-2">
+                  <Label>Data zakończenia</Label>
+                  <Input disabled defaultValue={activity.finished} className="bg-gray-100 text-gray-500 font-medium" />
+                </div>
+              )}
             </div>
 
             {/* Rząd 2: Typ, Wykonawca, Status */}
@@ -122,8 +137,10 @@ export default function ActivityEditPage() {
                       <RepairStatusSelect
                         field={field}
                         fieldState={fieldState}
-                        label="Status" // Etykieta jest już wyżej
+                        label="Status" 
                         showAllOption={false}
+                        getOptionValue={(opt: any) => opt.id}
+                        getOptionKey={(opt: any) => opt.id}
                       />
                     )}
                   />

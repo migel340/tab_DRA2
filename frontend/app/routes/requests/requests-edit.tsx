@@ -58,7 +58,7 @@ export default function RequestEditPage() {
     defaultValues: {
       clientId: "1", // Przykładowo załadowane dane
       deviceId: "101",
-      status: "open",
+      status: "OPN",
       description: "Klient zgłasza brak reakcji na przycisk zasilania. Laptop wyłączył się podczas pracy.",
       result: "",
     },
@@ -183,13 +183,13 @@ export default function RequestEditPage() {
             <Table>
               <TableHeader className="bg-stone-100">
                 <TableRow>
-                  <TableHead className="w-[60px]"><div className="flex items-center gap-1">Lp. <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
-                  <TableHead><div className="flex items-center gap-1">Typ <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
-                  <TableHead><div className="flex items-center gap-1">Opis <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
-                  <TableHead><div className="flex items-center gap-1">Wykonawca <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
-                  <TableHead><div className="flex items-center gap-1">Status <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
-                  <TableHead><div className="flex items-center gap-1">Utworzono <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
-                  <TableHead><div className="flex items-center gap-1">Zakończono <ArrowUpDown className="h-3 w-3 opacity-50"/></div></TableHead>
+                  <TableHead className="w-[60px]">Lp.</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead>Opis</TableHead>
+                  <TableHead>Wykonawca</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Data utworzenia</TableHead>
+                  <TableHead>Data zakończenia</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>

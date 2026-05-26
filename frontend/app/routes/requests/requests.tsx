@@ -9,26 +9,42 @@ import { RequestsFiltersForm } from "./requests-filters-form";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTable } from "~/hooks/useTable";
+import { userContext } from "~/context";
 
 export const handle = {
   breadcrumb: () => "lista",
 };
 
-export async function loader({ request }: Route.LoaderArgs) {
+export async function loader({ request, context }: Route.LoaderArgs) {
   const url = new URL(request.url);
-  const params = RequestsFilterSchema.parse(
-    Object.fromEntries(url.searchParams),
-  );
+  const user = context.get(userContext) as any;
+
+  const rawParams = Object.fromEntries(url.searchParams);
+  
+  // Domyślne wartości filtrów
+  const mergedParams = {
+    manager: rawParams.manager ?? user?.username ?? "all",
+    status: rawParams.status ?? "OPN",
+    dateRange: rawParams.dateRange ?? "today",
+    ...rawParams,
+  };
+
+  const params = RequestsFilterSchema.parse(mergedParams);
   const requestsList = await requestsService.fetchRequestsList(params);
-  return { requestsList, params };
+  return { requestsList, params, user };
 }
 
 export default function Requests({ loaderData }: Route.ComponentProps) {
-  const { requestsList, params } = loaderData;
+  const { requestsList, params, user } = loaderData;
   const navigate = useNavigate();
 
-  const { table } = useTable({ data: requestsList, columns, params });
-
+  const { table } = useTable({
+    data: requestsList,
+    columns,
+    params,
+    pageCount: 1, // TODO: Docelowo pobranie z API np. loaderData.pageCount
+  });
+  
   return (
     <PageLayout
       title="Zgłoszenia"
@@ -43,7 +59,7 @@ export default function Requests({ loaderData }: Route.ComponentProps) {
       }
     >
       <DataTable table={table} onRowClick={(id) => navigate(`/requests/${id}`)}>
-        <RequestsFiltersForm initialValues={params} />
+        <RequestsFiltersForm initialValues={params} currentUser={user} />
       </DataTable>
     </PageLayout>
   );

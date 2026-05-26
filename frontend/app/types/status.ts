@@ -1,10 +1,10 @@
 import z from "zod";
 
 export const RepairStatusSchema = z.enum([
-  "PENDING",
-  "IN_PROGRESS",
-  "COMPLETED",
-  "REJECTED",
+  "OPN",
+  "PRO",
+  "FIN",
+  "CAN",
 ]);
 
 export type RepairStatus = z.infer<typeof RepairStatusSchema>;

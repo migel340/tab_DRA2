@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table";
-import { SortableHeader } from "~/components/SortableHeader";
 import { ProgressField } from "~/components/ProgressField";
-import { Badge } from "~/components/ui/badge";
+import { RepairStatusBadge } from "~/components/Badge";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import type { RequestItem } from "./requests-service";
@@ -10,30 +9,28 @@ import { useNavigate } from "react-router";
 export const columns: ColumnDef<RequestItem>[] = [
   {
     accessorKey: "id",
-    header: ({ column }) => (
-      <div className="pl-6"><SortableHeader label="Numer" column={column} /></div>
-    ),
+    header: () => <div className="pl-6">Numer</div>,
     cell: ({ getValue }) => (
       <div className="pl-6 font-semibold text-gray-700">#{getValue() as string}</div>
     ),
   },
   {
     accessorKey: "date",
-    header: ({ column }) => <SortableHeader label="Data" column={column} />,
+    header: "Data",
     cell: ({ getValue }) => (
       <span className="text-gray-600">{getValue() as string}</span>
     ),
   },
   {
     accessorKey: "manager",
-    header: ({ column }) => <SortableHeader label="Manager" column={column} />,
+    header: "Manager",
     cell: ({ getValue }) => (
       <span className="text-gray-600">{getValue() as string}</span>
     ),
   },
   {
     accessorKey: "description",
-    header: ({ column }) => <SortableHeader label="Opis" column={column} />,
+    header: "Opis",
     cell: ({ getValue }) => (
       <div className="max-w-[250px] text-gray-500 text-sm truncate" title={getValue() as string}>
         {getValue() as string}
@@ -42,7 +39,7 @@ export const columns: ColumnDef<RequestItem>[] = [
   },
   {
     id: "clientDevice",
-    header: ({ column }) => <SortableHeader label="Klient & Urządzenie" column={column} />,
+    header: "Klient & Urządzenie",
     cell: ({ row }) => {
       const { client, device } = row.original;
       return (
@@ -55,17 +52,15 @@ export const columns: ColumnDef<RequestItem>[] = [
   },
   {
     accessorKey: "progress",
-    header: ({ column }) => <SortableHeader label="Postęp" column={column} />,
+    header: "Postęp",
     cell: ({ getValue }) => <ProgressField value={getValue() as number} />,
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <SortableHeader label="Status" column={column} />,
+    header: "Status",
     cell: ({ getValue }) => (
       <div className="flex">
-        <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200 hover:bg-green-50 rounded-full font-medium px-3 py-0.5">
-          {getValue() as string}
-        </Badge>
+        <RepairStatusBadge status={getValue() as any} />
       </div>
     ),
   },

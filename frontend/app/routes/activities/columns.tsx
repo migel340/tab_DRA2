@@ -1,5 +1,4 @@
 ﻿import type { ColumnDef } from "@tanstack/react-table";
-import { SortableHeader } from "~/components/SortableHeader";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Trash2 } from "lucide-react";
@@ -8,21 +7,21 @@ import type { ActivityItem } from "./activities-service";
 export const columns: ColumnDef<ActivityItem>[] = [
   {
     id: "index",
-    header: ({ column }) => <SortableHeader label="Lp." column={column} />,
+    header: "Lp.",
     cell: ({ row }) => (
       <div className="font-medium text-gray-700">{row.index + 1}</div>
     ),
   },
   {
     accessorKey: "type",
-    header: ({ column }) => <SortableHeader label="Typ" column={column} />,
+    header: "Typ",
     cell: ({ getValue }) => (
       <div className="font-medium text-gray-900">{getValue() as string}</div>
     ),
   },
   {
     accessorKey: "desc",
-    header: ({ column }) => <SortableHeader label="Opis" column={column} />,
+    header: "Opis",
     cell: ({ getValue }) => (
       <div className="max-w-[250px] text-gray-500 text-sm truncate" title={getValue() as string}>
         {getValue() as string}
@@ -31,14 +30,14 @@ export const columns: ColumnDef<ActivityItem>[] = [
   },
   {
     accessorKey: "executor",
-    header: ({ column }) => <SortableHeader label="Wykonawca" column={column} />,
+    header: "Wykonawca",
     cell: ({ getValue }) => (
       <span className="text-gray-700">{getValue() as string}</span>
     ),
   },
   {
     accessorKey: "status",
-    header: ({ column }) => <SortableHeader label="Status" column={column} />,
+    header: "Status",
     cell: ({ getValue }) => (
       <Badge
         variant="outline"
@@ -54,14 +53,14 @@ export const columns: ColumnDef<ActivityItem>[] = [
   },
   {
     accessorKey: "created",
-    header: ({ column }) => <SortableHeader label="Utworzono" column={column} />,
+    header: "Data utworzenia",
     cell: ({ getValue }) => (
       <span className="text-gray-500">{getValue() as string}</span>
     ),
   },
   {
     accessorKey: "finished",
-    header: ({ column }) => <SortableHeader label="Zakończono" column={column} />,
+    header: "Data zakończenia",
     cell: ({ getValue }) => (
       <span className="text-gray-500">{getValue() as string}</span>
     ),

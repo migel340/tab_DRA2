@@ -8,18 +8,27 @@ import SearchBar from "~/components/SearchBar";
 
 export function RequestsFiltersForm({
   initialValues,
+  currentUser,
 }: {
   initialValues: RequestsFilterParams;
+  currentUser: any;
 }) {
   const submit = useSubmit();
 
   const { watch, handleSubmit, control, register } = useForm({
     resolver: zodResolver(RequestsFilterSchema),
-    defaultValues: initialValues,
+    defaultValues: {
+      ...initialValues,
+      q: initialValues.q === "undefined" ? "" : (initialValues.q ?? ""),
+    },
   });
 
   function onSubmit(data: RequestsFilterParams) {
-    submit(data, { replace: true });
+    // Usuwamy puste wartości i "undefined", żeby nie zaśmiecały URL (np. q=undefined)
+    const cleanData = Object.fromEntries(
+      Object.entries(data).filter(([_, v]) => v !== undefined && v !== "" && v !== "undefined")
+    );
+    submit(cleanData as any, { replace: true });
   }
 
   useEffect(() => {
@@ -43,7 +52,9 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszyscy</SelectItem>
-                <SelectItem value="jan">Jan Kowalski</SelectItem>
+                {currentUser && (
+                  <SelectItem value={currentUser.username}>{currentUser.firstName} {currentUser.surname}</SelectItem>
+                )}
               </SelectContent>
             </Select>
           )}
@@ -59,7 +70,10 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszystkie</SelectItem>
-                <SelectItem value="active">Aktywne</SelectItem>
+                <SelectItem value="OPN">OPEN</SelectItem>
+                <SelectItem value="PRO">PROGRESS</SelectItem>
+                <SelectItem value="FIN">FINISH</SelectItem>
+                <SelectItem value="CAN">CANCELED</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -75,6 +89,7 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Kiedykolwiek</SelectItem>
+                <SelectItem value="today">Dzisiaj</SelectItem>
                 <SelectItem value="last_week">Ostatni tydzień</SelectItem>
               </SelectContent>
             </Select>

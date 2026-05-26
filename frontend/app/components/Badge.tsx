@@ -38,23 +38,23 @@ export function BaseBadge<T extends string>({
 }
 
 const repairConfig: BadgeConfig<RepairStatus> = {
-  PENDING: {
-    label: "Oczekujący",
+  OPN: {
+    label: "OPEN",
     className:
       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500",
   },
-  IN_PROGRESS: {
-    label: "W realizacji",
+  PRO: {
+    label: "PROGRESS",
     className:
       "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-500",
   },
-  COMPLETED: {
-    label: "Zakończony",
+  FIN: {
+    label: "FINISH",
     className:
       "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500",
   },
-  REJECTED: {
-    label: "Odrzucony",
+  CAN: {
+    label: "CANCELED",
     className: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500",
   },
 };

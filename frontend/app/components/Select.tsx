@@ -161,6 +161,7 @@ export function RepairStatusSelect<T extends FieldValues, N extends Path<T>>(
     <BaseSelect
       {...props}
       label="Status Naprawy"
+      placeholder="Wybierz status"
       options={repairStatusOptions}
       renderItem={(status) => <RepairStatusBadge status={status} />}
       getOptionKey={(val) => val}
