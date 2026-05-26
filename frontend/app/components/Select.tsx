@@ -163,6 +163,8 @@ export function RepairStatusSelect<T extends FieldValues, N extends Path<T>>(
       label="Status Naprawy"
       options={repairStatusOptions}
       renderItem={(status) => <RepairStatusBadge status={status} />}
+      getOptionKey={(val) => val}
+      getOptionValue={(val) => val}
       showAllOption
     />
   );
