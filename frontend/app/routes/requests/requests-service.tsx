@@ -1,5 +1,7 @@
 import { z } from "zod";
-import type { RequestsFilterParams } from "./schema";
+import { type RequestsFilterParams, type RequestResponse, RequestResponseSchema } from "./schema";
+import { requestsApi } from "./requests-api";
+import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } from "~/types/requests";
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -48,9 +50,40 @@ const MOCK_REQUESTS: RequestItem[] = [
 ];
 
 export const requestsService = {
-  fetchRequestsList: async (params: RequestsFilterParams) => {
-    // Docelowo: wywołanie do API uwzględniające params
-    // Walidacja struktury odpowiedzi z API za pomocą stworzonego schematu Zod
-    return z.array(RequestItemSchema).parse(MOCK_REQUESTS);
+  getRequestById: async (
+    request: Request,
+    id: number,
+  ): Promise<Request | undefined> => {
+    const raw = await requestsApi.getOne(request, id);
+    if (!raw) return undefined;
+  
+    return RequestSchema.parse(raw);
+  },
+  
+  fetchRequestsList: async (
+    request: Request,
+    params: RequestsFilterParams,
+  ): Promise<RequestResponse> => {
+    const result = await requestsApi.getAll(params, request);
+    return RequestResponseSchema.parse(result);
+  },
+  
+  createRequest: async (
+    data: RequestCreatePayload,
+    request: Request,
+  ): Promise<Request> => {
+    const createdRaw = await requestsApi.create(data, request);
+    return RequestSchema.parse(createdRaw);
+  },
+  
+  updateRequest: async (
+    id: number,
+    data: RequestUpdatePayload,
+    request: Request,
+  ): Promise<Request> => {
+    const { id: _id, ...dbPayload } = data;
+  
+    const updatedRaw = await requestsApi.update(id, dbPayload, request);
+    return RequestSchema.parse(updatedRaw);
   },
 };

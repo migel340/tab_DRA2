@@ -9,17 +9,20 @@ import { RequestsFiltersForm } from "./requests-filters-form";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTable } from "~/hooks/useTable";
+import { requireManager } from "~/lib/auth.server";
 
 export const handle = {
   breadcrumb: () => "lista",
 };
 
 export async function loader({ request }: Route.LoaderArgs) {
+  await requireManager(request);
   const url = new URL(request.url);
   const params = RequestsFilterSchema.parse(
     Object.fromEntries(url.searchParams),
   );
-  const requestsList = await requestsService.fetchRequestsList(params);
+  
+  const requestsList = await requestsService.fetchRequestsList(request, params);
   return { requestsList, params };
 }
 
