@@ -13,19 +13,29 @@ import {
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import PageLayout from "~/layouts/PageLayout";
+import z from "zod";
 import { NewRequestFormSchema, type NewRequestFormData } from "./schema";
 import { MOCK_CLIENTS, MOCK_DEVICES } from "~/mocks/requests";
+import { requestsService } from "./requests-service";
+import { requireManager } from "~/lib/auth.server";
 
 export async function action({ request }: ActionFunctionArgs) {
+  await requireManager(request);
+
   const payload = await request.json();
   const parsed = NewRequestFormSchema.safeParse(payload);
   
   if (!parsed.success) {
-    return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
+    return { success: false, fieldErrors: z.flattenError(parsed.error).fieldErrors, status: 400,};
   }
 
-  // TODO: wywołanie docelowego API np. await requestsService.create(parsed.data)
-  return redirect("/requests");
+  try {
+    await requestsService.createRequest(parsed.data, request);
+    return redirect("/requests");
+  } catch (error) {
+    return { success: false, formError: "Wystąpił błąd podczas tworzenia zgłoszenia." };
+  }
+
 }
 
 export const handle = {

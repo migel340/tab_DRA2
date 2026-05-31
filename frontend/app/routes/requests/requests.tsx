@@ -9,29 +9,21 @@ import { RequestsFiltersForm } from "./requests-filters-form";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTable } from "~/hooks/useTable";
-import { userContext } from "~/context";
+import { requireManager } from "~/lib/auth.server";
 
 export const handle = {
   breadcrumb: () => "lista",
 };
 
-export async function loader({ request, context }: Route.LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
+  await requireManager(request);
   const url = new URL(request.url);
-  const user = context.get(userContext) as any;
+  const params = RequestsFilterSchema.parse(
+    Object.fromEntries(url.searchParams),
+  );
 
-  const rawParams = Object.fromEntries(url.searchParams);
-  
-  // Domyślne wartości filtrów
-  const mergedParams = {
-    manager: rawParams.manager ?? user?.username ?? "all",
-    status: rawParams.status ?? "OPN",
-    dateRange: rawParams.dateRange ?? "today",
-    ...rawParams,
-  };
-
-  const params = RequestsFilterSchema.parse(mergedParams);
-  const requestsList = await requestsService.fetchRequestsList(params);
-  return { requestsList, params, user };
+  const requestsList = await requestsService.fetchRequestsList(request, params);
+  return { requestsList, params };
 }
 
 export default function Requests({ loaderData }: Route.ComponentProps) {
@@ -44,7 +36,7 @@ export default function Requests({ loaderData }: Route.ComponentProps) {
     params,
     pageCount: 1, // TODO: Docelowo pobranie z API np. loaderData.pageCount
   });
-  
+
   return (
     <PageLayout
       title="Zgłoszenia"

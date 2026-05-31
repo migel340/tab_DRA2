@@ -1,5 +1,7 @@
 import * as z from "zod";
+import { createPaginatedResponseSchema } from "~/types/api";
 import { BaseTableParamsSchema } from "~/types/table";
+import { RequestSchema } from "~/types/requests";
 
 export const RequestsFilterSchema = BaseTableParamsSchema.extend({
   q: z.string().optional(),
@@ -17,6 +19,11 @@ export const NewRequestFormSchema = z.object({
 });
 
 export type NewRequestFormData = z.infer<typeof NewRequestFormSchema>;
+
+export const RequestResponseSchema =
+  createPaginatedResponseSchema(RequestSchema);
+
+export type RequestResponse = z.infer<typeof RequestResponseSchema>;
 
 export const EditRequestFormSchema = z.object({
   clientId: z.string().min(1, "Wybór klienta jest wymagany."),
