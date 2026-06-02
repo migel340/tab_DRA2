@@ -8,7 +8,7 @@ export const RequestDbSchema = z.object({
   manager: PersonelDbSchema.optional().nullable(),
   description: z.string().trim().min(1, "Nazwa użytkownika jest wymagana"),
   status: z.string().trim().min(1, "Status jest wymagany"),
-  dateRegistered: z.string(),
+  dateRegistered: z.string().optional().nullable(),
   dateFinishedCancelled: z.string().optional().nullable(),
 });
 

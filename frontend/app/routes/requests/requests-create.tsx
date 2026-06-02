@@ -1,6 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { Form, useNavigate, useSubmit, useActionData, type ActionFunctionArgs, redirect } from "react-router";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { useEffect } from "react";
+import { Form, useNavigate, useSubmit, useActionData, redirect, useLoaderData, useFetcher } from "react-router";
+import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -18,24 +20,50 @@ import { NewRequestFormSchema, type NewRequestFormData } from "./schema";
 import { MOCK_CLIENTS, MOCK_DEVICES } from "~/mocks/requests";
 import { requestsService } from "./requests-service";
 import { requireManager } from "~/lib/auth.server";
+import { deviceService } from "../device/device.service";
+import { clientService } from "../client/client-service";
+import type { Device } from "~/types/device";
+
+export async function loader({ request }: LoaderFunctionArgs) {
+  await requireManager(request);
+
+  const url = new URL(request.url);
+  const clientId = url.searchParams.get("clientId");
+  if(clientId) {
+    try{
+      const result = await deviceService.fetchDeviceList(Number(clientId), request, {sort: "asc", limit: 100, page: 1});
+      return {clients: [], devices: result.data};
+    } catch (error) {
+      return {clients: [], devices: []};
+    }
+  }
+  const clientResponse = await clientService.fetchClientList(request, {sort: "asc", limit: 100, page: 1});
+  return { clients: clientResponse.data, devices: [] };
+}
 
 export async function action({ request }: ActionFunctionArgs) {
-  await requireManager(request);
+  const loggedUser =await requireManager(request);
 
   const payload = await request.json();
   const parsed = NewRequestFormSchema.safeParse(payload);
   
   if (!parsed.success) {
-    return { success: false, fieldErrors: z.flattenError(parsed.error).fieldErrors, status: 400,};
+    return { success: false, fieldErrors: z.flattenError(parsed.error).fieldErrors, status: 400 };
   }
 
   try {
-    await requestsService.createRequest(parsed.data, request);
+    const payloadForApi = {
+      deviceId: Number(parsed.data.deviceId),
+      description: parsed.data.description,
+      status: "REGISTERED",
+      managerId: loggedUser.id,
+    };
+    await requestsService.createRequest(payloadForApi, request);
     return redirect("/requests");
   } catch (error) {
-    return { success: false, formError: "Wystąpił błąd podczas tworzenia zgłoszenia." };
+    console.error("=== [DEBUG] BŁĄD WYSYŁANIA ===", error);
+    return { success: false, formError: "Nie udało się połączyć z API lub serwer odrzucił żądanie." };
   }
-
 }
 
 export const handle = {
@@ -47,7 +75,10 @@ export default function RequestCreatePage() {
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
 
-  const { handleSubmit, control } = useForm<NewRequestFormData>({
+  const {clients} = useLoaderData<typeof loader>();
+  const deviceFetcher = useFetcher<{ devices: Device[] }>();
+
+  const { handleSubmit, control, setValue, formState: { errors } } = useForm<NewRequestFormData>({
     resolver: zodResolver(NewRequestFormSchema),
     defaultValues: {
       clientId: "",
@@ -56,13 +87,36 @@ export default function RequestCreatePage() {
     },
   });
 
+  const selectedClientId = useWatch({
+    control,
+    name: "clientId",
+  });
+
+  useEffect(() => {
+    if (selectedClientId) {
+      deviceFetcher.load(`?clientId=${selectedClientId}`);
+      setValue("deviceId", ""); 
+    }
+  }, [selectedClientId, setValue]);
+
   const onSubmit = (data: NewRequestFormData) => {
     submit(data, { method: "post", encType: "application/json" });
   };
 
+  const devices = deviceFetcher.data?.devices || [];
+  const isLoadingDevices = deviceFetcher.state === "loading";
+  const hasNoDevices = deviceFetcher.data !== undefined && devices.length === 0;
+
   return (
     <PageLayout title="Dodaj nowe zgłoszenie">
       <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        {/* DODANE: Wyświetlanie błędu z catch() */}
+        {actionData?.formError && (
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm">
+            <p className="font-medium">Błąd zapisu</p>
+            <p className="text-sm">{actionData.formError}</p>
+          </div>
+        )}
         {/* Main Form Card */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-2">Informacje</h2>
@@ -82,9 +136,9 @@ export default function RequestCreatePage() {
                         <SelectValue placeholder="Wybierz klienta" />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_CLIENTS.map((client) => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
+                        {clients.map((client) => (
+                          <SelectItem key={client.id} value={client.id.toString()}>
+                            {client.firstName} {client.surname}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -92,7 +146,7 @@ export default function RequestCreatePage() {
                   )}
                 />
                 {actionData?.fieldErrors?.clientId && (
-                  <span className="text-xs text-destructive">{actionData.fieldErrors.clientId[0]}</span>
+                  <span className="text-xs text-destructive">{errors.clientId?.message || actionData?.fieldErrors?.clientId[0]}</span>
                 )}
               </div>
               <div className="flex flex-col gap-2">
@@ -101,14 +155,14 @@ export default function RequestCreatePage() {
                   name="deviceId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={!selectedClientId || isLoadingDevices || hasNoDevices}>
                       <SelectTrigger id="deviceId" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz urządzenie" />
+                        <SelectValue placeholder={!selectedClientId ? "Najpierw wybierz klienta" : isLoadingDevices ? "Ładowanie..." : hasNoDevices ? "Brak dostępnych urządzeń" : "Wybierz urządzenie"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_DEVICES.map((device) => (
-                          <SelectItem key={device.id} value={device.id}>
-                            {device.name}
+                        {devices.map((device) => (
+                          <SelectItem key={device.id} value={device.id.toString()}>
+                            {device.deviceName}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -116,7 +170,7 @@ export default function RequestCreatePage() {
                   )}
                 />
                 {actionData?.fieldErrors?.deviceId && (
-                  <span className="text-xs text-destructive">{actionData.fieldErrors.deviceId[0]}</span>
+                  <span className="text-xs text-destructive">{errors.deviceId?.message || actionData?.fieldErrors?.deviceId[0]}</span>
                 )}
               </div>
             </div>
@@ -137,7 +191,7 @@ export default function RequestCreatePage() {
                 )}
               />
               {actionData?.fieldErrors?.description && (
-                <span className="text-xs text-destructive">{actionData.fieldErrors.description[0]}</span>
+                <span className="text-xs text-destructive">{errors.description?.message || actionData?.fieldErrors?.description[0]}</span>
               )}
             </div>
           </div>
