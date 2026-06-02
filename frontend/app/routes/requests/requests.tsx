@@ -31,10 +31,9 @@ export default function Requests({ loaderData }: Route.ComponentProps) {
   const navigate = useNavigate();
 
   const { table } = useTable({
-    data: requestsList,
+    data: requestsList.data || [],
     columns,
     params,
-    pageCount: 1, // TODO: Docelowo pobranie z API np. loaderData.pageCount
   });
 
   return (
