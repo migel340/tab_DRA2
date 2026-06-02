@@ -4,28 +4,32 @@ import { ProgressField } from "~/components/ProgressField";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
-import type { RequestItem } from "./requests-service";
+import type { RequestDB } from "~/types/requests";
 import { useNavigate } from "react-router";
 
-export const columns: ColumnDef<RequestItem>[] = [
+export const columns: ColumnDef<RequestDB>[] = [
   {
     accessorKey: "id",
     header: ({ column }) => (
       <div className="pl-6"><SortableHeader label="Numer" column={column} /></div>
     ),
     cell: ({ getValue }) => (
-      <div className="pl-6 font-semibold text-gray-700">#{getValue() as string}</div>
+      <div className="pl-6 font-semibold text-gray-700">#{getValue() as number}</div>
     ),
   },
   {
-    accessorKey: "date",
+    accessorKey: "dateRegistered",
     header: ({ column }) => <SortableHeader label="Data" column={column} />,
-    cell: ({ getValue }) => (
-      <span className="text-gray-600">{getValue() as string}</span>
-    ),
+    cell: ({ getValue }) => {
+      const val = getValue() as string;
+      return (
+      <span className="text-gray-600">{val ? new Date(val).toLocaleDateString("pl-PL") : "Brak"}</span>
+      );
+    },
   },
   {
-    accessorKey: "manager",
+    id: "manager",
+    accessorFn: (row) => row.manager ? `${row.manager.firstName} ${row.manager.surname}` : "Brak",
     header: ({ column }) => <SortableHeader label="Manager" column={column} />,
     cell: ({ getValue }) => (
       <span className="text-gray-600">{getValue() as string}</span>
@@ -44,17 +48,18 @@ export const columns: ColumnDef<RequestItem>[] = [
     id: "clientDevice",
     header: ({ column }) => <SortableHeader label="Klient & Urządzenie" column={column} />,
     cell: ({ row }) => {
-      const { client, device } = row.original;
+      const device = row.original.device;
+      const deviceName = device?.deviceName || "Brak urządzenia";
       return (
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-gray-700">{client}</span>
-          <span className="text-xs text-gray-500">{device}</span>
+          <span className="text-xs text-gray-500">{deviceName}</span>
         </div>
       );
     },
   },
   {
     accessorKey: "progress",
+    accessorFn: () => 0,
     header: ({ column }) => <SortableHeader label="Postęp" column={column} />,
     cell: ({ getValue }) => <ProgressField value={getValue() as number} />,
   },

@@ -30,7 +30,7 @@ export default function Requests({ loaderData }: Route.ComponentProps) {
   const { requestsList, params } = loaderData;
   const navigate = useNavigate();
 
-  const { table } = useTable({ data: requestsList, columns, params });
+  const { table } = useTable({ data: requestsList.data || [], columns, params });
 
   return (
     <PageLayout
