@@ -14,8 +14,12 @@ import {
 =======
 import { deviceService } from "../device/device-service";
 import { personelService } from "../personel/personel-service";
+<<<<<<< HEAD
 import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } from "~/types/requests";
 >>>>>>> 5fc660f (requests display device name and date fixed)
+=======
+import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload, type RequestDB } from "~/types/requests";
+>>>>>>> 3ddf3e3 (request edit without activities)
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -70,7 +74,7 @@ export const requestsService = {
   getRequestById: async (
     request: Request,
     id: number,
-  ): Promise<Request | undefined> => {
+  ): Promise<RequestDB | undefined> => {
     const raw = await requestsApi.getOne(request, id);
     if (!raw) return undefined;
 
@@ -107,7 +111,7 @@ export const requestsService = {
   createRequest: async (
     data: RequestCreatePayload,
     request: Request,
-  ): Promise<Request> => {
+  ): Promise<RequestDB> => {
     const createdRaw = await requestsApi.create(data, request);
     return RequestSchema.parse(createdRaw);
   },
@@ -116,7 +120,7 @@ export const requestsService = {
     id: number,
     data: RequestUpdatePayload,
     request: Request,
-  ): Promise<Request> => {
+  ): Promise<RequestDB> => {
     const { id: _id, ...dbPayload } = data;
 
     const updatedRaw = await requestsApi.update(id, dbPayload, request);
