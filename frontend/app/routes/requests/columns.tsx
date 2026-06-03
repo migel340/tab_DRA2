@@ -17,7 +17,7 @@ export const columns: ColumnDef<RequestDB>[] = [
     ),
   },
   {
-    accessorKey: "dateRegistered",
+    accessorKey: "dateRegistration",
     header: ({ column }) => <SortableHeader label="Data" column={column} />,
     cell: ({ getValue }) => {
       const val = getValue() as string;
@@ -30,8 +30,12 @@ export const columns: ColumnDef<RequestDB>[] = [
   },
   {
     id: "manager",
+<<<<<<< HEAD
     accessorFn: (row) =>
       row.manager ? `${row.manager.firstName} ${row.manager.surname}` : "Brak",
+=======
+    accessorFn: (row) => row.managerId ? `ID: ${row.managerId}` : "Brak",
+>>>>>>> 5fc660f (requests display device name and date fixed)
     header: ({ column }) => <SortableHeader label="Manager" column={column} />,
     cell: ({ getValue }) => (
       <span className="text-gray-600">{getValue() as string}</span>
@@ -41,10 +45,14 @@ export const columns: ColumnDef<RequestDB>[] = [
     accessorKey: "description",
     header: "Opis",
     cell: ({ getValue }) => (
+<<<<<<< HEAD
       <div
         className="max-w-[250px] text-gray-500 text-sm truncate"
         title={getValue() as string}
       >
+=======
+      <div className="max-w-[250px] text-gray-600 truncate" title={getValue() as string}>
+>>>>>>> 5fc660f (requests display device name and date fixed)
         {getValue() as string}
       </div>
     ),
@@ -57,7 +65,7 @@ export const columns: ColumnDef<RequestDB>[] = [
       const deviceName = device?.deviceName || "Brak urządzenia";
       return (
         <div className="flex flex-col">
-          <span className="text-xs text-gray-500">{deviceName}</span>
+          <span className="text-xs text-gray-600">{deviceName}</span>
         </div>
       );
     },
@@ -66,7 +74,7 @@ export const columns: ColumnDef<RequestDB>[] = [
     accessorKey: "progress",
     accessorFn: () => 0,
     header: ({ column }) => <SortableHeader label="Postęp" column={column} />,
-    cell: ({ getValue }) => <ProgressField value={getValue() as number} />,
+    cell: ({ getValue }) => <ProgressField value={(getValue() as number) || 0} />,
   },
   {
     accessorKey: "status",

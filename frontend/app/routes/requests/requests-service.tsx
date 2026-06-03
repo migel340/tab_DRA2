@@ -5,11 +5,17 @@ import {
   RequestResponseSchema,
 } from "./schema";
 import { requestsApi } from "./requests-api";
+<<<<<<< HEAD
 import {
   RequestSchema,
   type RequestCreatePayload,
   type RequestUpdatePayload,
 } from "~/types/requests";
+=======
+import { deviceService } from "../device/device-service";
+import { personelService } from "../personel/personel-service";
+import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } from "~/types/requests";
+>>>>>>> 5fc660f (requests display device name and date fixed)
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -24,6 +30,7 @@ export const RequestItemSchema = z.object({
 
 export type RequestItem = z.infer<typeof RequestItemSchema>;
 
+<<<<<<< HEAD
 const MOCK_REQUESTS: RequestItem[] = [
   {
     id: "2024-01",
@@ -57,6 +64,8 @@ const MOCK_REQUESTS: RequestItem[] = [
   },
 ];
 
+=======
+>>>>>>> 5fc660f (requests display device name and date fixed)
 export const requestsService = {
   getRequestById: async (
     request: Request,
@@ -72,8 +81,27 @@ export const requestsService = {
     request: Request,
     params: RequestsFilterParams,
   ): Promise<RequestResponse> => {
-    const result = await requestsApi.getAll(params, request);
-    return RequestResponseSchema.parse(result);
+    const rawResult = await requestsApi.getAll(params, request);
+    if(rawResult?.data && Array.isArray(rawResult.data)) {
+      const enrichedRequests = await Promise.all(
+        rawResult.data.map(async (req: any) => {
+          const enrichedReq = { ...req };
+
+          if(req.deviceId) {
+            try {
+              const deviceData = await deviceService.getDeviceById(request, req.deviceId);
+              enrichedReq.device = deviceData;
+            } catch (error) {
+              console.error("Nie udało się pobrać urządzenia ID: ${req.deviceId}", error);
+            }
+          }
+
+          return enrichedReq;
+        })
+      );
+      rawResult.data = enrichedRequests;
+    }
+    return RequestResponseSchema.parse(rawResult);
   },
 
   createRequest: async (
