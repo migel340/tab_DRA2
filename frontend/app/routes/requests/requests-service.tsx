@@ -3,7 +3,7 @@ import { type RequestsFilterParams, type RequestResponse, RequestResponseSchema 
 import { requestsApi } from "./requests-api";
 import { deviceService } from "../device/device-service";
 import { personelService } from "../personel/personel-service";
-import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } from "~/types/requests";
+import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload, type RequestDB } from "~/types/requests";
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -22,7 +22,7 @@ export const requestsService = {
   getRequestById: async (
     request: Request,
     id: number,
-  ): Promise<Request | undefined> => {
+  ): Promise<RequestDB | undefined> => {
     const raw = await requestsApi.getOne(request, id);
     if (!raw) return undefined;
   
@@ -59,7 +59,7 @@ export const requestsService = {
   createRequest: async (
     data: RequestCreatePayload,
     request: Request,
-  ): Promise<Request> => {
+  ): Promise<RequestDB> => {
     const createdRaw = await requestsApi.create(data, request);
     return RequestSchema.parse(createdRaw);
   },
@@ -68,7 +68,7 @@ export const requestsService = {
     id: number,
     data: RequestUpdatePayload,
     request: Request,
-  ): Promise<Request> => {
+  ): Promise<RequestDB> => {
     const { id: _id, ...dbPayload } = data;
   
     const updatedRaw = await requestsApi.update(id, dbPayload, request);
