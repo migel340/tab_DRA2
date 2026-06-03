@@ -1,15 +1,23 @@
 import z from "zod";
-import {DeviceSchema} from "~/types/device";
-import {PersonelDbSchema} from "~/types/personel";
+import {RequestDeviceSchema} from "~/types/device";
+import {RequestManagerSchema} from "~/types/personel";
+
+
+export const LooseRequestManagerSchema = RequestManagerSchema.omit({
+  active: true,
+});
 
 export const RequestDbSchema = z.object({
   id: z.number(),
-  device: DeviceSchema.optional().nullable(),
-  manager: PersonelDbSchema.optional().nullable(),
-  description: z.string().trim().min(1, "Nazwa użytkownika jest wymagana"),
+  deviceId: z.number().optional().nullable(),
+  managerId: z.number().optional().nullable(),
+  device: RequestDeviceSchema.optional().nullable(),
+  manager: LooseRequestManagerSchema.optional().nullable(),
+  description: z.string().trim().min(1, "Opis jest wymagany"),
   status: z.string().trim().min(1, "Status jest wymagany"),
-  dateRegistered: z.string().optional().nullable(),
+  dateRegistration: z.string().optional().nullable(),
   dateFinishedCancelled: z.string().optional().nullable(),
+  progress: z.number().min(0).max(100).optional().nullable(),
 });
 
 export type RequestDB = z.infer<typeof RequestDbSchema>;

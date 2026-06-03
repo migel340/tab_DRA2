@@ -17,6 +17,12 @@ export const DeviceSchema = z.object({
 
 export type Device = z.infer<typeof DeviceSchema>;
 
+export const RequestDeviceSchema = z.object({
+  id: z.coerce.number(),
+  deviceName: z.string().trim(),
+});
+
+
 export const CreateDeviceSchema = DeviceSchema.omit({
   id: true,
   deviceType: true,

@@ -16,6 +16,13 @@ export const PersonelDbSchema = z.object({
 
 export type PersonelDB = z.infer<typeof PersonelDbSchema>;
 
+export const RequestManagerSchema = z.object({
+  id: z.number(),
+  firstName: z.string().trim(),
+  surname: z.string().trim(),
+  active: z.boolean(),
+});
+
 const basePersonelFields = PersonelDbSchema.omit({
   id: true,
   active: true,

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { type RequestsFilterParams, type RequestResponse, RequestResponseSchema } from "./schema";
 import { requestsApi } from "./requests-api";
+import { deviceService } from "../device/device-service";
+import { personelService } from "../personel/personel-service";
 import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } from "~/types/requests";
 
 export const RequestItemSchema = z.object({
@@ -15,39 +17,6 @@ export const RequestItemSchema = z.object({
 });
 
 export type RequestItem = z.infer<typeof RequestItemSchema>;
-
-const MOCK_REQUESTS: RequestItem[] = [
-  {
-    id: "2024-01",
-    date: "23/04/18",
-    manager: "Jan Kowalski",
-    description: "Naprawa matrycy komputera. fsfasdfsafsdfafsdfsa....",
-    client: "Jan Kowalski",
-    device: "mac m1",
-    progress: 50,
-    status: "Aktywne",
-  },
-  {
-    id: "2024-02",
-    date: "23/04/18",
-    manager: "Jan Kowalski",
-    description: "Czyszczenie układu chłodzenia....",
-    client: "Jan Kowalski",
-    device: "mac m1",
-    progress: 50,
-    status: "Aktywne",
-  },
-  {
-    id: "2024-03",
-    date: "23/04/18",
-    manager: "Jan Kowalski",
-    description: "Wymiana baterii w laptopie....",
-    client: "Jan Kowalski",
-    device: "mac m1",
-    progress: 50,
-    status: "Aktywne",
-  },
-];
 
 export const requestsService = {
   getRequestById: async (
@@ -64,8 +33,27 @@ export const requestsService = {
     request: Request,
     params: RequestsFilterParams,
   ): Promise<RequestResponse> => {
-    const result = await requestsApi.getAll(params, request);
-    return RequestResponseSchema.parse(result);
+    const rawResult = await requestsApi.getAll(params, request);
+    if(rawResult?.data && Array.isArray(rawResult.data)) {
+      const enrichedRequests = await Promise.all(
+        rawResult.data.map(async (req: any) => {
+          const enrichedReq = { ...req };
+
+          if(req.deviceId) {
+            try {
+              const deviceData = await deviceService.getDeviceById(request, req.deviceId);
+              enrichedReq.device = deviceData;
+            } catch (error) {
+              console.error("Nie udało się pobrać urządzenia ID: ${req.deviceId}", error);
+            }
+          }
+
+          return enrichedReq;
+        })
+      );
+      rawResult.data = enrichedRequests;
+    }
+    return RequestResponseSchema.parse(rawResult);
   },
   
   createRequest: async (
