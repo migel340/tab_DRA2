@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -66,14 +67,20 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<RequestResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<RequestResponse> list(String status, String manager, String dateRange, int page,
+            int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
 
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
+<<<<<<< HEAD
         Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
+=======
+        Page<RequestResponse> pageData = requestRepository
+                .findAll(buildListSpecification(status, manager, dateRange), pageable).map(this::toResponse);
+>>>>>>> 2476a20 (filtering requests)
 
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
@@ -93,6 +100,42 @@ public class RequestService {
         Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
         return toResponse(r);
+    }
+
+    private Specification<Request> buildListSpecification(String status, String manager, String dateRange) {
+        return (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+
+            if (status != null && !status.isBlank() && !status.equals("all")) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+
+            if (manager != null && !manager.isBlank() && !manager.equals("all")) {
+                try {
+                    Integer managerId = Integer.valueOf(manager);
+                    predicates.add(cb.equal(root.get("manager").get("id"), managerId));
+                } catch (NumberFormatException e) {
+                }
+            }
+
+            if (dateRange != null && !dateRange.isBlank() && !dateRange.equals("all")) {
+                java.time.LocalDate today = java.time.LocalDate.now();
+                java.time.LocalDate startDate = null;
+
+                if (dateRange.equals("last_week")) {
+                    startDate = today.minusWeeks(1);
+                } else if (dateRange.equals("last_month")) {
+                    startDate = today.minusMonths(1);
+                }
+
+                if (startDate != null) {
+                    java.sql.Date sqlStartDate = java.sql.Date.valueOf(startDate);
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("dateRegistered"), sqlStartDate));
+                }
+            }
+
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
     }
 
     @Transactional
@@ -135,7 +178,12 @@ public class RequestService {
         return RequestResponse.builder()
                 .id(r.getId())
                 .deviceId(r.getDevice() != null && r.getDevice().getId() != null ? r.getDevice().getId() : 0)
+<<<<<<< HEAD
                 .manager(PersonelResponse.toResponse(r.getManager()))
+=======
+                .managerId(r.getManager() != null && r.getManager().getId() != null ? r.getManager().getId().intValue()
+                        : 0)
+>>>>>>> 2476a20 (filtering requests)
                 .description(r.getDescription())
                 .status(r.getStatus())
                 .dateRegistration(r.getDateRegistered())

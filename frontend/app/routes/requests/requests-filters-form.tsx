@@ -8,14 +8,23 @@ import SearchBar from "~/components/SearchBar";
 
 export function RequestsFiltersForm({
   initialValues,
+<<<<<<< HEAD
   currentUser,
 }: {
   initialValues: RequestsFilterParams;
   currentUser: any;
+=======
+  loggedUserId,
+  managers = [],
+}: {
+  initialValues: RequestsFilterParams;
+  loggedUserId: number;
+  managers?: Array<{ id: number; firstName: string; surname: string }>;
+>>>>>>> 2476a20 (filtering requests)
 }) {
   const submit = useSubmit();
 
-  const { watch, handleSubmit, control, register } = useForm({
+  const { watch, handleSubmit, control, register} = useForm({
     resolver: zodResolver(RequestsFilterSchema),
     defaultValues: {
       ...initialValues,
@@ -52,9 +61,13 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszyscy</SelectItem>
+<<<<<<< HEAD
                 {currentUser && (
                   <SelectItem value={currentUser.username}>{currentUser.firstName} {currentUser.surname}</SelectItem>
                 )}
+=======
+                <SelectItem value={loggedUserId.toString()}>Moje zgłoszenia</SelectItem>
+>>>>>>> 2476a20 (filtering requests)
               </SelectContent>
             </Select>
           )}
@@ -70,10 +83,17 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszystkie</SelectItem>
+<<<<<<< HEAD
                 <SelectItem value="OPN">OPEN</SelectItem>
                 <SelectItem value="PRO">PROGRESS</SelectItem>
                 <SelectItem value="FIN">FINISH</SelectItem>
                 <SelectItem value="CAN">CANCELED</SelectItem>
+=======
+                <SelectItem value="REGISTERED">Zarejestrowane</SelectItem>
+                <SelectItem value="IN_PROGRESS">W trakcie</SelectItem>
+                <SelectItem value="FINISHED">Zakończone</SelectItem>
+                <SelectItem value="CANCELLED">Anulowane</SelectItem>
+>>>>>>> 2476a20 (filtering requests)
               </SelectContent>
             </Select>
           )}
@@ -91,6 +111,7 @@ export function RequestsFiltersForm({
                 <SelectItem value="all">Kiedykolwiek</SelectItem>
                 <SelectItem value="today">Dzisiaj</SelectItem>
                 <SelectItem value="last_week">Ostatni tydzień</SelectItem>
+                <SelectItem value="last_month">Ostatni miesiąc</SelectItem>
               </SelectContent>
             </Select>
           )}
