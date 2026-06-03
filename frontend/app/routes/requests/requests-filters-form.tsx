@@ -8,12 +8,16 @@ import SearchBar from "~/components/SearchBar";
 
 export function RequestsFiltersForm({
   initialValues,
+  loggedUserId,
+  managers = [],
 }: {
   initialValues: RequestsFilterParams;
+  loggedUserId: number;
+  managers?: Array<{ id: number; firstName: string; surname: string }>;
 }) {
   const submit = useSubmit();
 
-  const { watch, handleSubmit, control, register } = useForm({
+  const { watch, handleSubmit, control, register} = useForm({
     resolver: zodResolver(RequestsFilterSchema),
     defaultValues: initialValues,
   });
@@ -43,7 +47,7 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszyscy</SelectItem>
-                <SelectItem value="jan">Jan Kowalski</SelectItem>
+                <SelectItem value={loggedUserId.toString()}>Moje zgłoszenia</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -59,7 +63,10 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszystkie</SelectItem>
-                <SelectItem value="active">Aktywne</SelectItem>
+                <SelectItem value="REGISTERED">Zarejestrowane</SelectItem>
+                <SelectItem value="IN_PROGRESS">W trakcie</SelectItem>
+                <SelectItem value="FINISHED">Zakończone</SelectItem>
+                <SelectItem value="CANCELLED">Anulowane</SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -76,6 +83,7 @@ export function RequestsFiltersForm({
               <SelectContent>
                 <SelectItem value="all">Kiedykolwiek</SelectItem>
                 <SelectItem value="last_week">Ostatni tydzień</SelectItem>
+                <SelectItem value="last_month">Ostatni miesiąc</SelectItem>
               </SelectContent>
             </Select>
           )}

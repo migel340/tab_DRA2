@@ -37,12 +37,15 @@ public class RequestController {
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
     public ResponseEntity<ApiResponse<ListResponse<RequestResponse>>> list(
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String manager,
+            @RequestParam(required = false) String dateRange,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort
-    ) {
-        ListResponse<RequestResponse> data = requestService.list(page, limit, orderBy, sort);
+            @RequestParam(defaultValue = "ASC") String sort) {
+        ListResponse<RequestResponse> data = requestService.list(status, manager, dateRange, page, limit, orderBy,
+                sort);
         ApiResponse<ListResponse<RequestResponse>> resp = ApiResponse.<ListResponse<RequestResponse>>builder()
                 .success(true)
                 .message("OK")
@@ -67,7 +70,8 @@ public class RequestController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<RequestResponse>> update(@PathVariable Integer id, @Valid @RequestBody CreateRequestDto dto) {
+    public ResponseEntity<ApiResponse<RequestResponse>> update(@PathVariable Integer id,
+            @Valid @RequestBody CreateRequestDto dto) {
         RequestResponse data = requestService.update(id, dto);
         ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
                 .success(true)

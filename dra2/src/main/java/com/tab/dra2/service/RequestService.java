@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class RequestService {
     private static final String STATUS_FINISHED = "FINISHED";
     private static final String STATUS_CANCELLED = "CANCELLED";
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "status", "dateRegistered", "description");
-    
+
     private final RequestRepository requestRepository;
     private final DeviceRepository deviceRepository;
     private final PersonelRepository personelRepository;
@@ -56,7 +57,7 @@ public class RequestService {
                 .device(device)
                 .manager(manager)
                 .description(dto.getDescription().trim())
-            .status(STATUS_REGISTERED)
+                .status(STATUS_REGISTERED)
                 .dateRegistered(new Date(System.currentTimeMillis()))
                 .build();
 
@@ -65,15 +66,17 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<RequestResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<RequestResponse> list(String status, String manager, String dateRange, int page,
+            int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
-        
+
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
-        
+        Page<RequestResponse> pageData = requestRepository
+                .findAll(buildListSpecification(status, manager, dateRange), pageable).map(this::toResponse);
+
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
@@ -92,6 +95,42 @@ public class RequestService {
         Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
         return toResponse(r);
+    }
+
+    private Specification<Request> buildListSpecification(String status, String manager, String dateRange) {
+        return (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+
+            if (status != null && !status.isBlank() && !status.equals("all")) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+
+            if (manager != null && !manager.isBlank() && !manager.equals("all")) {
+                try {
+                    Integer managerId = Integer.valueOf(manager);
+                    predicates.add(cb.equal(root.get("manager").get("id"), managerId));
+                } catch (NumberFormatException e) {
+                }
+            }
+
+            if (dateRange != null && !dateRange.isBlank() && !dateRange.equals("all")) {
+                java.time.LocalDate today = java.time.LocalDate.now();
+                java.time.LocalDate startDate = null;
+
+                if (dateRange.equals("last_week")) {
+                    startDate = today.minusWeeks(1);
+                } else if (dateRange.equals("last_month")) {
+                    startDate = today.minusMonths(1);
+                }
+
+                if (startDate != null) {
+                    java.sql.Date sqlStartDate = java.sql.Date.valueOf(startDate);
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("dateRegistered"), sqlStartDate));
+                }
+            }
+
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
     }
 
     @Transactional
@@ -115,7 +154,8 @@ public class RequestService {
             r.setManager(manager);
         }
 
-        if (dto.getDescription() != null) r.setDescription(dto.getDescription().trim());
+        if (dto.getDescription() != null)
+            r.setDescription(dto.getDescription().trim());
         if (dto.getStatus() != null) {
             String nextStatus = normalizeRequestStatus(dto.getStatus());
             validateTransition(r.getStatus(), nextStatus);
@@ -133,7 +173,8 @@ public class RequestService {
         return RequestResponse.builder()
                 .id(r.getId())
                 .deviceId(r.getDevice() != null && r.getDevice().getId() != null ? r.getDevice().getId() : 0)
-                .managerId(r.getManager() != null && r.getManager().getId() != null ? r.getManager().getId().intValue() : 0)
+                .managerId(r.getManager() != null && r.getManager().getId() != null ? r.getManager().getId().intValue()
+                        : 0)
                 .description(r.getDescription())
                 .status(r.getStatus())
                 .dateRegistration(r.getDateRegistered())
@@ -206,7 +247,8 @@ public class RequestService {
         };
 
         if (!allowed) {
-            throw new IllegalStateException("Invalid request status transition: %s -> %s".formatted(current, nextStatus));
+            throw new IllegalStateException(
+                    "Invalid request status transition: %s -> %s".formatted(current, nextStatus));
         }
     }
 
