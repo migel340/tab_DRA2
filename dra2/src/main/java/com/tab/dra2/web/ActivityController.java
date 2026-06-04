@@ -22,6 +22,7 @@ public class ActivityController {
 
         private final ActivityService activityService;
 
+<<<<<<< HEAD
         @GetMapping
         @PreAuthorize("hasRole('MANAGER')")
         public ResponseEntity<ApiResponse<ListResponse<ActivityResponse>>> list(
@@ -51,6 +52,37 @@ public class ActivityController {
                                 .build();
                 return ResponseEntity.ok(resp);
         }
+=======
+    @GetMapping
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<ApiResponse<ListResponse<ActivityResponse>>> list(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int limit,
+            @RequestParam(defaultValue = "id") String orderBy,
+            @RequestParam(defaultValue = "ASC") String sort,
+            @RequestParam(required = false) Integer requestId) {
+        ListResponse<ActivityResponse> data = activityService.list(page, limit, orderBy, sort, requestId);
+        return ResponseEntity.ok(ApiResponse.<ListResponse<ActivityResponse>>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build());
+    }
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
+    public ResponseEntity<ApiResponse<ActivityResponse>> get(@PathVariable Long id) {
+        ActivityResponse data = activityService.get(id);
+        ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(resp);
+    }
+>>>>>>> 7183b1e (feat: handle fetch activities list by requestId)
 
         @PostMapping
         @PreAuthorize("hasAnyRole('MANAGER')")
@@ -65,6 +97,7 @@ public class ActivityController {
                 return ResponseEntity.status(HttpStatus.CREATED).body(resp);
         }
 
+<<<<<<< HEAD
         @PutMapping("/{id}")
         @PreAuthorize("hasAnyRole('MANAGER')")
         public ResponseEntity<ApiResponse<ActivityResponse>> update(@PathVariable Long id,
@@ -92,4 +125,33 @@ public class ActivityController {
                                 .build();
                 return ResponseEntity.ok(resp);
         }
+=======
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER')")
+    public ResponseEntity<ApiResponse<ActivityResponse>> update(@PathVariable Long id,
+            @Valid @RequestBody CreateActivityDto dto) {
+        ActivityResponse data = activityService.update(id, dto);
+        ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(resp);
+    }
+
+    @PutMapping("/{id}/status")
+    @PreAuthorize("hasRole('STAFF')")
+    public ResponseEntity<ApiResponse<ActivityResponse>> updateStatus(@PathVariable Long id,
+            @Valid @RequestBody UpdateActivityStatusDto dto) {
+        ActivityResponse data = activityService.updateAssignedStatus(id, dto);
+        ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
+                .success(true)
+                .message("OK")
+                .data(data)
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(resp);
+    }
+>>>>>>> 7183b1e (feat: handle fetch activities list by requestId)
 }
