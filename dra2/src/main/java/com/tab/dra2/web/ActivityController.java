@@ -14,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/api/activities")
 @RequiredArgsConstructor
@@ -29,8 +28,9 @@ public class ActivityController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort) {
-        ListResponse<ActivityResponse> data = activityService.list(page, limit, orderBy, sort);
+            @RequestParam(defaultValue = "ASC") String sort,
+            @RequestParam(required = false) Integer requestId) {
+        ListResponse<ActivityResponse> data = activityService.list(page, limit, orderBy, sort, requestId);
         return ResponseEntity.ok(ApiResponse.<ListResponse<ActivityResponse>>builder()
                 .success(true)
                 .message("OK")
@@ -42,7 +42,7 @@ public class ActivityController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<ActivityResponse>> get(@PathVariable Long id) {
-    ActivityResponse data = activityService.get(id);
+        ActivityResponse data = activityService.get(id);
         ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
                 .success(true)
                 .message("OK")
@@ -67,7 +67,8 @@ public class ActivityController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<ApiResponse<ActivityResponse>> update(@PathVariable Long id, @Valid @RequestBody CreateActivityDto dto) {
+    public ResponseEntity<ApiResponse<ActivityResponse>> update(@PathVariable Long id,
+            @Valid @RequestBody CreateActivityDto dto) {
         ActivityResponse data = activityService.update(id, dto);
         ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
                 .success(true)
@@ -80,7 +81,8 @@ public class ActivityController {
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('STAFF')")
-    public ResponseEntity<ApiResponse<ActivityResponse>> updateStatus(@PathVariable Long id, @Valid @RequestBody UpdateActivityStatusDto dto) {
+    public ResponseEntity<ApiResponse<ActivityResponse>> updateStatus(@PathVariable Long id,
+            @Valid @RequestBody UpdateActivityStatusDto dto) {
         ActivityResponse data = activityService.updateAssignedStatus(id, dto);
         ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
                 .success(true)
