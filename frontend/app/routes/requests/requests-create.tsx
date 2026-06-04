@@ -1,7 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { useEffect } from "react";
-import { Form, useNavigate, useSubmit, useActionData, redirect, useLoaderData, useFetcher } from "react-router";
+import {
+  Form,
+  useNavigate,
+  useSubmit,
+  useActionData,
+  redirect,
+  useLoaderData,
+  useFetcher,
+} from "react-router";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -17,7 +25,6 @@ import { Textarea } from "~/components/ui/textarea";
 import PageLayout from "~/layouts/PageLayout";
 import z from "zod";
 import { NewRequestFormSchema, type NewRequestFormData } from "./schema";
-import { MOCK_CLIENTS, MOCK_DEVICES } from "~/mocks/requests";
 import { requestsService } from "./requests-service";
 import { requireManager } from "~/lib/auth.server";
 import { deviceService } from "../device/device.service";
@@ -29,26 +36,38 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   const clientId = url.searchParams.get("clientId");
-  if(clientId) {
-    try{
-      const result = await deviceService.fetchDeviceList(Number(clientId), request, {sort: "asc", limit: 100, page: 1});
-      return {clients: [], devices: result.data};
+  if (clientId) {
+    try {
+      const result = await deviceService.fetchDeviceList(
+        Number(clientId),
+        request,
+        { sort: "asc", limit: 100, page: 1 },
+      );
+      return { clients: [], devices: result.data };
     } catch (error) {
-      return {clients: [], devices: []};
+      return { clients: [], devices: [] };
     }
   }
-  const clientResponse = await clientService.fetchClientList(request, {sort: "asc", limit: 100, page: 1});
+  const clientResponse = await clientService.fetchClientList(request, {
+    sort: "asc",
+    limit: 100,
+    page: 1,
+  });
   return { clients: clientResponse.data, devices: [] };
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const loggedUser =await requireManager(request);
+  const loggedUser = await requireManager(request);
 
   const payload = await request.json();
   const parsed = NewRequestFormSchema.safeParse(payload);
-  
+
   if (!parsed.success) {
-    return { success: false, fieldErrors: z.flattenError(parsed.error).fieldErrors, status: 400 };
+    return {
+      success: false,
+      fieldErrors: z.flattenError(parsed.error).fieldErrors,
+      status: 400,
+    };
   }
 
   try {
@@ -62,7 +81,10 @@ export async function action({ request }: ActionFunctionArgs) {
     return redirect("/requests");
   } catch (error) {
     console.error("=== [DEBUG] BŁĄD WYSYŁANIA ===", error);
-    return { success: false, formError: "Nie udało się połączyć z API lub serwer odrzucił żądanie." };
+    return {
+      success: false,
+      formError: "Nie udało się połączyć z API lub serwer odrzucił żądanie.",
+    };
   }
 }
 
@@ -75,17 +97,25 @@ export default function RequestCreatePage() {
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
 
-  const {clients} = useLoaderData<typeof loader>();
+  const { clients } = useLoaderData<typeof loader>();
   const deviceFetcher = useFetcher<{ devices: Device[] }>();
 
-  const { handleSubmit, control, setValue, formState: { errors } } = useForm<NewRequestFormData>({
+  const {
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors },
+  } = useForm<NewRequestFormData>({
     resolver: zodResolver(NewRequestFormSchema),
+    reValidateMode: "onChange",
     defaultValues: {
       clientId: "",
       deviceId: "",
       description: "",
     },
   });
+
+  console.log(errors);
 
   const selectedClientId = useWatch({
     control,
@@ -95,7 +125,7 @@ export default function RequestCreatePage() {
   useEffect(() => {
     if (selectedClientId) {
       deviceFetcher.load(`?clientId=${selectedClientId}`);
-      setValue("deviceId", ""); 
+      setValue("deviceId", "");
     }
   }, [selectedClientId, setValue]);
 
@@ -106,6 +136,13 @@ export default function RequestCreatePage() {
   const devices = deviceFetcher.data?.devices || [];
   const isLoadingDevices = deviceFetcher.state === "loading";
   const hasNoDevices = deviceFetcher.data !== undefined && devices.length === 0;
+
+  const descriptionError =
+    errors.description?.message || actionData?.fieldErrors?.description?.[0];
+  const deviceError =
+    errors.deviceId?.message || actionData?.fieldErrors?.deviceId?.[0];
+  const clientError =
+    errors.clientId?.message || actionData?.fieldErrors?.clientId?.[0];
 
   return (
     <PageLayout title="Dodaj nowe zgłoszenie">
@@ -137,7 +174,10 @@ export default function RequestCreatePage() {
                       </SelectTrigger>
                       <SelectContent>
                         {clients.map((client) => (
-                          <SelectItem key={client.id} value={client.id.toString()}>
+                          <SelectItem
+                            key={client.id}
+                            value={client.id.toString()}
+                          >
                             {client.firstName} {client.surname}
                           </SelectItem>
                         ))}
@@ -145,8 +185,10 @@ export default function RequestCreatePage() {
                     </Select>
                   )}
                 />
-                {actionData?.fieldErrors?.clientId && (
-                  <span className="text-xs text-destructive">{errors.clientId?.message || actionData?.fieldErrors?.clientId[0]}</span>
+                {clientError && (
+                  <span className="text-xs text-destructive">
+                    {clientError}
+                  </span>
                 )}
               </div>
               <div className="flex flex-col gap-2">
@@ -155,13 +197,32 @@ export default function RequestCreatePage() {
                   name="deviceId"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange} disabled={!selectedClientId || isLoadingDevices || hasNoDevices}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={
+                        !selectedClientId || isLoadingDevices || hasNoDevices
+                      }
+                    >
                       <SelectTrigger id="deviceId" className="bg-gray-50/50">
-                        <SelectValue placeholder={!selectedClientId ? "Najpierw wybierz klienta" : isLoadingDevices ? "Ładowanie..." : hasNoDevices ? "Brak dostępnych urządzeń" : "Wybierz urządzenie"} />
+                        <SelectValue
+                          placeholder={
+                            !selectedClientId
+                              ? "Najpierw wybierz klienta"
+                              : isLoadingDevices
+                                ? "Ładowanie..."
+                                : hasNoDevices
+                                  ? "Brak dostępnych urządzeń"
+                                  : "Wybierz urządzenie"
+                          }
+                        />
                       </SelectTrigger>
                       <SelectContent>
                         {devices.map((device) => (
-                          <SelectItem key={device.id} value={device.id.toString()}>
+                          <SelectItem
+                            key={device.id}
+                            value={device.id.toString()}
+                          >
                             {device.deviceName}
                           </SelectItem>
                         ))}
@@ -169,8 +230,10 @@ export default function RequestCreatePage() {
                     </Select>
                   )}
                 />
-                {actionData?.fieldErrors?.deviceId && (
-                  <span className="text-xs text-destructive">{errors.deviceId?.message || actionData?.fieldErrors?.deviceId[0]}</span>
+                {deviceError && (
+                  <span className="text-xs text-destructive">
+                    {deviceError}
+                  </span>
                 )}
               </div>
             </div>
@@ -190,8 +253,11 @@ export default function RequestCreatePage() {
                   />
                 )}
               />
-              {actionData?.fieldErrors?.description && (
-                <span className="text-xs text-destructive">{errors.description?.message || actionData?.fieldErrors?.description[0]}</span>
+
+              {descriptionError && (
+                <span className="text-xs text-destructive">
+                  {descriptionError}
+                </span>
               )}
             </div>
           </div>
