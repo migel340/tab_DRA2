@@ -5,6 +5,7 @@ info:
 
 http:
   method: GET
+<<<<<<< HEAD
   url: "{{host}}/personels?limit=20&active=false&q=kowalski"
   params:
     - name: limit
@@ -16,6 +17,9 @@ http:
     - name: q
       value: kowalski
       type: query
+=======
+  url: "{{host}}/personels/1"
+>>>>>>> 8e96a92 (feat: change access for manager to fetch list personel and personel details)
   auth: inherit
 
 settings:
