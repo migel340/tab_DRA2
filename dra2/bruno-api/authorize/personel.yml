@@ -6,6 +6,7 @@ info:
 http:
   method: GET
 <<<<<<< HEAD
+<<<<<<< HEAD
   url: "{{host}}/personels?limit=20&active=false&q=kowalski"
   params:
     - name: limit
@@ -20,6 +21,9 @@ http:
 =======
   url: "{{host}}/personels/1"
 >>>>>>> 8e96a92 (feat: change access for manager to fetch list personel and personel details)
+=======
+  url: "{{host}}/personels"
+>>>>>>> 6c418ad (feat: return PersonelResponse object instead of managerId in RequestResponse)
   auth: inherit
 
 settings:

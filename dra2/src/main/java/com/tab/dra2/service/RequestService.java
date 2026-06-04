@@ -77,6 +77,7 @@ public class RequestService {
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
 <<<<<<< HEAD
         Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
+<<<<<<< HEAD
 =======
         Page<RequestResponse> pageData = requestRepository
 <<<<<<< HEAD
@@ -85,6 +86,8 @@ public class RequestService {
 =======
                 .findAll(buildListSpecification(status, manager, dateFrom, dateTo), pageable).map(this::toResponse);
 >>>>>>> 43133fb (changed to datepicker instead of select)
+=======
+>>>>>>> 6c418ad (feat: return PersonelResponse object instead of managerId in RequestResponse)
 
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
@@ -183,11 +186,15 @@ public class RequestService {
                 .id(r.getId())
                 .deviceId(r.getDevice() != null && r.getDevice().getId() != null ? r.getDevice().getId() : 0)
 <<<<<<< HEAD
+<<<<<<< HEAD
                 .manager(PersonelResponse.toResponse(r.getManager()))
 =======
                 .managerId(r.getManager() != null && r.getManager().getId() != null ? r.getManager().getId().intValue()
                         : 0)
 >>>>>>> 2476a20 (filtering requests)
+=======
+                .manager(PersonelResponse.toResponse(r.getManager()))
+>>>>>>> 6c418ad (feat: return PersonelResponse object instead of managerId in RequestResponse)
                 .description(r.getDescription())
                 .status(r.getStatus())
                 .dateRegistration(r.getDateRegistered())
