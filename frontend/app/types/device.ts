@@ -13,6 +13,7 @@ export const DeviceSchema = z.object({
   id: z.coerce.number(),
   deviceName: z.string().trim().min(1, "Nazwa jest wymagana").max(100),
   deviceType: DeviceTypeSchema,
+  clientId: z.number().optional().nullable(),
 });
 
 export type Device = z.infer<typeof DeviceSchema>;
@@ -20,6 +21,7 @@ export type Device = z.infer<typeof DeviceSchema>;
 export const RequestDeviceSchema = z.object({
   id: z.coerce.number(),
   deviceName: z.string().trim(),
+  clientId: z.number().optional().nullable(),
 });
 
 

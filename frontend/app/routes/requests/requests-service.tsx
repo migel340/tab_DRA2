@@ -13,6 +13,7 @@ import {
 } from "~/types/requests";
 =======
 import { deviceService } from "../device/device-service";
+<<<<<<< HEAD
 import { personelService } from "../personel/personel-service";
 <<<<<<< HEAD
 import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } from "~/types/requests";
@@ -20,6 +21,10 @@ import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload } f
 =======
 import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload, type RequestDB } from "~/types/requests";
 >>>>>>> 3ddf3e3 (request edit without activities)
+=======
+import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload, type RequestDB } from "~/types/requests";
+import { clientService } from "../client/client-service";
+>>>>>>> a32f992 (clients name displayed with the device for requests)
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -95,6 +100,14 @@ export const requestsService = {
             try {
               const deviceData = await deviceService.getDeviceById(request, req.deviceId);
               enrichedReq.device = deviceData;
+              if(deviceData?.clientId) {
+                try {
+              const clientData = await clientService.getClientById(request, deviceData.clientId);
+              enrichedReq.clientName = `${clientData?.firstName} ${clientData?.surname}`;
+            } catch (error) {
+              console.error("Nie udało się pobrać klienta ID: ${deviceData.clientId}", error);
+            }
+              }
             } catch (error) {
               console.error("Nie udało się pobrać urządzenia ID: ${req.deviceId}", error);
             }
