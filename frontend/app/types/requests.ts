@@ -10,7 +10,6 @@ export const LooseRequestManagerSchema = RequestManagerSchema.omit({
 export const RequestDbSchema = z.object({
   id: z.number(),
   deviceId: z.number().optional().nullable(),
-  managerId: z.number().optional().nullable(),
   device: RequestDeviceSchema.optional().nullable(),
   manager: LooseRequestManagerSchema.optional().nullable(),
   description: z.string().trim().min(1, "Opis jest wymagany"),
@@ -18,6 +17,7 @@ export const RequestDbSchema = z.object({
   dateRegistration: z.string().optional().nullable(),
   dateFinishedCancelled: z.string().optional().nullable(),
   progress: z.number().min(0).max(100).optional().nullable(),
+  clientName: z.string().trim().optional().nullable(),
 });
 
 export type RequestDB = z.infer<typeof RequestDbSchema>;

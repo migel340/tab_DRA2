@@ -2,8 +2,8 @@ import { z } from "zod";
 import { type RequestsFilterParams, type RequestResponse, RequestResponseSchema } from "./schema";
 import { requestsApi } from "./requests-api";
 import { deviceService } from "../device/device-service";
-import { personelService } from "../personel/personel-service";
 import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload, type RequestDB } from "~/types/requests";
+import { clientService } from "../client/client-service";
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -43,6 +43,14 @@ export const requestsService = {
             try {
               const deviceData = await deviceService.getDeviceById(request, req.deviceId);
               enrichedReq.device = deviceData;
+              if(deviceData?.clientId) {
+                try {
+              const clientData = await clientService.getClientById(request, deviceData.clientId);
+              enrichedReq.clientName = `${clientData?.firstName} ${clientData?.surname}`;
+            } catch (error) {
+              console.error("Nie udało się pobrać klienta ID: ${deviceData.clientId}", error);
+            }
+              }
             } catch (error) {
               console.error("Nie udało się pobrać urządzenia ID: ${req.deviceId}", error);
             }

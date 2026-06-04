@@ -50,9 +50,10 @@ export const columns: ColumnDef<RequestDB>[] = [
     cell: ({ row }) => {
       const device = row.original.device;
       const deviceName = device?.deviceName || "Brak urządzenia";
+      const clientName = row.original.clientName || "Brak klienta";
       return (
         <div className="flex flex-col">
-          <span className="text-xs text-gray-600">{deviceName}</span>
+          <span className="text-xs text-gray-600">{clientName} {deviceName}</span>
         </div>
       );
     },
