@@ -31,19 +31,19 @@ public class PersonelService {
             "surname", "surname",
             "username", "username",
             "role", "role",
-            "active", "active"
-    );
+            "active", "active");
 
     private final PersonelRepository personelRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public ListResponse<PersonelResponse> getList(String q, String orderBy, String sort, int page, int limit) {
+    public ListResponse<PersonelResponse> getList(String q, String orderBy, String sort, int page, int limit,
+            Boolean active) {
         String normalizedOrderBy = resolveOrderBy(orderBy);
         Sort.Direction direction = resolveSortDirection(sort);
 
         Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(direction, normalizedOrderBy));
-        Page<Personel> result = personelRepository.findAll(buildListSpecification(q), pageable);
+        Page<Personel> result = personelRepository.findAll(buildListSpecification(q, active), pageable);
 
         return ListResponse.<PersonelResponse>builder()
                 .data(result.getContent().stream().map(this::toResponse).toList())
@@ -90,7 +90,8 @@ public class PersonelService {
                 .orElseThrow(() -> new IllegalArgumentException("Personnel with id %d not found".formatted(id)));
 
         String normalizedUsername = request.getUsername().trim();
-        if (!personel.getUsername().equals(normalizedUsername) && personelRepository.existsByUsername(normalizedUsername)) {
+        if (!personel.getUsername().equals(normalizedUsername)
+                && personelRepository.existsByUsername(normalizedUsername)) {
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -107,8 +108,12 @@ public class PersonelService {
         return toResponse(personelRepository.save(personel));
     }
 
-    private Specification<Personel> buildListSpecification(String q) {
+    private Specification<Personel> buildListSpecification(String q, Boolean active) {
         Specification<Personel> specification = (root, query, cb) -> cb.notEqual(root.get("role"), Role.ADMIN);
+
+        if (active != null) {
+            specification = specification.and((root, query, cb) -> cb.equal(root.get("active"), active));
+        }
 
         if (q == null || q.isBlank()) {
             return specification;
@@ -118,8 +123,7 @@ public class PersonelService {
         Specification<Personel> searchSpecification = (root, query, cb) -> cb.or(
                 cb.like(cb.lower(root.get("firstName")), pattern),
                 cb.like(cb.lower(root.get("surname")), pattern),
-                cb.like(cb.lower(root.get("username")), pattern)
-        );
+                cb.like(cb.lower(root.get("username")), pattern));
 
         return specification.and(searchSpecification);
     }

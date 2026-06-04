@@ -5,7 +5,17 @@ info:
 
 http:
   method: GET
-  url: "{{host}}/personels"
+  url: "{{host}}/personels?limit=20&active=false&q=kowalski"
+  params:
+    - name: limit
+      value: "20"
+      type: query
+    - name: active
+      value: "false"
+      type: query
+    - name: q
+      value: kowalski
+      type: query
   auth: inherit
 
 settings:
