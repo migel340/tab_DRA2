@@ -16,10 +16,14 @@ http:
         "deviceTypeId" : 3,
         "deviceName" : "Iphone",
 <<<<<<< HEAD
+<<<<<<< HEAD
         "clientId" : 2
 =======
         "clientId" : 1
 >>>>>>> 8cdcd3a (feat: add relation to client while creating device through device ID)
+=======
+        "clientId" : 2
+>>>>>>> 7b6626b (feat: add fetch device list by clientId through clientId passed as RequestParam)
       }
   auth: inherit
 
