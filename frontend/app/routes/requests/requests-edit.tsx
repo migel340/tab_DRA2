@@ -25,13 +25,13 @@ import { ArrowUpDown, Plus, Trash2 } from "lucide-react";
 import PageLayout from "~/layouts/PageLayout";
 import z from "zod";
 import { EditRequestFormSchema, type EditRequestFormData } from "./schema";
-import { MOCK_CLIENTS, MOCK_DEVICES, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
 import { requireManager } from "~/lib/auth.server";
 import { clientService } from "../client/client-service";
 import { deviceService } from "../device/device.service";
 import { requestsService } from "./requests-service";
 import type { Device } from "~/types/device";
 import { useEffect } from "react";
+import { api } from "~/lib/api.server";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireManager(request);
@@ -41,20 +41,34 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   if(clientId) {
     try{
       const result = await deviceService.fetchDeviceList(Number(clientId), request, {sort: "asc", limit: 100, page: 1});
-      return {requestData: null, clients: [], devices: result.data};
+      return {requestData: null, clients: [], devices: result.data, deviceData: null, currentClient: null};
     } catch (error) {
-      return {requestData: null, clients: [], devices: []};
+      return {requestData: null, clients: [], devices: [], deviceData: null, currentClient: null};
     }
   }
 
   const id = Number(params.id);
-  if (isNaN(id)) throw new Response("Invalid request ID", { status: 400 });
+  if (isNaN(id)) throw new Response("Nieprawidłowe ID", { status: 400 });
 
   const requestData = await requestsService.getRequestById(request, id);
-  if (!requestData) throw new Response("Request not found", { status: 404 });
+  if (!requestData) throw new Response("Zgłoszenie nie znalezione", { status: 404 });
+
+  const deviceData = requestData.deviceId ? await deviceService.getDeviceById(request, requestData.deviceId) : null;
+  const currentClient = await clientService.getClientById(request, deviceData?.clientId || 0);
 
   const clientResponse = await clientService.fetchClientList(request, {sort: "asc", limit: 100, page: 1});
-  return { requestData,clients: clientResponse.data, devices: [] };
+  
+  let activities = [];
+  try {
+    const actRes = await api<any>(`/activities?requestId=${id}&limit=100&page=1&sort=desc`, { method: "GET" }, request);
+    if (actRes && actRes.data) {
+      activities = actRes.data;
+    }
+  } catch (error) {
+    console.error("Nie udało się pobrać aktywności dla zgłoszenia ID: ${id}", error);
+  }
+  
+  return { requestData, clients: clientResponse.data, devices: [], activities, deviceData, currentClient };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -95,16 +109,17 @@ export default function RequestEditPage() {
   const { id } = useParams();
   const actionData = useActionData<typeof action>();
 
-  const { requestData, clients } = useLoaderData<typeof loader>();
+  const { requestData, clients, activities, deviceData, currentClient } = useLoaderData<typeof loader>();
   const deviceFetcher = useFetcher<{ devices: Device[] }>();
 
   const currentDeviceId = requestData?.device?.id?.toString() || requestData?.deviceId?.toString() || "";
-  const currentDeviceName = requestData?.device?.deviceName || "Obecnie przypisane urządzenie";
+  const currentDeviceName = deviceData?.deviceName || "Obecnie przypisane urządzenie";
+  const currentClientId = currentClient?.id?.toString() || "";
 
   const { handleSubmit, control, setValue, formState: { errors } } = useForm<EditRequestFormData>({
     resolver: zodResolver(EditRequestFormSchema),
     defaultValues: {
-      clientId: "", 
+      clientId: currentClientId, 
       deviceId: currentDeviceId,
       status: requestData?.status || "REGISTERED",
       description: requestData?.description || "",
@@ -117,9 +132,9 @@ export default function RequestEditPage() {
   useEffect(() => {
     if (selectedClientId) {
       deviceFetcher.load(`?clientId=${selectedClientId}`);
-      setValue("deviceId", ""); 
+      if (selectedClientId !== currentClientId) {setValue("deviceId", ""); }
     }
-  }, [selectedClientId, setValue]);
+  }, [selectedClientId, currentClientId, setValue]);
 
   const onSubmit = (data: EditRequestFormData) => {
     submit(data, { method: "post", encType: "application/json" });
@@ -127,10 +142,11 @@ export default function RequestEditPage() {
 
   const fetchedDevices = deviceFetcher.data?.devices || [];
   const isLoadingDevices = deviceFetcher.state === "loading";
+  const hasFetchedData = deviceFetcher.data !== undefined;
   const hasNoDevices = deviceFetcher.data !== undefined && fetchedDevices.length === 0;
-  const displayDevices = selectedClientId 
+  const displayDevices = hasFetchedData 
     ? fetchedDevices 
-    : [{ id: Number(currentDeviceId), deviceName: currentDeviceName }];
+    : (currentDeviceId ? [{ id: Number(currentDeviceId), deviceName: currentDeviceName }] : []);
 
   return (
     <PageLayout title="Edycja Zgłoszenia">
@@ -170,9 +186,9 @@ export default function RequestEditPage() {
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="deviceId">Urządzenie</Label>
                   <Controller name="deviceId" control={control} render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={!selectedClientId || isLoadingDevices || hasNoDevices}>
                       <SelectTrigger id="deviceId" className="bg-gray-50/50">
-                        <SelectValue placeholder={isLoadingDevices ? "Ładowanie..." : "Wybierz urządzenie"} />
+                        <SelectValue placeholder={isLoadingDevices ? "Ładowanie..." : hasNoDevices ? "Brak dostępnych urządzeń" : "Wybierz urządzenie"} />
                       </SelectTrigger>
                       <SelectContent>
                         {displayDevices.map((d) => (<SelectItem key={d.id} value={d.id.toString()}>{d.deviceName}</SelectItem>))}
@@ -269,33 +285,41 @@ export default function RequestEditPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_ACTIVITIES.map((act, idx) => (
+                {activities.length > 0 ? activities.map((act: any, idx: number) => (
                   <TableRow 
                     key={act.id} 
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() => navigate(`/requests/${id}/activities/${act.id}`)}
                   >
                     <TableCell className="font-medium">{idx + 1}</TableCell>
-                    <TableCell className="font-medium text-gray-900">{act.type}</TableCell>
-                    <TableCell className="text-gray-500 max-w-[250px] truncate">{act.desc}</TableCell>
-                    <TableCell className="text-gray-700">{act.executor}</TableCell>
-                    <TableCell><Badge variant="outline" className={act.status === "Aktywne" ? "bg-green-50 text-green-600 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>{act.status}</Badge></TableCell>
-                    <TableCell className="text-gray-500">{act.created}</TableCell>
-                    <TableCell className="text-gray-500">{act.finished}</TableCell>
+                    <TableCell className="font-medium text-gray-900">{act.actTypeId}</TableCell>
+                    <TableCell className="text-gray-500 max-w-[250px] truncate">{act.description}</TableCell>
+                    <TableCell className="text-gray-700">{act.personelId}</TableCell>
+                    <TableCell><Badge variant="outline" className={act.status === "DONE" ? "bg-green-50 text-green-600 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
+                        {act.status}
+                      </Badge></TableCell>
+                    <TableCell className="text-gray-500">{new Date(act.dateRegistration).toLocaleDateString("pl-PL")}</TableCell>
+                    <TableCell className="text-gray-500">{act.dateFinishedCancelled ? new Date(act.dateFinishedCancelled).toLocaleDateString("pl-PL") : "-"}</TableCell>
                     <TableCell>
                       <Button 
                         variant="ghost" 
                         size="icon" 
                         className="text-gray-400 hover:text-red-600"
                         onClick={(e) => {
-                          e.stopPropagation(); // Blokuje kliknięcie w cały wiersz
+                          e.stopPropagation();
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
-                ))}
+                )): (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                      Brak przypisanych aktywności.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
