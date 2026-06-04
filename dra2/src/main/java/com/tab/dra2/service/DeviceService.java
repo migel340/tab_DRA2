@@ -5,8 +5,10 @@ import com.tab.dra2.dto.DeviceResponse;
 import com.tab.dra2.dto.DeviceTypeResponseDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.entity.Client;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.DeviceType;
+import com.tab.dra2.repository.ClientRepository;
 import com.tab.dra2.repository.DeviceRepository;
 import com.tab.dra2.repository.DeviceTypeRepository;
 import com.tab.dra2.util.PaginationValidator;
@@ -29,29 +31,37 @@ public class DeviceService {
 
     private final DeviceRepository deviceRepository;
     private final DeviceTypeRepository deviceTypeRepository;
+    private final ClientRepository clientRepository;
 
     @Transactional
     public DeviceResponse create(CreateDeviceDto dto) {
+
+        Client client = this.clientRepository.findById(dto.getClientId())
+                .orElseThrow(() -> new NoSuchElementException("Client not found"));
+
         DeviceType type = deviceTypeRepository.findById(dto.getDeviceTypeId())
                 .orElseThrow(() -> new NoSuchElementException("Device type not found"));
 
-        Device d = new Device();
-        d.setDeviceType(type);
-        d.setDeviceName(dto.getDeviceName());
+        Device device = new Device();
+        device.setDeviceType(type);
+        device.setDeviceName(dto.getDeviceName());
+        device.setClient(client);
 
-        Device saved = deviceRepository.save(d);
+        Device saved = deviceRepository.save(device);
+
         return toResponse(saved);
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<DeviceResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<DeviceResponse> list(int page, int limit, String orderBy, String sort, Integer clientId) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
 
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<DeviceResponse> pageData = deviceRepository.findAll(pageable).map(this::toResponse);
+        Page<DeviceResponse> pageData = deviceRepository.findByClientIdOptional(clientId, pageable)
+                .map(this::toResponse);
 
         return ListResponse.<DeviceResponse>builder()
                 .data(pageData.getContent())
@@ -96,6 +106,7 @@ public class DeviceService {
                 .deviceType(DeviceTypeResponseDto.builder().id(d.getDeviceType().getId())
                         .deviceTypeName(d.getDeviceType().getDeviceTypeName()).build())
                 .deviceName(d.getDeviceName())
+                .clientId(d.getClient() != null ? d.getClient().getId() : null)
                 .build();
     }
 }

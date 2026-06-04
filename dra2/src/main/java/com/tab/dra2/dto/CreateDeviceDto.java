@@ -10,6 +10,9 @@ public class CreateDeviceDto {
     @NotNull
     private Integer deviceTypeId;
 
+    @NotNull
+    private Integer clientId;
+
     @Size(max = 100)
     private String deviceName;
 }
