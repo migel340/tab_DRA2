@@ -1,5 +1,9 @@
 import { z } from "zod";
-import type { RequestsFilterParams } from "./schema";
+import { type RequestsFilterParams, type RequestResponse, RequestResponseSchema } from "./schema";
+import { requestsApi } from "./requests-api";
+import { deviceService } from "../device/device-service";
+import { RequestSchema, type RequestCreatePayload, type RequestUpdatePayload, type RequestDB } from "~/types/requests";
+import { clientService } from "../client/client-service";
 
 export const RequestItemSchema = z.object({
   id: z.string(),
@@ -14,43 +18,68 @@ export const RequestItemSchema = z.object({
 
 export type RequestItem = z.infer<typeof RequestItemSchema>;
 
-const MOCK_REQUESTS: RequestItem[] = [
-  {
-    id: "2024-01",
-    date: "23/04/18",
-    manager: "Jan Kowalski",
-    description: "Naprawa matrycy komputera. fsfasdfsafsdfafsdfsa....",
-    client: "Jan Kowalski",
-    device: "mac m1",
-    progress: 50,
-    status: "Aktywne",
-  },
-  {
-    id: "2024-02",
-    date: "23/04/18",
-    manager: "Jan Kowalski",
-    description: "Czyszczenie układu chłodzenia....",
-    client: "Jan Kowalski",
-    device: "mac m1",
-    progress: 50,
-    status: "Aktywne",
-  },
-  {
-    id: "2024-03",
-    date: "23/04/18",
-    manager: "Jan Kowalski",
-    description: "Wymiana baterii w laptopie....",
-    client: "Jan Kowalski",
-    device: "mac m1",
-    progress: 50,
-    status: "Aktywne",
-  },
-];
-
 export const requestsService = {
-  fetchRequestsList: async (params: RequestsFilterParams) => {
-    // Docelowo: wywołanie do API uwzględniające params
-    // Walidacja struktury odpowiedzi z API za pomocą stworzonego schematu Zod
-    return z.array(RequestItemSchema).parse(MOCK_REQUESTS);
+  getRequestById: async (
+    request: Request,
+    id: number,
+  ): Promise<RequestDB | undefined> => {
+    const raw = await requestsApi.getOne(request, id);
+    if (!raw) return undefined;
+  
+    return RequestSchema.parse(raw);
+  },
+  
+  fetchRequestsList: async (
+    request: Request,
+    params: RequestsFilterParams,
+  ): Promise<RequestResponse> => {
+    const rawResult = await requestsApi.getAll(params, request);
+    if(rawResult?.data && Array.isArray(rawResult.data)) {
+      const enrichedRequests = await Promise.all(
+        rawResult.data.map(async (req: any) => {
+          const enrichedReq = { ...req };
+
+          if(req.deviceId) {
+            try {
+              const deviceData = await deviceService.getDeviceById(request, req.deviceId);
+              enrichedReq.device = deviceData;
+              if(deviceData?.clientId) {
+                try {
+              const clientData = await clientService.getClientById(request, deviceData.clientId);
+              enrichedReq.clientName = `${clientData?.firstName} ${clientData?.surname}`;
+            } catch (error) {
+              console.error("Nie udało się pobrać klienta ID: ${deviceData.clientId}", error);
+            }
+              }
+            } catch (error) {
+              console.error("Nie udało się pobrać urządzenia ID: ${req.deviceId}", error);
+            }
+          }
+
+          return enrichedReq;
+        })
+      );
+      rawResult.data = enrichedRequests;
+    }
+    return RequestResponseSchema.parse(rawResult);
+  },
+  
+  createRequest: async (
+    data: RequestCreatePayload,
+    request: Request,
+  ): Promise<RequestDB> => {
+    const createdRaw = await requestsApi.create(data, request);
+    return RequestSchema.parse(createdRaw);
+  },
+  
+  updateRequest: async (
+    id: number,
+    data: RequestUpdatePayload,
+    request: Request,
+  ): Promise<RequestDB> => {
+    const { id: _id, ...dbPayload } = data;
+  
+    const updatedRaw = await requestsApi.update(id, dbPayload, request);
+    return RequestSchema.parse(updatedRaw);
   },
 };

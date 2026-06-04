@@ -19,62 +19,68 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Requests")
 public class RequestController {
 
-    private final RequestService requestService;
+        private final RequestService requestService;
 
-    @PostMapping
-    @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<ApiResponse<RequestResponse>> create(@Valid @RequestBody CreateRequestDto dto) {
-        RequestResponse data = requestService.create(dto);
-        ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
-                .success(true)
-                .message("Created")
-                .data(data)
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
-        return ResponseEntity.status(HttpStatus.CREATED).body(resp);
-    }
+        @PostMapping
+        @PreAuthorize("hasAnyRole('MANAGER')")
+        public ResponseEntity<ApiResponse<RequestResponse>> create(@Valid @RequestBody CreateRequestDto dto) {
+                RequestResponse data = requestService.create(dto);
+                ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
+                                .success(true)
+                                .message("Created")
+                                .data(data)
+                                .timestamp(java.time.LocalDateTime.now())
+                                .build();
+                return ResponseEntity.status(HttpStatus.CREATED).body(resp);
+        }
 
-    @GetMapping
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<ListResponse<RequestResponse>>> list(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort
-    ) {
-        ListResponse<RequestResponse> data = requestService.list(page, limit, orderBy, sort);
-        ApiResponse<ListResponse<RequestResponse>> resp = ApiResponse.<ListResponse<RequestResponse>>builder()
-                .success(true)
-                .message("OK")
-                .data(data)
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(resp);
-    }
+        @GetMapping
+        @PreAuthorize("hasRole('MANAGER')")
+        public ResponseEntity<ApiResponse<ListResponse<RequestResponse>>> list(
+                        @RequestParam(required = false) String status,
+                        @RequestParam(required = false) String manager,
+                        @RequestParam(required = false) String dateFrom,
+                        @RequestParam(required = false) String dateTo,
+                        @RequestParam(defaultValue = "1") int page,
+                        @RequestParam(defaultValue = "10") int limit,
+                        @RequestParam(defaultValue = "id") String orderBy,
+                        @RequestParam(defaultValue = "ASC") String sort) {
+                ListResponse<RequestResponse> data = requestService.list(status, manager, dateFrom, dateTo, page, limit,
+                                orderBy,
+                                sort);
+                ApiResponse<ListResponse<RequestResponse>> resp = ApiResponse.<ListResponse<RequestResponse>>builder()
+                                .success(true)
+                                .message("OK")
+                                .data(data)
+                                .timestamp(java.time.LocalDateTime.now())
+                                .build();
+                return ResponseEntity.ok(resp);
+        }
 
-    @GetMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<RequestResponse>> getById(@PathVariable Integer id) {
-        RequestResponse data = requestService.getById(id);
-        ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
-                .success(true)
-                .message("OK")
-                .data(data)
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(resp);
-    }
+        @GetMapping("/{id}")
+        @PreAuthorize("hasRole('MANAGER')")
+        public ResponseEntity<ApiResponse<RequestResponse>> getById(@PathVariable Integer id) {
+                RequestResponse data = requestService.getById(id);
+                ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
+                                .success(true)
+                                .message("OK")
+                                .data(data)
+                                .timestamp(java.time.LocalDateTime.now())
+                                .build();
+                return ResponseEntity.ok(resp);
+        }
 
-    @PutMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<RequestResponse>> update(@PathVariable Integer id, @Valid @RequestBody CreateRequestDto dto) {
-        RequestResponse data = requestService.update(id, dto);
-        ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
-                .success(true)
-                .message("OK")
-                .data(data)
-                .timestamp(java.time.LocalDateTime.now())
-                .build();
-        return ResponseEntity.ok(resp);
-    }
+        @PutMapping("/{id}")
+        @PreAuthorize("hasRole('MANAGER')")
+        public ResponseEntity<ApiResponse<RequestResponse>> update(@PathVariable Integer id,
+                        @Valid @RequestBody CreateRequestDto dto) {
+                RequestResponse data = requestService.update(id, dto);
+                ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
+                                .success(true)
+                                .message("OK")
+                                .data(data)
+                                .timestamp(java.time.LocalDateTime.now())
+                                .build();
+                return ResponseEntity.ok(resp);
+        }
 }

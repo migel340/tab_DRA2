@@ -1,11 +1,14 @@
 import * as z from "zod";
+import { createPaginatedResponseSchema } from "~/types/api";
 import { BaseTableParamsSchema } from "~/types/table";
+import { RequestSchema } from "~/types/requests";
 
 export const RequestsFilterSchema = BaseTableParamsSchema.extend({
   q: z.string().optional(),
   manager: z.string().optional(),
   status: z.string().optional(),
-  dateRange: z.string().optional(),
+  dateFrom: z.string().optional(), 
+  dateTo: z.string().optional(),
 });
 
 export type RequestsFilterParams = z.infer<typeof RequestsFilterSchema>;
@@ -17,6 +20,11 @@ export const NewRequestFormSchema = z.object({
 });
 
 export type NewRequestFormData = z.infer<typeof NewRequestFormSchema>;
+
+export const RequestResponseSchema =
+  createPaginatedResponseSchema(RequestSchema);
+
+export type RequestResponse = z.infer<typeof RequestResponseSchema>;
 
 export const EditRequestFormSchema = z.object({
   clientId: z.string().min(1, "Wybór klienta jest wymagany."),

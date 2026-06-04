@@ -20,8 +20,8 @@ export const deviceApi = {
     request: Request,
   ) => {
     return api<DeviceDbResponse>(
-      ENDPOINT + `?clientId=${clientId}`,
-      { method: "GET", params },
+      ENDPOINT,
+      { method: "GET", params: { ...params, clientId } as Record<string, any> },
       request,
     );
   },

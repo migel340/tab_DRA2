@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -66,14 +67,16 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<RequestResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<RequestResponse> list(String status, String manager, String dateFrom, String dateTo, int page,
+            int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
 
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
+        Page<RequestResponse> pageData = requestRepository
+                .findAll(buildListSpecification(status, manager, dateFrom, dateTo), pageable).map(this::toResponse);
 
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
@@ -93,6 +96,42 @@ public class RequestService {
         Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
         return toResponse(r);
+    }
+
+    private Specification<Request> buildListSpecification(String status, String manager, String dateFrom,
+            String dateTo) {
+        return (root, query, cb) -> {
+            List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+
+            if (status != null && !status.isBlank() && !status.equals("all")) {
+                predicates.add(cb.equal(root.get("status"), status));
+            }
+
+            if (manager != null && !manager.isBlank() && !manager.equals("all")) {
+                try {
+                    Integer managerId = Integer.valueOf(manager);
+                    predicates.add(cb.equal(root.get("manager").get("id"), managerId));
+                } catch (NumberFormatException e) {
+                }
+            }
+
+            if (dateFrom != null && !dateFrom.isBlank()) {
+                try {
+                    java.sql.Date sqlFrom = java.sql.Date.valueOf(dateFrom);
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("dateRegistered"), sqlFrom));
+                } catch (IllegalArgumentException e) {
+                }
+            }
+
+            if (dateTo != null && !dateTo.isBlank()) {
+                try {
+                    java.sql.Date sqlTo = java.sql.Date.valueOf(dateTo);
+                    predicates.add(cb.lessThanOrEqualTo(root.get("dateRegistered"), sqlTo));
+                } catch (IllegalArgumentException e) {
+                }
+            }
+            return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        };
     }
 
     @Transactional

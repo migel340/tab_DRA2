@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
-import { Form, useNavigate, useParams, useSubmit, useActionData, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "react-router";
+import { Controller, useForm, useWatch } from "react-hook-form";
+import { Form, useNavigate, useParams, useSubmit, useActionData, type ActionFunctionArgs, type LoaderFunctionArgs, redirect, useFetcher, useLoaderData } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import {
@@ -23,24 +23,80 @@ import {
 import { Badge } from "~/components/ui/badge";
 import { ArrowUpDown, Plus, Trash2 } from "lucide-react";
 import PageLayout from "~/layouts/PageLayout";
+import z from "zod";
 import { EditRequestFormSchema, type EditRequestFormData } from "./schema";
-import { MOCK_CLIENTS, MOCK_DEVICES, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
+import { requireManager } from "~/lib/auth.server";
+import { clientService } from "../client/client-service";
+import { deviceService } from "../device/device.service";
+import { requestsService } from "./requests-service";
+import type { Device } from "~/types/device";
+import { useEffect } from "react";
+import { api } from "~/lib/api.server";
 
-export async function loader({ params }: LoaderFunctionArgs) {
-  // TODO: pobranie danych z API na podstawie ID
-  return { id: params.id };
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  await requireManager(request);
+
+  const url = new URL(request.url);
+  const clientId = url.searchParams.get("clientId");
+  if(clientId) {
+    try{
+      const result = await deviceService.fetchDeviceList(Number(clientId), request, {sort: "asc", limit: 100, page: 1});
+      return {requestData: null, clients: [], devices: result.data, deviceData: null, currentClient: null};
+    } catch (error) {
+      return {requestData: null, clients: [], devices: [], deviceData: null, currentClient: null};
+    }
+  }
+
+  const id = Number(params.id);
+  if (isNaN(id)) throw new Response("Nieprawidłowe ID", { status: 400 });
+
+  const requestData = await requestsService.getRequestById(request, id);
+  if (!requestData) throw new Response("Zgłoszenie nie znalezione", { status: 404 });
+
+  const deviceData = requestData.deviceId ? await deviceService.getDeviceById(request, requestData.deviceId) : null;
+  const currentClient = await clientService.getClientById(request, deviceData?.clientId || 0);
+
+  const clientResponse = await clientService.fetchClientList(request, {sort: "asc", limit: 100, page: 1});
+  
+  let activities = [];
+  try {
+    const actRes = await api<any>(`/activities?requestId=${id}&limit=100&page=1&sort=desc`, { method: "GET" }, request);
+    if (actRes && actRes.data) {
+      activities = actRes.data;
+    }
+  } catch (error) {
+    console.error("Nie udało się pobrać aktywności dla zgłoszenia ID: ${id}", error);
+  }
+  
+  return { requestData, clients: clientResponse.data, devices: [], activities, deviceData, currentClient };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const loggedUser = await requireManager(request);
+  const id = Number(params.id);
   const payload = await request.json();
   const parsed = EditRequestFormSchema.safeParse(payload);
   
   if (!parsed.success) {
-    return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
+    return { fieldErrors: z.flattenError(parsed.error).fieldErrors, success: false };
   }
 
-  // TODO: wykonanie aktualizacji w warstwie API 
-  return redirect("/requests");
+  try {
+    const payloadForApi = {
+      id: id,
+      deviceId: Number(parsed.data.deviceId),
+      description: parsed.data.description,
+      status: parsed.data.status,
+      managerId: loggedUser.id, 
+    };
+
+    await requestsService.updateRequest(id, payloadForApi as any, request);
+    
+    return redirect("/requests");
+  } catch (error) {
+    console.error("=== [DEBUG] BŁĄD ZAPISU ===", error);
+    return { success: false, formError: "Wystąpił błąd podczas zapisywania zmian. Spróbuj ponownie." };
+  }
 }
 
 export const handle = {
@@ -53,20 +109,44 @@ export default function RequestEditPage() {
   const { id } = useParams();
   const actionData = useActionData<typeof action>();
 
-  const { handleSubmit, control } = useForm<EditRequestFormData>({
+  const { requestData, clients, activities, deviceData, currentClient } = useLoaderData<typeof loader>();
+  const deviceFetcher = useFetcher<{ devices: Device[] }>();
+
+  const currentDeviceId = requestData?.device?.id?.toString() || requestData?.deviceId?.toString() || "";
+  const currentDeviceName = deviceData?.deviceName || "Obecnie przypisane urządzenie";
+  const currentClientId = currentClient?.id?.toString() || "";
+
+  const { handleSubmit, control, setValue, formState: { errors } } = useForm<EditRequestFormData>({
     resolver: zodResolver(EditRequestFormSchema),
     defaultValues: {
-      clientId: "1", // Przykładowo załadowane dane
-      deviceId: "101",
-      status: "open",
-      description: "Klient zgłasza brak reakcji na przycisk zasilania. Laptop wyłączył się podczas pracy.",
+      clientId: currentClientId, 
+      deviceId: currentDeviceId,
+      status: requestData?.status || "REGISTERED",
+      description: requestData?.description || "",
       result: "",
     },
   });
 
+  const selectedClientId = useWatch({ control, name: "clientId" });
+
+  useEffect(() => {
+    if (selectedClientId) {
+      deviceFetcher.load(`?clientId=${selectedClientId}`);
+      if (selectedClientId !== currentClientId) {setValue("deviceId", ""); }
+    }
+  }, [selectedClientId, currentClientId, setValue]);
+
   const onSubmit = (data: EditRequestFormData) => {
     submit(data, { method: "post", encType: "application/json" });
   };
+
+  const fetchedDevices = deviceFetcher.data?.devices || [];
+  const isLoadingDevices = deviceFetcher.state === "loading";
+  const hasFetchedData = deviceFetcher.data !== undefined;
+  const hasNoDevices = deviceFetcher.data !== undefined && fetchedDevices.length === 0;
+  const displayDevices = hasFetchedData 
+    ? fetchedDevices 
+    : (currentDeviceId ? [{ id: Number(currentDeviceId), deviceName: currentDeviceName }] : []);
 
   return (
     <PageLayout title="Edycja Zgłoszenia">
@@ -74,6 +154,12 @@ export default function RequestEditPage() {
         
         {/* SEKCJA GŁÓWNA - FORMULARZ INFORMACJI */}
         <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+          {actionData?.formError && (
+            <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 rounded-md shadow-sm">
+              <p className="font-medium">Błąd zapisu</p>
+              <p className="text-sm">{actionData.formError}</p>
+            </div>
+          )}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
             <h2 className="text-lg font-semibold mb-2 text-gray-900">Informacje</h2>
             <Separator className="mb-6" />
@@ -90,7 +176,7 @@ export default function RequestEditPage() {
                         <SelectValue placeholder="Wybierz klienta" />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_CLIENTS.map((c) => (<SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>))}
+                        {clients?.map((c) => (<SelectItem key={c.id} value={c.id.toString()}>{c.firstName} {c.surname}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   )} />
@@ -100,12 +186,12 @@ export default function RequestEditPage() {
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="deviceId">Urządzenie</Label>
                   <Controller name="deviceId" control={control} render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select value={field.value} onValueChange={field.onChange} disabled={!selectedClientId || isLoadingDevices || hasNoDevices}>
                       <SelectTrigger id="deviceId" className="bg-gray-50/50">
-                        <SelectValue placeholder="Wybierz urządzenie" />
+                        <SelectValue placeholder={isLoadingDevices ? "Ładowanie..." : hasNoDevices ? "Brak dostępnych urządzeń" : "Wybierz urządzenie"} />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_DEVICES.map((d) => (<SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>))}
+                        {displayDevices.map((d) => (<SelectItem key={d.id} value={d.id.toString()}>{d.deviceName}</SelectItem>))}
                       </SelectContent>
                     </Select>
                   )} />
@@ -120,7 +206,12 @@ export default function RequestEditPage() {
                         <SelectValue placeholder="Wybierz status" />
                       </SelectTrigger>
                       <SelectContent>
-                        {MOCK_STATUSES.map((s) => (<SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>))}
+                        <SelectContent>
+                        <SelectItem value="REGISTERED">Zarejestrowane</SelectItem>
+                        <SelectItem value="IN_PROGRESS">W trakcie</SelectItem>
+                        <SelectItem value="FINISHED">Zakończone</SelectItem>
+                        <SelectItem value="CANCELLED">Anulowane</SelectItem>
+                      </SelectContent>
                       </SelectContent>
                     </Select>
                   )} />
@@ -194,33 +285,41 @@ export default function RequestEditPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {MOCK_ACTIVITIES.map((act, idx) => (
+                {activities.length > 0 ? activities.map((act: any, idx: number) => (
                   <TableRow 
                     key={act.id} 
                     className="hover:bg-gray-50 cursor-pointer"
                     onClick={() => navigate(`/requests/${id}/activities/${act.id}`)}
                   >
                     <TableCell className="font-medium">{idx + 1}</TableCell>
-                    <TableCell className="font-medium text-gray-900">{act.type}</TableCell>
-                    <TableCell className="text-gray-500 max-w-[250px] truncate">{act.desc}</TableCell>
-                    <TableCell className="text-gray-700">{act.executor}</TableCell>
-                    <TableCell><Badge variant="outline" className={act.status === "Aktywne" ? "bg-green-50 text-green-600 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>{act.status}</Badge></TableCell>
-                    <TableCell className="text-gray-500">{act.created}</TableCell>
-                    <TableCell className="text-gray-500">{act.finished}</TableCell>
+                    <TableCell className="font-medium text-gray-900">{act.actTypeId}</TableCell>
+                    <TableCell className="text-gray-500 max-w-[250px] truncate">{act.description}</TableCell>
+                    <TableCell className="text-gray-700">{act.personelId}</TableCell>
+                    <TableCell><Badge variant="outline" className={act.status === "DONE" ? "bg-green-50 text-green-600 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}>
+                        {act.status}
+                      </Badge></TableCell>
+                    <TableCell className="text-gray-500">{new Date(act.dateRegistration).toLocaleDateString("pl-PL")}</TableCell>
+                    <TableCell className="text-gray-500">{act.dateFinishedCancelled ? new Date(act.dateFinishedCancelled).toLocaleDateString("pl-PL") : "-"}</TableCell>
                     <TableCell>
                       <Button 
                         variant="ghost" 
                         size="icon" 
                         className="text-gray-400 hover:text-red-600"
                         onClick={(e) => {
-                          e.stopPropagation(); // Blokuje kliknięcie w cały wiersz
+                          e.stopPropagation();
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>
-                ))}
+                )): (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-6 text-gray-500">
+                      Brak przypisanych aktywności.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
