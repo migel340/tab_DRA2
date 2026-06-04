@@ -66,7 +66,7 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<RequestResponse> list(String status, String manager, String dateRange, int page,
+    public ListResponse<RequestResponse> list(String status, String manager, String dateFrom, String dateTo, int page,
             int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
@@ -75,7 +75,7 @@ public class RequestService {
 
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<RequestResponse> pageData = requestRepository
-                .findAll(buildListSpecification(status, manager, dateRange), pageable).map(this::toResponse);
+                .findAll(buildListSpecification(status, manager, dateFrom, dateTo), pageable).map(this::toResponse);
 
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
@@ -97,7 +97,8 @@ public class RequestService {
         return toResponse(r);
     }
 
-    private Specification<Request> buildListSpecification(String status, String manager, String dateRange) {
+    private Specification<Request> buildListSpecification(String status, String manager, String dateFrom,
+            String dateTo) {
         return (root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
 
@@ -113,22 +114,21 @@ public class RequestService {
                 }
             }
 
-            if (dateRange != null && !dateRange.isBlank() && !dateRange.equals("all")) {
-                java.time.LocalDate today = java.time.LocalDate.now();
-                java.time.LocalDate startDate = null;
-
-                if (dateRange.equals("last_week")) {
-                    startDate = today.minusWeeks(1);
-                } else if (dateRange.equals("last_month")) {
-                    startDate = today.minusMonths(1);
-                }
-
-                if (startDate != null) {
-                    java.sql.Date sqlStartDate = java.sql.Date.valueOf(startDate);
-                    predicates.add(cb.greaterThanOrEqualTo(root.get("dateRegistered"), sqlStartDate));
+            if (dateFrom != null && !dateFrom.isBlank()) {
+                try {
+                    java.sql.Date sqlFrom = java.sql.Date.valueOf(dateFrom);
+                    predicates.add(cb.greaterThanOrEqualTo(root.get("dateRegistered"), sqlFrom));
+                } catch (IllegalArgumentException e) {
                 }
             }
 
+            if (dateTo != null && !dateTo.isBlank()) {
+                try {
+                    java.sql.Date sqlTo = java.sql.Date.valueOf(dateTo);
+                    predicates.add(cb.lessThanOrEqualTo(root.get("dateRegistered"), sqlTo));
+                } catch (IllegalArgumentException e) {
+                }
+            }
             return cb.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
         };
     }

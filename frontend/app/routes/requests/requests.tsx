@@ -22,7 +22,6 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (!url.searchParams.has("status") && !url.searchParams.has("manager")) {
     url.searchParams.set("status", "REGISTERED");
     url.searchParams.set("manager", loggedUser.id.toString());
-    url.searchParams.set("dateRange", "all");
     
     return redirect(`/requests?${url.searchParams.toString()}`);
   }
