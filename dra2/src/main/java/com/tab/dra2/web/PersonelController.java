@@ -38,6 +38,7 @@ public class PersonelController {
             @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "page must be > 0") int page,
 <<<<<<< HEAD
+<<<<<<< HEAD
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit,
             @RequestParam(required = false) Boolean active) {
         ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit, active);
@@ -45,6 +46,11 @@ public class PersonelController {
             @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit) {
         ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit);
 >>>>>>> 8e96a92 (feat: change access for manager to fetch list personel and personel details)
+=======
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit,
+            @RequestParam(required = false) Boolean active) {
+        ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit, active);
+>>>>>>> fd92714 (feat: add filter personel by active request param)
         ApiResponse<ListResponse<PersonelResponse>> response = ApiResponse.<ListResponse<PersonelResponse>>builder()
                 .success(true)
                 .message("OK")

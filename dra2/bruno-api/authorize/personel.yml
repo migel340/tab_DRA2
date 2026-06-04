@@ -7,6 +7,9 @@ http:
   method: GET
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> fd92714 (feat: add filter personel by active request param)
   url: "{{host}}/personels?limit=20&active=false&q=kowalski"
   params:
     - name: limit
@@ -18,12 +21,15 @@ http:
     - name: q
       value: kowalski
       type: query
+<<<<<<< HEAD
 =======
   url: "{{host}}/personels/1"
 >>>>>>> 8e96a92 (feat: change access for manager to fetch list personel and personel details)
 =======
   url: "{{host}}/personels"
 >>>>>>> 6c418ad (feat: return PersonelResponse object instead of managerId in RequestResponse)
+=======
+>>>>>>> fd92714 (feat: add filter personel by active request param)
   auth: inherit
 
 settings:
