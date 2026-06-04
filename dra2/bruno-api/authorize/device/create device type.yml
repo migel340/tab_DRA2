@@ -13,8 +13,9 @@ http:
     type: json
     data: |-
       {
-        "deviceTypeId" : null,
-        "deviceName" : "Iphone"
+        "deviceTypeId" : 3,
+        "deviceName" : "Iphone",
+        "clientId" : 1
       }
   auth: inherit
 
