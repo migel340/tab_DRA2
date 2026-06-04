@@ -40,9 +40,9 @@ public class DeviceController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int limit,
             @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort
-    ) {
-        ListResponse<DeviceResponse> data = deviceService.list(page, limit, orderBy, sort);
+            @RequestParam(defaultValue = "ASC") String sort,
+            @RequestParam(required = false) Integer clientId) {
+        ListResponse<DeviceResponse> data = deviceService.list(page, limit, orderBy, sort, clientId);
         ApiResponse<ListResponse<DeviceResponse>> resp = ApiResponse.<ListResponse<DeviceResponse>>builder()
                 .success(true)
                 .message("OK")
@@ -67,7 +67,8 @@ public class DeviceController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('MANAGER')")
-    public ResponseEntity<ApiResponse<DeviceResponse>> update(@PathVariable Integer id, @Valid @RequestBody CreateDeviceDto dto) {
+    public ResponseEntity<ApiResponse<DeviceResponse>> update(@PathVariable Integer id,
+            @Valid @RequestBody CreateDeviceDto dto) {
         DeviceResponse data = deviceService.update(id, dto);
         ApiResponse<DeviceResponse> resp = ApiResponse.<DeviceResponse>builder()
                 .success(true)
