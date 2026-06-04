@@ -22,9 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 
-
 @RestController
-@RequestMapping({"/api/personnel", "/api/personels"})
+@RequestMapping({ "/api/personnel", "/api/personels" })
 @RequiredArgsConstructor
 @Validated
 public class PersonelController {
@@ -32,14 +31,13 @@ public class PersonelController {
     private final PersonelService personelService;
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<ListResponse<PersonelResponse>>> list(
             @RequestParam(required = false) String q,
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "page must be > 0") int page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit
-    ) {
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit) {
         ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit);
         ApiResponse<ListResponse<PersonelResponse>> response = ApiResponse.<ListResponse<PersonelResponse>>builder()
                 .success(true)
@@ -51,7 +49,7 @@ public class PersonelController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     public ResponseEntity<ApiResponse<PersonelResponse>> getById(@PathVariable Long id) {
         PersonelResponse data = personelService.getById(id);
         ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
@@ -78,7 +76,8 @@ public class PersonelController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<PersonelResponse>> update(@PathVariable Long id, @Valid @RequestBody UpdatePersonelRequest request) {
+    public ResponseEntity<ApiResponse<PersonelResponse>> update(@PathVariable Long id,
+            @Valid @RequestBody UpdatePersonelRequest request) {
         PersonelResponse data = personelService.update(id, request);
         ApiResponse<PersonelResponse> response = ApiResponse.<PersonelResponse>builder()
                 .success(true)
