@@ -10,7 +10,7 @@ import java.sql.Date;
 public class RequestResponse {
     private int id;
     private int deviceId;
-    private int managerId;
+    private PersonelResponse manager;
     private String description;
     private String status;
     private Date dateRegistration;

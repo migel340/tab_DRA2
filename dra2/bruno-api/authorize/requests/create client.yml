@@ -1,0 +1,42 @@
+info:
+  name: create client
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: "{{host}}/{{path}}"
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |
+      {
+           "address": {
+            "city": "warszawa",
+            "state": "ffsdfsa",
+            "postalCode": "ssfsda",
+            "country": "fsdfaf"
+          },
+          "addressId": 1,
+          "birthDate": "2026-05-20T22:00:00.000Z",
+          "city": "warszawa",
+          "country": "fsdfaf",
+          "deviceId": 0,
+          "device_count": 0,
+          "firstName": "Jan",
+          "id": 1,
+          "phoneNumber": "12313231321",
+          "postal_code": "ssfsda",
+          "secondName": "adam",
+          "state": "ffsdfsa",
+          "surname": "Kowalski"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
