@@ -3,6 +3,7 @@ package com.tab.dra2.service;
 import com.tab.dra2.dto.CreateRequestDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.RequestResponse;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.Personel;
@@ -173,8 +174,7 @@ public class RequestService {
         return RequestResponse.builder()
                 .id(r.getId())
                 .deviceId(r.getDevice() != null && r.getDevice().getId() != null ? r.getDevice().getId() : 0)
-                .managerId(r.getManager() != null && r.getManager().getId() != null ? r.getManager().getId().intValue()
-                        : 0)
+                .manager(PersonelResponse.toResponse(r.getManager()))
                 .description(r.getDescription())
                 .status(r.getStatus())
                 .dateRegistration(r.getDateRegistered())

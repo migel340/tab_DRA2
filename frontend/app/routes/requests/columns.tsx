@@ -29,7 +29,7 @@ export const columns: ColumnDef<RequestDB>[] = [
   },
   {
     id: "manager",
-    accessorFn: (row) => row.managerId ? `ID: ${row.managerId}` : "Brak",
+    accessorFn: (row) => row.manager ? `${row.manager.firstName} ${row.manager.surname}` : "Brak",
     header: ({ column }) => <SortableHeader label="Manager" column={column} />,
     cell: ({ getValue }) => (
       <span className="text-gray-600">{getValue() as string}</span>

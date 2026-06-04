@@ -9,4 +9,5 @@ public class DeviceResponse {
     private int id;
     private DeviceTypeResponseDto deviceType;
     private String deviceName;
+    private Integer clientId;
 }

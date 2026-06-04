@@ -1,17 +1,14 @@
 info:
-  name: List device types
+  name: list clients
   type: http
   seq: 1
 
 http:
   method: GET
-  url: "{{host}}/{{path}}?limit=20&clientId=2"
+  url: "{{host}}/{{path}}?q="
   params:
-    - name: limit
-      value: "20"
-      type: query
-    - name: clientId
-      value: "2"
+    - name: q
+      value: ""
       type: query
   auth: inherit
 

@@ -1,11 +1,11 @@
 info:
-  name: create device type
+  name: "update client "
   type: http
-  seq: 2
+  seq: 4
 
 http:
-  method: POST
-  url: "{{host}}/{{path}}"
+  method: PUT
+  url: "{{host}}/{{path}}/1"
   headers:
     - name: Content-Type
       value: application/json
@@ -13,9 +13,8 @@ http:
     type: json
     data: |-
       {
-        "deviceTypeId" : 3,
-        "deviceName" : "Iphone",
-        "clientId" : 2
+        "deviceTypeId" : 1,
+        "deviceName" : "iphone 12"
       }
   auth: inherit
 
