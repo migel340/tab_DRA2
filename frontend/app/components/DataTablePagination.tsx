@@ -24,7 +24,7 @@ export function DataTablePagination<TData>({
   return (
     <div className="flex items-center justify-between px-2 py-2 w-full">
       <div className="flex w-25 items-center justify-center text-sm font-medium">
-        Page {table.getState().pagination.pageIndex + 1} of{" "}
+        Strona {table.getState().pagination.pageIndex + 1} z{" "}
         {table.getPageCount()}
       </div>
       <div className="flex items-center space-x-2">
@@ -35,7 +35,7 @@ export function DataTablePagination<TData>({
           onClick={() => table.setPageIndex(0)}
           disabled={!table.getCanPreviousPage()}
         >
-          <span className="sr-only">Go to first page</span>
+          <span className="sr-only">Przejdź do pierwszej strony</span>
           <ChevronsLeft />
         </Button>
         <Button
@@ -45,7 +45,7 @@ export function DataTablePagination<TData>({
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
         >
-          <span className="sr-only">Go to previous page</span>
+          <span className="sr-only">Przejdź do poprzedniej strony</span>
           <ChevronLeft />
         </Button>
         <Button
@@ -55,7 +55,7 @@ export function DataTablePagination<TData>({
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
         >
-          <span className="sr-only">Go to next page</span>
+          <span className="sr-only">Przejdź do następnej strony</span>
           <ChevronRight />
         </Button>
         <Button
@@ -65,12 +65,12 @@ export function DataTablePagination<TData>({
           onClick={() => table.setPageIndex(table.getPageCount() - 1)}
           disabled={!table.getCanNextPage()}
         >
-          <span className="sr-only">Go to last page</span>
+          <span className="sr-only">Przejdź do ostatniej strony</span>
           <ChevronsRight />
         </Button>
       </div>
       <div className="flex items-center space-x-2">
-        <p className="text-sm font-medium">Rows per page</p>
+        <p className="text-sm font-medium">Wierszy na stronę</p>
         <Select
           value={`${table.getState().pagination.pageSize}`}
           onValueChange={(value) => {
