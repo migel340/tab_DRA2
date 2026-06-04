@@ -5,7 +5,14 @@ info:
 
 http:
   method: GET
-  url: "{{host}}/{{path}}"
+  url: "{{host}}/{{path}}?requestId=5&page=2"
+  params:
+    - name: requestId
+      value: "5"
+      type: query
+    - name: page
+      value: "2"
+      type: query
   auth: inherit
 
 settings:
