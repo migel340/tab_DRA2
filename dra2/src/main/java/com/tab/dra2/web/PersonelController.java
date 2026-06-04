@@ -37,8 +37,9 @@ public class PersonelController {
             @RequestParam(defaultValue = "id") String orderBy,
             @RequestParam(defaultValue = "ASC") String sort,
             @RequestParam(defaultValue = "1") @Min(value = 1, message = "page must be > 0") int page,
-            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit) {
-        ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit);
+            @RequestParam(defaultValue = "10") @Min(value = 1, message = "limit must be > 0") int limit,
+            @RequestParam(required = false) Boolean active) {
+        ListResponse<PersonelResponse> data = personelService.getList(q, orderBy, sort, page, limit, active);
         ApiResponse<ListResponse<PersonelResponse>> response = ApiResponse.<ListResponse<PersonelResponse>>builder()
                 .success(true)
                 .message("OK")
