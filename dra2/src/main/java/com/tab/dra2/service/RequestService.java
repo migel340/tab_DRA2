@@ -3,6 +3,7 @@ package com.tab.dra2.service;
 import com.tab.dra2.dto.CreateRequestDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.RequestResponse;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.Personel;
@@ -36,7 +37,7 @@ public class RequestService {
     private static final String STATUS_FINISHED = "FINISHED";
     private static final String STATUS_CANCELLED = "CANCELLED";
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "status", "dateRegistered", "description");
-    
+
     private final RequestRepository requestRepository;
     private final DeviceRepository deviceRepository;
     private final PersonelRepository personelRepository;
@@ -56,7 +57,7 @@ public class RequestService {
                 .device(device)
                 .manager(manager)
                 .description(dto.getDescription().trim())
-            .status(STATUS_REGISTERED)
+                .status(STATUS_REGISTERED)
                 .dateRegistered(new Date(System.currentTimeMillis()))
                 .build();
 
@@ -70,10 +71,10 @@ public class RequestService {
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
-        
+
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<RequestResponse> pageData = requestRepository.findAll(pageable).map(this::toResponse);
-        
+
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
                 .meta(ListResponseMeta.builder()
@@ -115,7 +116,8 @@ public class RequestService {
             r.setManager(manager);
         }
 
-        if (dto.getDescription() != null) r.setDescription(dto.getDescription().trim());
+        if (dto.getDescription() != null)
+            r.setDescription(dto.getDescription().trim());
         if (dto.getStatus() != null) {
             String nextStatus = normalizeRequestStatus(dto.getStatus());
             validateTransition(r.getStatus(), nextStatus);
@@ -133,7 +135,7 @@ public class RequestService {
         return RequestResponse.builder()
                 .id(r.getId())
                 .deviceId(r.getDevice() != null && r.getDevice().getId() != null ? r.getDevice().getId() : 0)
-                .managerId(r.getManager() != null && r.getManager().getId() != null ? r.getManager().getId().intValue() : 0)
+                .manager(PersonelResponse.toResponse(r.getManager()))
                 .description(r.getDescription())
                 .status(r.getStatus())
                 .dateRegistration(r.getDateRegistered())
@@ -206,7 +208,8 @@ public class RequestService {
         };
 
         if (!allowed) {
-            throw new IllegalStateException("Invalid request status transition: %s -> %s".formatted(current, nextStatus));
+            throw new IllegalStateException(
+                    "Invalid request status transition: %s -> %s".formatted(current, nextStatus));
         }
     }
 
