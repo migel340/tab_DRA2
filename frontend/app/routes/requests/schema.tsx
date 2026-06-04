@@ -7,7 +7,8 @@ export const RequestsFilterSchema = BaseTableParamsSchema.extend({
   q: z.string().optional(),
   manager: z.string().optional(),
   status: z.string().optional(),
-  dateRange: z.string().optional(),
+  dateFrom: z.string().optional(), 
+  dateTo: z.string().optional(),
 });
 
 export type RequestsFilterParams = z.infer<typeof RequestsFilterSchema>;

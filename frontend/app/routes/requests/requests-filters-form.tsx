@@ -6,6 +6,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
 import SearchBar from "~/components/SearchBar";
 import { DatePickerWithRange } from "~/components/RangePicker";
+import type { DateRange } from "react-day-picker";
+import { format } from "date-fns/format";
 
 export function RequestsFiltersForm({
   initialValues,
@@ -25,7 +27,7 @@ export function RequestsFiltersForm({
 }) {
   const submit = useSubmit();
 
-  const { watch, handleSubmit, control, register} = useForm({
+  const { watch, handleSubmit, control, register, setValue} = useForm({
     resolver: zodResolver(RequestsFilterSchema),
     defaultValues: {
       ...initialValues,
@@ -47,6 +49,19 @@ export function RequestsFiltersForm({
     });
     return () => unsubscribe();
   }, [watch, handleSubmit]);
+
+  const dateFrom = watch("dateFrom");
+  const dateTo = watch("dateTo");
+
+  const selectedDateRange: DateRange | undefined = {
+    from: dateFrom ? new Date(dateFrom) : undefined,
+    to: dateTo ? new Date(dateTo) : undefined,
+  };
+
+  const handleDateChange = (range: DateRange | undefined) => {
+    setValue("dateFrom", range?.from ? format(range.from, "yyyy-MM-dd") : undefined);
+    setValue("dateTo", range?.to ? format(range.to, "yyyy-MM-dd") : undefined);
+  };
 
   return (
     <Form method="get" action="/requests" id="filter-form" className="flex flex-col gap-4 w-full">
@@ -100,6 +115,7 @@ export function RequestsFiltersForm({
           )}
         />
 
+<<<<<<< HEAD
         <Controller
           name="dateRange"
           control={control}
@@ -116,6 +132,11 @@ export function RequestsFiltersForm({
               </SelectContent>
             </Select>
           )}
+=======
+        <DatePickerWithRange 
+          value={selectedDateRange} 
+          onChange={handleDateChange} 
+>>>>>>> 43133fb (changed to datepicker instead of select)
         />
       </div>
 
