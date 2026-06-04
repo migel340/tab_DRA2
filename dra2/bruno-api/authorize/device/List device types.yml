@@ -5,7 +5,14 @@ info:
 
 http:
   method: GET
-  url: "{{host}}/{{path}}"
+  url: "{{host}}/{{path}}?limit=20&clientId=2"
+  params:
+    - name: limit
+      value: "20"
+      type: query
+    - name: clientId
+      value: "2"
+      type: query
   auth: inherit
 
 settings:

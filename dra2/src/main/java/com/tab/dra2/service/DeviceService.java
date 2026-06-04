@@ -53,14 +53,15 @@ public class DeviceService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<DeviceResponse> list(int page, int limit, String orderBy, String sort) {
+    public ListResponse<DeviceResponse> list(int page, int limit, String orderBy, String sort, Integer clientId) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
         String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
         Sort.Direction direction = PaginationValidator.validateSort(sort);
 
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
-        Page<DeviceResponse> pageData = deviceRepository.findAll(pageable).map(this::toResponse);
+        Page<DeviceResponse> pageData = deviceRepository.findByClientIdOptional(clientId, pageable)
+                .map(this::toResponse);
 
         return ListResponse.<DeviceResponse>builder()
                 .data(pageData.getContent())

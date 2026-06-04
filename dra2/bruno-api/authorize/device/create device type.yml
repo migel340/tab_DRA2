@@ -15,7 +15,7 @@ http:
       {
         "deviceTypeId" : 3,
         "deviceName" : "Iphone",
-        "clientId" : 1
+        "clientId" : 2
       }
   auth: inherit
 
