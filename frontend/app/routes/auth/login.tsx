@@ -88,19 +88,19 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
     <div className="min-h-screen flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Logowanie</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             {actionData?.message && (
               <Alert variant="destructive">
-                <AlertTitle>Error</AlertTitle>
+                <AlertTitle>Błąd</AlertTitle>
                 <AlertDescription>{actionData.message}</AlertDescription>
               </Alert>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
+              <Label htmlFor="username">Nazwa użytkownika</Label>
               <Controller
                 name="username"
                 control={control}
@@ -123,7 +123,7 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Hasło</Label>
               <Controller
                 name="password"
                 control={control}
@@ -146,15 +146,8 @@ export default function LoginPage({ actionData }: Route.ComponentProps) {
             </div>
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Logging in..." : "Log in"}
+              {isSubmitting ? "Logowanie..." : "Zaloguj się"}
             </Button>
-
-            <p className="text-sm text-center text-muted-foreground">
-              Don't have an account?{" "}
-              <a href="/register" className="text-primary underline">
-                Register
-              </a>
-            </p>
           </form>
         </CardContent>
       </Card>
