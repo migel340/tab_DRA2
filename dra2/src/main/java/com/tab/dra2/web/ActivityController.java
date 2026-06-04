@@ -23,6 +23,9 @@ public class ActivityController {
         private final ActivityService activityService;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e57c22b (feat: change defualt orderBy param to sequntial number for activities list)
         @GetMapping
         @PreAuthorize("hasRole('MANAGER')")
         public ResponseEntity<ApiResponse<ListResponse<ActivityResponse>>> list(
@@ -39,6 +42,7 @@ public class ActivityController {
                                 .timestamp(java.time.LocalDateTime.now())
                                 .build());
         }
+<<<<<<< HEAD
 
         @GetMapping("/{id}")
         @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
@@ -83,6 +87,21 @@ public class ActivityController {
         return ResponseEntity.ok(resp);
     }
 >>>>>>> 7183b1e (feat: handle fetch activities list by requestId)
+=======
+
+        @GetMapping("/{id}")
+        @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
+        public ResponseEntity<ApiResponse<ActivityResponse>> get(@PathVariable Long id) {
+                ActivityResponse data = activityService.get(id);
+                ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
+                                .success(true)
+                                .message("OK")
+                                .data(data)
+                                .timestamp(java.time.LocalDateTime.now())
+                                .build();
+                return ResponseEntity.ok(resp);
+        }
+>>>>>>> e57c22b (feat: change defualt orderBy param to sequntial number for activities list)
 
         @PostMapping
         @PreAuthorize("hasAnyRole('MANAGER')")
@@ -98,6 +117,9 @@ public class ActivityController {
         }
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> e57c22b (feat: change defualt orderBy param to sequntial number for activities list)
         @PutMapping("/{id}")
         @PreAuthorize("hasAnyRole('MANAGER')")
         public ResponseEntity<ApiResponse<ActivityResponse>> update(@PathVariable Long id,
@@ -111,6 +133,7 @@ public class ActivityController {
                                 .build();
                 return ResponseEntity.ok(resp);
         }
+<<<<<<< HEAD
 
         @PutMapping("/{id}/status")
         @PreAuthorize("hasRole('STAFF')")
@@ -154,4 +177,20 @@ public class ActivityController {
         return ResponseEntity.ok(resp);
     }
 >>>>>>> 7183b1e (feat: handle fetch activities list by requestId)
+=======
+
+        @PutMapping("/{id}/status")
+        @PreAuthorize("hasRole('STAFF')")
+        public ResponseEntity<ApiResponse<ActivityResponse>> updateStatus(@PathVariable Long id,
+                        @Valid @RequestBody UpdateActivityStatusDto dto) {
+                ActivityResponse data = activityService.updateAssignedStatus(id, dto);
+                ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
+                                .success(true)
+                                .message("OK")
+                                .data(data)
+                                .timestamp(java.time.LocalDateTime.now())
+                                .build();
+                return ResponseEntity.ok(resp);
+        }
+>>>>>>> e57c22b (feat: change defualt orderBy param to sequntial number for activities list)
 }
