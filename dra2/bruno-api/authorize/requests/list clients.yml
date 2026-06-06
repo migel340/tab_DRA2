@@ -5,11 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{host}}/{{path}}?q="
-  params:
-    - name: q
-      value: ""
-      type: query
+  url: "{{host}}/{{path}}"
   auth: inherit
 
 settings:

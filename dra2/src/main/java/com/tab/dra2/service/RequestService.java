@@ -12,7 +12,9 @@ import com.tab.dra2.repository.DeviceRepository;
 import com.tab.dra2.repository.PersonelRepository;
 import com.tab.dra2.repository.RequestRepository;
 import com.tab.dra2.util.PaginationValidator;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,7 +69,8 @@ public class RequestService {
     }
 
     @Transactional(readOnly = true)
-    public ListResponse<RequestResponse> list(String status, String manager, String dateFrom, String dateTo, int page,
+    public ListResponse<RequestResponse> list(String q, String status, String manager, String dateFrom, String dateTo,
+            int page,
             int limit, String orderBy, String sort) {
         int validatedPage = PaginationValidator.validatePage(page);
         int validatedLimit = PaginationValidator.validateLimit(limit);
@@ -76,7 +79,7 @@ public class RequestService {
 
         Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
         Page<RequestResponse> pageData = requestRepository
-                .findAll(buildListSpecification(status, manager, dateFrom, dateTo), pageable).map(this::toResponse);
+                .findAll(buildListSpecification(q, status, manager, dateFrom, dateTo), pageable).map(this::toResponse);
 
         return ListResponse.<RequestResponse>builder()
                 .data(pageData.getContent())
@@ -98,10 +101,15 @@ public class RequestService {
         return toResponse(r);
     }
 
-    private Specification<Request> buildListSpecification(String status, String manager, String dateFrom,
+    private Specification<Request> buildListSpecification(String q, String status, String manager, String dateFrom,
             String dateTo) {
         return (root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new java.util.ArrayList<>();
+
+            if (q != null && !q.isBlank()) {
+                String searchPattern = "%" + q.trim().toLowerCase() + "%";
+                predicates.add(cb.like(cb.lower(root.get("description")), searchPattern));
+            }
 
             if (status != null && !status.isBlank() && !status.equals("all")) {
                 predicates.add(cb.equal(root.get("status"), status));

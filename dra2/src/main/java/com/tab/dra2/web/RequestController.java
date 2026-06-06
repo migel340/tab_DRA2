@@ -37,6 +37,7 @@ public class RequestController {
         @GetMapping
         @PreAuthorize("hasRole('MANAGER')")
         public ResponseEntity<ApiResponse<ListResponse<RequestResponse>>> list(
+                        @RequestParam(required = false) String q,
                         @RequestParam(required = false) String status,
                         @RequestParam(required = false) String manager,
                         @RequestParam(required = false) String dateFrom,
@@ -45,7 +46,8 @@ public class RequestController {
                         @RequestParam(defaultValue = "10") int limit,
                         @RequestParam(defaultValue = "id") String orderBy,
                         @RequestParam(defaultValue = "ASC") String sort) {
-                ListResponse<RequestResponse> data = requestService.list(status, manager, dateFrom, dateTo, page, limit,
+                ListResponse<RequestResponse> data = requestService.list(q, status, manager, dateFrom, dateTo, page,
+                                limit,
                                 orderBy,
                                 sort);
                 ApiResponse<ListResponse<RequestResponse>> resp = ApiResponse.<ListResponse<RequestResponse>>builder()
