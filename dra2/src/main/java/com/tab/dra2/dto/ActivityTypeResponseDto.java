@@ -6,6 +6,6 @@ import lombok.Data;
 @Data
 @Builder
 public class ActivityTypeResponseDto {
-    private int id;
+    private Long id;
     private String actType;
 }

@@ -32,7 +32,7 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Badge } from "~/components/ui/badge";
-import { ArrowUpDown, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import PageLayout from "~/layouts/PageLayout";
 import z from "zod";
 import { EditRequestFormSchema, type EditRequestFormData } from "./schema";
@@ -42,7 +42,8 @@ import { deviceService } from "../device/device.service";
 import { requestsService } from "./requests-service";
 import type { Device } from "~/types/device";
 import { useEffect } from "react";
-import { api } from "~/lib/api.server";
+import { activitiesService } from "../activities/activities-service";
+import type { Activity } from "../activities/schema";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireManager(request);
@@ -95,22 +96,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     page: 1,
   });
 
-  let activities = [];
-  try {
-    const actRes = await api<any>(
-      `/activities?requestId=${id}&limit=100&page=1&sort=desc`,
-      { method: "GET" },
-      request,
-    );
-    if (actRes && actRes.data) {
-      activities = actRes.data;
-    }
-  } catch (error) {
-    console.error(
-      "Nie udało się pobrać aktywności dla zgłoszenia ID: ${id}",
-      error,
-    );
-  }
+  const activities = await activitiesService.fetchActivitesForRequest(
+    id,
+    request,
+  );
 
   return {
     requestData,
@@ -448,46 +437,32 @@ export default function RequestEditPage() {
               <TableHeader className="bg-stone-100">
                 <TableRow>
                   <TableHead className="w-[60px]">
-                    <div className="flex items-center gap-1">
-                      Lp. <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Lp.</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Typ <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Typ</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Opis <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Opis</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Wykonawca <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Wykonawca</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Status <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Status</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Utworzono <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Utworzono</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Zakończono <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Zakończono</div>
                   </TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activities.length > 0 ? (
-                  activities.map((act: any, idx: number) => (
+                {activities && activities.length > 0 ? (
+                  activities?.map((act: Activity, idx: number) => (
                     <TableRow
                       key={act.id}
                       className="hover:bg-gray-50 cursor-pointer"
@@ -495,15 +470,15 @@ export default function RequestEditPage() {
                         navigate(`/requests/${id}/activities/${act.id}`)
                       }
                     >
-                      <TableCell className="font-medium">{idx + 1}</TableCell>
+                      <TableCell className="font-medium">{act.seqNo}</TableCell>
                       <TableCell className="font-medium text-gray-900">
-                        {act.actTypeId}
+                        {act.type.actType}
                       </TableCell>
                       <TableCell className="text-gray-500 max-w-[250px] truncate">
                         {act.description}
                       </TableCell>
                       <TableCell className="text-gray-700">
-                        {act.personelId}
+                        {act.executor.firstName + " " + act.executor.surname}
                       </TableCell>
                       <TableCell>
                         <Badge

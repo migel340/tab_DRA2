@@ -1,9 +1,11 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ActivityResponse;
+import com.tab.dra2.dto.ActivityTypeResponseDto;
 import com.tab.dra2.dto.CreateActivityDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdateActivityStatusDto;
 import com.tab.dra2.entity.Activity;
 import com.tab.dra2.entity.ActivityType;
@@ -197,12 +199,10 @@ public class ActivityService {
                                 .requestId(a.getRequest() != null && a.getRequest().getId() != null
                                                 ? a.getRequest().getId()
                                                 : 0)
-                                .actTypeId(a.getActivityType() != null && a.getActivityType().getId() != null
-                                                ? a.getActivityType().getId().intValue()
-                                                : 0)
-                                .personelId(a.getPersonel() != null && a.getPersonel().getId() != null
-                                                ? a.getPersonel().getId().intValue()
-                                                : null)
+                                .type(ActivityTypeResponseDto.builder()
+                                                .actType(a.getActivityType().getActType())
+                                                .id(a.getActivityType().getId()).build())
+                                .executor(PersonelResponse.toResponse(a.getPersonel()))
                                 .seqNo(a.getSeqNo())
                                 .description(a.getDescription())
                                 .result(a.getResult())

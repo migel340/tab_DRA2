@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { MOCK_ACTIVITIES } from "~/mocks/requests";
-import { ActivitiesFilterSchema, type ActivitiesFilterParams } from "./schema";
+import {
+  ActivitiesFilterSchema,
+  type ActivitiesFilterParams,
+  type Activity,
+} from "./schema";
+import { activitiesApi } from "./activities-api";
 
 export const ActivityItemSchema = z.object({
   id: z.number(),
@@ -15,20 +20,25 @@ export const ActivityItemSchema = z.object({
 export type ActivityItem = z.infer<typeof ActivityItemSchema>;
 
 export const activitiesService = {
-  fetchActivitiesList: async (params: ActivitiesFilterParams): Promise<ActivityItem[]> => {
+  fetchActivitesForRequest: async (
+    requestId: number,
+    request: Request,
+  ): Promise<Activity[]> => {
+    const response = await activitiesApi.getAllForRequest(requestId, request);
+    return response.data;
+  },
+  fetchActivitiesList: async (
+    params: ActivitiesFilterParams,
+  ): Promise<ActivityItem[]> => {
     const parsedParams = ActivitiesFilterSchema.parse(params);
     let items = z.array(ActivityItemSchema).parse(MOCK_ACTIVITIES);
 
     if (parsedParams.executor) {
-      items = items.filter(
-        (a) => a.executor === parsedParams.executor,
-      );
+      items = items.filter((a) => a.executor === parsedParams.executor);
     }
 
     if (parsedParams.status) {
-      items = items.filter(
-        (a) => a.status === parsedParams.status,
-      );
+      items = items.filter((a) => a.status === parsedParams.status);
     }
 
     if (parsedParams.q) {
