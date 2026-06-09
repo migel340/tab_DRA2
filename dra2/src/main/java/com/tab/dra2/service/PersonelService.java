@@ -5,9 +5,11 @@ import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.dto.PersonelLookupResponse;
 import com.tab.dra2.entity.Personel;
 import com.tab.dra2.enums.Role;
 import com.tab.dra2.repository.PersonelRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -162,4 +165,11 @@ public class PersonelService {
                 .active(personel.isActive())
                 .build();
     }
+
+    public List<PersonelLookupResponse> lookup() {
+
+        return personelRepository.getActiveNonAdminPersonelLookup();
+
+    }
+
 }

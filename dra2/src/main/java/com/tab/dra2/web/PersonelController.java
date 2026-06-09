@@ -2,12 +2,16 @@ package com.tab.dra2.web;
 
 import com.tab.dra2.dto.CreatePersonelRequest;
 import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.PersonelLookupResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
 import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.service.PersonelService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
+
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -87,6 +91,19 @@ public class PersonelController {
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/lookup")
+    @PreAuthorize("hasRole('MANAGER')")
+    public ResponseEntity<ApiResponse<List<PersonelLookupResponse>>> lookup() {
+        ApiResponse<List<PersonelLookupResponse>> response = ApiResponse.<List<PersonelLookupResponse>>builder()
+                .success(true)
+                .message("OK")
+                .data(personelService.lookup())
+                .timestamp(java.time.LocalDateTime.now())
+                .build();
+        return ResponseEntity.ok(response);
+
     }
 
 }

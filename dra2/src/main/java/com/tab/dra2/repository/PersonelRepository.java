@@ -1,13 +1,23 @@
 package com.tab.dra2.repository;
 
+import com.tab.dra2.dto.PersonelLookupResponse;
 import com.tab.dra2.entity.Personel;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface PersonelRepository extends JpaRepository<Personel, Long>, JpaSpecificationExecutor<Personel> {
     Optional<Personel> findByUsername(String username);
 
     boolean existsByUsername(String username);
+
+    @Query("SELECT p.id as id, CONCAT(p.firstName, ' ', p.surname) as name " +
+            "FROM Personel p " +
+            "WHERE p.active = true AND p.role <> 'ADMIN'")
+    List<PersonelLookupResponse> getActiveNonAdminPersonelLookup();
+
 }
