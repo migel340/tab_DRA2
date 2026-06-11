@@ -190,7 +190,7 @@ export default function ActivityCreatePage({
                     <Textarea
                       id="description"
                       {...field}
-                      className="bg-gray-50/50 min-h-[120px]"
+                      className="bg-gray-50/50 min-h-30"
                     />
 
                     {actionData?.fieldErrors?.description && (
