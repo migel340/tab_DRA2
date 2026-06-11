@@ -96,7 +96,7 @@ public class ActivityService {
                 Activity a = Activity.builder()
                                 .request(request)
                                 .activityType(type)
-                                .personel(personel != null ? personel : currentPersonel())
+                                .personel(personel)
                                 .seqNo(dto.getSeqNo())
                                 .description(dto.getDescription())
                                 .result(dto.getResult())
@@ -203,8 +203,9 @@ public class ActivityService {
                                 .type(ActivityTypeResponseDto.builder()
                                                 .actType(a.getActivityType().getActType())
                                                 .id(a.getActivityType().getId()).build())
-                                .executor(new PersonelLookupResponse(a.getPersonel().getId(),
-                                                a.getPersonel().getFirstName() + " " + a.getPersonel().getSurname()))
+                                .executor(a.getPersonel() != null ? new PersonelLookupResponse(a.getPersonel().getId(),
+                                                a.getPersonel().getFirstName() + " " + a.getPersonel().getSurname())
+                                                : null)
                                 .seqNo(a.getSeqNo())
                                 .description(a.getDescription())
                                 .result(a.getResult())
