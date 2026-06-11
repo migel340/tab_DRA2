@@ -1,7 +1,4 @@
 package com.tab.dra2.dto;
 
-public interface PersonelLookupResponse {
-    Long getId();
-
-    String getName();
+public record PersonelLookupResponse(Long id, String name) {
 }

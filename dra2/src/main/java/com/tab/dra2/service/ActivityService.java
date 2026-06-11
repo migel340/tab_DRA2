@@ -5,6 +5,7 @@ import com.tab.dra2.dto.ActivityTypeResponseDto;
 import com.tab.dra2.dto.CreateActivityDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.dto.PersonelLookupResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdateActivityStatusDto;
 import com.tab.dra2.entity.Activity;
@@ -202,7 +203,8 @@ public class ActivityService {
                                 .type(ActivityTypeResponseDto.builder()
                                                 .actType(a.getActivityType().getActType())
                                                 .id(a.getActivityType().getId()).build())
-                                .executor(PersonelResponse.toResponse(a.getPersonel()))
+                                .executor(new PersonelLookupResponse(a.getPersonel().getId(),
+                                                a.getPersonel().getFirstName() + " " + a.getPersonel().getSurname()))
                                 .seqNo(a.getSeqNo())
                                 .description(a.getDescription())
                                 .result(a.getResult())

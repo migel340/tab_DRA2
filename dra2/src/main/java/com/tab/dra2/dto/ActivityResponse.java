@@ -11,7 +11,7 @@ public class ActivityResponse {
     private int id;
     private int requestId;
     private ActivityTypeResponseDto type;
-    private PersonelResponse executor;
+    private PersonelLookupResponse executor;
     private String seqNo;
     private String description;
     private String result;
