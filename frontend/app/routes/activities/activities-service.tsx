@@ -3,7 +3,9 @@ import { MOCK_ACTIVITIES } from "~/mocks/requests";
 import {
   ActivitiesFilterSchema,
   type ActivitiesFilterParams,
+  type ActivitType,
   type Activity,
+  type ServerCreateActivityInput,
 } from "./schema";
 import { activitiesApi } from "./activities-api";
 
@@ -20,6 +22,10 @@ export const ActivityItemSchema = z.object({
 export type ActivityItem = z.infer<typeof ActivityItemSchema>;
 
 export const activitiesService = {
+  getById: async (id: number, request: Request): Promise<Activity> => {
+    const response = await activitiesApi.getById(id, request);
+    return response;
+  },
   fetchActivitesForRequest: async (
     requestId: number,
     request: Request,
@@ -52,5 +58,13 @@ export const activitiesService = {
     }
 
     return items;
+  },
+
+  getAllTypes: async (request: Request): Promise<ActivitType[]> => {
+    return await activitiesApi.getAllTypes(request);
+  },
+
+  create: async (data: ServerCreateActivityInput, request: Request) => {
+    return await activitiesApi.create(data, request);
   },
 };

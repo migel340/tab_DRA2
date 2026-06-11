@@ -3,6 +3,7 @@ import { PersonelSchema } from "~/types/personel";
 import type {
   Personel,
   PersonelCreatePayload,
+  PersonelLookup,
   PersonelUpdatePayload,
 } from "~/types/personel";
 import {
@@ -10,6 +11,7 @@ import {
   type PersonelFilterParams,
   type PersonelResponse,
 } from "./schema";
+import type { UserRole } from "~/types/auth";
 
 export const personelService = {
   getPersonelById: async (
@@ -51,5 +53,11 @@ export const personelService = {
 
   deletePersonel: async (id: number, request: Request): Promise<void> => {
     await personelApi.delete(id, request);
+  },
+  fetchLookup: async (
+    reuqets: Request,
+    role: UserRole | null = null,
+  ): Promise<PersonelLookup[]> => {
+    return await personelApi.getPresonalLookup(role, reuqets);
   },
 };

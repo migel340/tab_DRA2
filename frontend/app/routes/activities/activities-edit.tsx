@@ -1,6 +1,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Form, useNavigate, useSubmit, useActionData, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "react-router";
+import {
+  Form,
+  useNavigate,
+  useSubmit,
+  useActionData,
+  useLoaderData,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  redirect,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
@@ -8,33 +17,37 @@ import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
 import { RepairStatusSelect } from "~/components/Select";
-import { MOCK_CLIENTS, MOCK_DEVICES, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
-import { EditPersonelActivityFormSchema, type EditPersonelActivityFormData } from "./schema";
+import { MOCK_CLIENTS, MOCK_DEVICES } from "~/mocks/requests";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
+  EditPersonelActivityFormSchema,
+  type EditPersonelActivityFormData,
+} from "./schema";
+import { activitiesService } from "./activities-service";
+import z from "zod";
+import type { Route } from "./+types/activities-edit";
 
-
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const { id } = params;
 
-  // TODO: Docelowo pobranie z API np. await activitiesService.getById(id)
-  const activity = MOCK_ACTIVITIES.find(a => a.id.toString() === id);
-  if (!activity) throw new Response("Not Found", { status: 404 });
+  const result = z.coerce.number().safeParse(id);
+  if (!result.success) {
+    throw new Response("Invalid ID", { status: 400 });
+  }
 
-  const request = {
+  const activity = await activitiesService.getById(result.data, request);
+
+  // const activity = MOCK_ACTIVITIES.find((a) => a.id.toString() === id);
+  // if (!activity) throw new Response("Not Found", { status: 404 });
+
+  const _request = {
     id,
     client: MOCK_CLIENTS[0].name,
     device: MOCK_DEVICES[0].name,
     description: "Klient zgłasza brak reakcji na przycisk zasilania.",
-    status: "W trakcie"
+    status: "W trakcie",
   };
 
-  return { activity, request };
+  return { activity, request: _request };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
@@ -76,9 +89,10 @@ export default function PersonelActivityEditPage() {
   return (
     <PageLayout title="Edytuj aktywność">
       <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <h2 className="text-lg font-semibold mb-2 text-gray-900">Zgłoszenie</h2>
+          <h2 className="text-lg font-semibold mb-2 text-gray-900">
+            Zgłoszenie
+          </h2>
           <Separator className="mb-6" />
 
           <div className="flex flex-col gap-6">
@@ -87,35 +101,57 @@ export default function PersonelActivityEditPage() {
               {/* Klient */}
               <div className="flex flex-col gap-2">
                 <Label>Klient</Label>
-                <Input disabled value={`${request.client}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={`${request.client}`}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
 
               {/* Urządzenie */}
               <div className="flex flex-col gap-2">
                 <Label>Urządzenie</Label>
-                <Input disabled value={`${request.device}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={`${request.device}`}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
 
               {/* Status */}
               <div className="flex flex-col gap-2">
                 <Label htmlFor="status">Status</Label>
-                <Input disabled value={`${request.status}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={`${request.status}`}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
             </div>
 
             {/* Rząd 2 i 3: Opis i Rezultat */}
             <div className="flex flex-col gap-2">
               <Label>Opis</Label>
-              <Textarea id="description" disabled value={request.description} className="bg-gray-100 text-gray-500 min-h-[100px]" />
+              <Textarea
+                id="description"
+                disabled
+                value={request.description}
+                className="bg-gray-100 text-gray-500 min-h-[100px]"
+              />
             </div>
             {/* Przyciski Akcji Formularza */}
             <div className="flex items-center gap-3">
-              <Button type="button" className="bg-black text-white hover:bg-gray-800" onClick={() => navigate(`/activities/request-details/${request.id}`)}>Zobacz</Button>
+              <Button
+                type="button"
+                className="bg-black text-white hover:bg-gray-800"
+                onClick={() =>
+                  navigate(`/activities/request-details/${request.id}`)
+                }
+              >
+                Zobacz
+              </Button>
             </div>
           </div>
-
-
-
         </div>
         {/* Informacje o aktywności */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
@@ -123,20 +159,31 @@ export default function PersonelActivityEditPage() {
           <Separator className="mb-6" />
 
           <div className="flex flex-col gap-6">
-
             {/* Górny wiersz (Read-only) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Numer Sekwencji</Label>
-                <Input disabled value={`${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={`${activity.id}`}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Utworzono</Label>
-                <Input disabled value={activity.created} className="bg-gray-100 text-gray-500" />
+                <Input
+                  disabled
+                  value={activity.created}
+                  className="bg-gray-100 text-gray-500"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Zakończono</Label>
-                <Input disabled value={activity.finished} className="bg-gray-100 text-gray-500" />
+                <Input
+                  disabled
+                  value={activity.finished}
+                  className="bg-gray-100 text-gray-500"
+                />
               </div>
             </div>
 
@@ -144,11 +191,19 @@ export default function PersonelActivityEditPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Typ</Label>
-                <Input disabled value={`${activity.type}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={`${activity.type}`}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Wykonawca</Label>
-                <Input disabled value={activity.executor} className="bg-gray-100 text-gray-500" />
+                <Input
+                  disabled
+                  value={activity.executor}
+                  className="bg-gray-100 text-gray-500"
+                />
               </div>
 
               <Controller
@@ -168,7 +223,12 @@ export default function PersonelActivityEditPage() {
             {/* Pola Textarea (Opis i Wynik) */}
             <div className="flex flex-col gap-2">
               <Label>Opis</Label>
-              <Textarea id="description" disabled value={activity.desc} className="bg-gray-100 text-gray-500 min-h-[100px]" />
+              <Textarea
+                id="description"
+                disabled
+                value={activity.desc}
+                className="bg-gray-100 text-gray-500 min-h-[100px]"
+              />
             </div>
 
             <div className="flex flex-col gap-2">
@@ -176,17 +236,29 @@ export default function PersonelActivityEditPage() {
               <Controller
                 name="result"
                 control={control}
-                render={({ field }) => <Textarea id="result" {...field} className="bg-gray-50/50 min-h-[100px]" />}
+                render={({ field }) => (
+                  <Textarea
+                    id="result"
+                    {...field}
+                    className="bg-gray-50/50 min-h-[100px]"
+                  />
+                )}
               />
-              {actionData?.fieldErrors?.result && <span className="text-xs text-destructive">{actionData.fieldErrors.result[0]}</span>}
+              {actionData?.fieldErrors?.result && (
+                <span className="text-xs text-destructive">
+                  {actionData.fieldErrors.result[0]}
+                </span>
+              )}
             </div>
-
           </div>
         </div>
 
         {/* Przyciski Akcji na dole strony */}
         <div className="flex items-center gap-3 self-start">
-          <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+          <Button
+            type="submit"
+            className="bg-black text-white hover:bg-gray-800"
+          >
             Zapisz
           </Button>
           <Button

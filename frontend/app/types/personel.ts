@@ -14,6 +14,13 @@ export const PersonelDbSchema = z.object({
   active: z.boolean(),
 });
 
+export const PersonelLookupSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+});
+
+export type PersonelLookup = z.infer<typeof PersonelLookupSchema>;
+
 export type PersonelDB = z.infer<typeof PersonelDbSchema>;
 
 export const RequestManagerSchema = z.object({

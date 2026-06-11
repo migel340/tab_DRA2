@@ -1,6 +1,8 @@
 import { api } from "~/lib/api.server";
-import type { PersonelDB } from "~/types/personel";
+import type { PersonelDB, PersonelLookup } from "~/types/personel";
 import type { PersonelFilterParams, PersonelResponse } from "./schema";
+import type { UserRole } from "~/types/auth";
+import { buildUrl } from "~/lib/utils";
 
 const ENDPOINT = "/personels";
 
@@ -24,6 +26,12 @@ export const personelApi = {
       },
       request,
     ),
+
+  getPresonalLookup: async (role: UserRole | null = null, request: Request) => {
+    const url = buildUrl(`${ENDPOINT}/lookup`, { role });
+
+    return api<PersonelLookup[]>(url, { method: "GET" }, request);
+  },
 
   create: async (payload: Omit<PersonelDB, "id">, request: Request) =>
     api<PersonelDB>(

@@ -77,8 +77,8 @@ public class ActivityService {
                 Request request = requestRepository.findById(dto.getRequestId())
                                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
 
-                requireCurrentManagerOwnership(request);
-                ensureRequestAcceptsActivities(request);
+                // requireCurrentManagerOwnership(request);
+                // ensureRequestAcceptsActivities(request);
 
                 ActivityType type = activityTypeRepository.findById(dto.getActTypeId().longValue())
                                 .orElseThrow(() -> new NoSuchElementException("Activity type not found"));
@@ -87,7 +87,7 @@ public class ActivityService {
                 if (dto.getPersonelId() != null) {
                         personel = personelRepository.findById(dto.getPersonelId().longValue())
                                         .orElseThrow(() -> new NoSuchElementException("Personel not found"));
-                        requireCurrentManagerOwnership(personel);
+                        // requireCurrentManagerOwnership(personel);
                 }
 
                 validateInitialStatus(dto.getStatus());

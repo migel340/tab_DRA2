@@ -166,9 +166,9 @@ public class PersonelService {
                 .build();
     }
 
-    public List<PersonelLookupResponse> lookup() {
+    public List<PersonelLookupResponse> lookup(Role role) {
 
-        return personelRepository.getActiveNonAdminPersonelLookup();
+        return personelRepository.getActiveNonAdminPersonelLookup(role);
 
     }
 

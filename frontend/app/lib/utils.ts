@@ -11,3 +11,21 @@ export const shouldSkipAuth = (): boolean => {
 
   return isAuthDisabledInEnv;
 };
+
+export function buildUrl(
+  basePath: string,
+  params?: Record<string, any>,
+): string {
+  if (!params) return basePath;
+
+  const searchParams = new URLSearchParams();
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== null && value !== undefined && value !== "") {
+      searchParams.append(key, String(value));
+    }
+  });
+
+  const queryString = searchParams.toString();
+  return queryString ? `${basePath}?${queryString}` : basePath;
+}

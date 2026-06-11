@@ -7,7 +7,7 @@ export const RequestsFilterSchema = BaseTableParamsSchema.extend({
   q: z.string().optional(),
   manager: z.string().optional(),
   status: z.string().optional(),
-  dateFrom: z.string().optional(), 
+  dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
 });
 
@@ -38,7 +38,8 @@ export type EditRequestFormData = z.infer<typeof EditRequestFormSchema>;
 
 export const NewActivityFormSchema = z.object({
   type: z.string().min(1, "Wybierz typ aktywności"),
-  executor: z.string().min(1, "Wybierz wykonawcę"),
+  executor: z.string().optional(),
+  seqNo: z.string(),
   description: z.string().min(1, "Opis jest wymagany"),
 });
 

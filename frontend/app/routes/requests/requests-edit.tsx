@@ -85,6 +85,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const deviceData = requestData.deviceId
     ? await deviceService.getDeviceById(request, requestData.deviceId)
     : null;
+
   const currentClient = await clientService.getClientById(
     request,
     deviceData?.clientId || 0,
@@ -426,7 +427,10 @@ export default function RequestEditPage() {
             <Button
               variant="outline"
               className="bg-white text-black border-gray-300 hover:bg-gray-50"
-              onClick={() => navigate(`/requests/${id}/activities/new`)}
+              onClick={() => {
+                console.log("redirect");
+                navigate(`/requests/${id}/activities/new`);
+              }}
             >
               <Plus className="mr-2 h-4 w-4" /> Dodaj aktywność
             </Button>
@@ -478,7 +482,7 @@ export default function RequestEditPage() {
                         {act.description}
                       </TableCell>
                       <TableCell className="text-gray-700">
-                        {act.executor.firstName + " " + act.executor.surname}
+                        {act.executor && act.executor.name}
                       </TableCell>
                       <TableCell>
                         <Badge

@@ -5,6 +5,7 @@ import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.PersonelLookupResponse;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdatePersonelRequest;
+import com.tab.dra2.enums.Role;
 import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.service.PersonelService;
 import jakarta.validation.Valid;
@@ -95,11 +96,12 @@ public class PersonelController {
 
     @GetMapping("/lookup")
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<List<PersonelLookupResponse>>> lookup() {
+    public ResponseEntity<ApiResponse<List<PersonelLookupResponse>>> lookup(
+            @Valid @RequestParam(required = false) Role role) {
         ApiResponse<List<PersonelLookupResponse>> response = ApiResponse.<List<PersonelLookupResponse>>builder()
                 .success(true)
                 .message("OK")
-                .data(personelService.lookup())
+                .data(personelService.lookup(role))
                 .timestamp(java.time.LocalDateTime.now())
                 .build();
         return ResponseEntity.ok(response);
