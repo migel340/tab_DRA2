@@ -68,7 +68,7 @@ export const ActivityPaginatedSchema =
 
 export type ActivityPaginated = z.infer<typeof ActivityPaginatedSchema>;
 
-export const EditActivityFormSchema = z.object({
+export const _EditActivityFormSchema = z.object({
   type: z.string().readonly(),
   executor: z.string().readonly(),
   status: z.string().min(1, "Wybierz status"),
@@ -76,7 +76,35 @@ export const EditActivityFormSchema = z.object({
   result: z.string().optional(),
 });
 
-export type EditActivityFormData = z.infer<typeof EditActivityFormSchema>;
+export const EditActivityFormSchema = ActivitySchema.pick({
+  type: true,
+  executor: true,
+  status: true,
+  description: true,
+  result: true,
+  seqNo: true,
+});
+
+export const ServerEditActivityFormSchema = EditActivityFormSchema.transform(
+  (data) => {
+    const { type, executor, ...rest } = data;
+
+    const personelId = executor && executor.id > 0 ? executor.id : null;
+
+    return {
+      ...rest,
+      actTypeId: type.id,
+      personelId: personelId,
+    };
+  },
+);
+
+export type ServerEditActivityInput = z.infer<
+  typeof ServerEditActivityFormSchema
+>;
+
+export type EditActivityInputFormData = z.input<typeof EditActivityFormSchema>;
+export type EditActivityFormData = z.output<typeof EditActivityFormSchema>;
 
 export const EditPersonelActivityFormSchema = z.object({
   status: z.string().min(1, "Wybierz status"),

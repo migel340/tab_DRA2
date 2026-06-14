@@ -6,6 +6,7 @@ import {
   type ActivitType,
   type Activity,
   type ServerCreateActivityInput,
+  type ServerEditActivityInput,
 } from "./schema";
 import { activitiesApi } from "./activities-api";
 
@@ -66,5 +67,12 @@ export const activitiesService = {
 
   create: async (data: ServerCreateActivityInput, request: Request) => {
     return await activitiesApi.create(data, request);
+  },
+  update: async (
+    id: number,
+    data: ServerEditActivityInput,
+    request: Request,
+  ) => {
+    return await activitiesApi.update(id, data, request);
   },
 };

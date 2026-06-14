@@ -1,0 +1,23 @@
+info:
+  name: update activity
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: "{{host}}/{{path}}/26"
+  body:
+    type: json
+    data: |-
+      {
+          "description": "fdssafsfa",
+          "actTypeId": "4",
+          "status": "REGISTERED"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -4,6 +4,7 @@ import type {
   Activity,
   ActivitType,
   ServerCreateActivityInput,
+  ServerEditActivityInput,
 } from "./schema";
 
 const ENDPOINT = "/activities";
@@ -26,11 +27,18 @@ export const activitiesApi = {
     return api<ActivitType[]>("/activity-types", { method: "GET" }, request);
   },
 
-  create(data: ServerCreateActivityInput, requets: Request) {
+  create(data: ServerCreateActivityInput, request: Request) {
     return api<Activity>(
       `${ENDPOINT}`,
       { method: "POST", body: JSON.stringify(data) },
-      requets,
+      request,
+    );
+  },
+  update(id: number, data: ServerEditActivityInput, request: Request) {
+    return api<Activity>(
+      `${ENDPOINT}/${id}`,
+      { method: "PUT", body: JSON.stringify(data) },
+      request,
     );
   },
 };

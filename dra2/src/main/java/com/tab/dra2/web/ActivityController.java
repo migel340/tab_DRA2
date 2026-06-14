@@ -4,6 +4,7 @@ import com.tab.dra2.dto.ActivityResponse;
 import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.dto.CreateActivityDto;
 import com.tab.dra2.dto.ListResponse;
+import com.tab.dra2.dto.UpdateActivityDto;
 import com.tab.dra2.dto.UpdateActivityStatusDto;
 import com.tab.dra2.service.ActivityService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -68,7 +69,7 @@ public class ActivityController {
         @PutMapping("/{id}")
         @PreAuthorize("hasAnyRole('MANAGER')")
         public ResponseEntity<ApiResponse<ActivityResponse>> update(@PathVariable Long id,
-                        @Valid @RequestBody CreateActivityDto dto) {
+                        @Valid @RequestBody UpdateActivityDto dto) {
                 ActivityResponse data = activityService.update(id, dto);
                 ApiResponse<ActivityResponse> resp = ApiResponse.<ActivityResponse>builder()
                                 .success(true)
