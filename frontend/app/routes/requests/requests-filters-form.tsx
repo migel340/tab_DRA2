@@ -1,32 +1,50 @@
 import { Form, useSubmit } from "react-router";
-import { RequestsFilterSchema, type RequestsFilterParams } from "./schema";
+import {
+  RequestsFilterSchema,
+  type RequestsFilterParamsInput,
+  type RequestsFilterParamsOutput,
+} from "./schema";
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import SearchBar from "~/components/SearchBar";
 import { DatePickerWithRange } from "~/components/RangePicker";
 import type { DateRange } from "react-day-picker";
 import { format } from "date-fns/format";
+import { buildUrl } from "~/lib/utils";
 
 export function RequestsFiltersForm({
   initialValues,
   loggedUserId,
   managers = [],
 }: {
-  initialValues: RequestsFilterParams;
+  initialValues: RequestsFilterParamsInput;
   loggedUserId: number;
   managers?: Array<{ id: number; firstName: string; surname: string }>;
 }) {
   const submit = useSubmit();
 
-  const { watch, handleSubmit, control, register, setValue} = useForm({
+  const {
+    watch,
+    handleSubmit,
+    control,
+    setValue,
+    formState: { errors },
+  } = useForm<RequestsFilterParamsInput, any, RequestsFilterParamsOutput>({
     resolver: zodResolver(RequestsFilterSchema),
     defaultValues: initialValues,
   });
 
-  function onSubmit(data: RequestsFilterParams) {
-    submit(data, { replace: true });
+  function onSubmit(data: RequestsFilterParamsOutput) {
+    const url = buildUrl("/requests", data);
+    submit(data, { action: url, replace: true });
   }
 
   useEffect(() => {
@@ -45,12 +63,18 @@ export function RequestsFiltersForm({
   };
 
   const handleDateChange = (range: DateRange | undefined) => {
-    setValue("dateFrom", range?.from ? format(range.from, "yyyy-MM-dd") : undefined);
+    setValue(
+      "dateFrom",
+      range?.from ? format(range.from, "yyyy-MM-dd") : undefined,
+    );
     setValue("dateTo", range?.to ? format(range.to, "yyyy-MM-dd") : undefined);
   };
 
   return (
-    <Form method="get" action="/requests" id="filter-form" className="flex flex-col gap-4 w-full">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="flex flex-col gap-4 w-full"
+    >
       {/* Górny rząd: Selektory */}
       <div className="flex flex-wrap gap-3">
         <Controller
@@ -63,7 +87,9 @@ export function RequestsFiltersForm({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Wszyscy</SelectItem>
-                <SelectItem value={loggedUserId.toString()}>Moje zgłoszenia</SelectItem>
+                <SelectItem value={loggedUserId.toString()}>
+                  Moje zgłoszenia
+                </SelectItem>
               </SelectContent>
             </Select>
           )}
@@ -88,9 +114,9 @@ export function RequestsFiltersForm({
           )}
         />
 
-        <DatePickerWithRange 
-          value={selectedDateRange} 
-          onChange={handleDateChange} 
+        <DatePickerWithRange
+          value={selectedDateRange}
+          onChange={handleDateChange}
         />
       </div>
 
@@ -99,9 +125,13 @@ export function RequestsFiltersForm({
         name="q"
         control={control}
         render={({ field, fieldState }) => (
-          <SearchBar field={field} fieldState={fieldState} placeholder="Wyszukaj zgłoszenie..." />
+          <SearchBar
+            field={field}
+            fieldState={fieldState}
+            placeholder="Wyszukaj zgłoszenie..."
+          />
         )}
       />
-    </Form>
+    </form>
   );
 }

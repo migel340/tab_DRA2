@@ -22,7 +22,7 @@ import {
   type EditActivityInputFormData,
 } from "../activities/schema";
 import { activitiesService } from "../activities/activities-service";
-import z, { success } from "zod";
+import z from "zod";
 import { personelService } from "../personel/personel-service";
 import type { Route } from "./+types/activities-edit";
 import InputField from "~/components/InputField";
@@ -48,7 +48,7 @@ export async function loader({ params, request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  const { activityId, id } = params;
+  const { activityId } = params;
 
   const paresdId = z.coerce.number().safeParse(activityId);
   if (!paresdId.success) {

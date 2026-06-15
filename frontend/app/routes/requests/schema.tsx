@@ -9,9 +9,21 @@ export const RequestsFilterSchema = BaseTableParamsSchema.extend({
   status: z.string().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
+}).transform((values) => {
+  const cleanEntries = Object.entries(values)
+    .filter(([_, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => {
+      if (key === "q" && value === "undefined") {
+        return [key, ""];
+      }
+      return [key, String(value)];
+    });
+
+  return Object.fromEntries(cleanEntries);
 });
 
-export type RequestsFilterParams = z.infer<typeof RequestsFilterSchema>;
+export type RequestsFilterParamsInput = z.input<typeof RequestsFilterSchema>;
+export type RequestsFilterParamsOutput = z.output<typeof RequestsFilterSchema>;
 
 export const NewRequestFormSchema = z.object({
   clientId: z.string().min(1, "Wybór klienta jest wymagany."),
