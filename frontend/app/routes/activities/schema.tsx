@@ -119,7 +119,24 @@ export const ActivitiesFilterSchema = BaseTableParamsSchema.extend({
   q: z.string().optional(),
   executor: z.string().optional(),
   status: z.string().optional(),
-  dateRange: z.string().optional(),
+  dateFrom: z.string().optional(),
+  dateTo: z.string().optional(),
+}).transform((values) => {
+  const cleanEntries = Object.entries(values)
+    .filter(([_, value]) => value !== undefined && value !== null)
+    .map(([key, value]) => {
+      if (key === "q" && value === "undefined") {
+        return [key, ""];
+      }
+      return [key, String(value)];
+    });
+
+  return Object.fromEntries(cleanEntries);
 });
 
-export type ActivitiesFilterParams = z.infer<typeof ActivitiesFilterSchema>;
+export type ActivitiesFilterParamsInput = z.input<
+  typeof ActivitiesFilterSchema
+>;
+export type ActivitiesFilterParamsOutput = z.output<
+  typeof ActivitiesFilterSchema
+>;

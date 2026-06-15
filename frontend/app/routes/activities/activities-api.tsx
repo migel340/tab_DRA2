@@ -5,11 +5,23 @@ import type {
   ActivitType,
   ServerCreateActivityInput,
   ServerEditActivityInput,
+  ActivitiesFilterParamsOutput,
 } from "./schema";
+import { buildUrl } from "~/lib/utils";
 
 const ENDPOINT = "/activities";
 
 export const activitiesApi = {
+  getAllActivites(params: ActivitiesFilterParamsOutput, request: Request) {
+    const url = buildUrl(ENDPOINT, params);
+    return api<ActivityPaginated>(
+      url,
+      {
+        method: "GET",
+      },
+      request,
+    );
+  },
   getById(id: number, request: Request) {
     return api<Activity>(`${ENDPOINT}/${id}`, { method: "GET" }, request);
   },

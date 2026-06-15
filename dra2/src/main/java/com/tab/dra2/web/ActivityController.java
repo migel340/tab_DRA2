@@ -24,7 +24,7 @@ public class ActivityController {
         private final ActivityService activityService;
 
         @GetMapping
-        @PreAuthorize("hasRole('MANAGER')")
+        @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
         public ResponseEntity<ApiResponse<ListResponse<ActivityResponse>>> list(
                         @RequestParam(defaultValue = "1") int page,
                         @RequestParam(defaultValue = "10") int limit,

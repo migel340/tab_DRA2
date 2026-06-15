@@ -1,8 +1,7 @@
 import { z } from "zod";
-import { MOCK_ACTIVITIES } from "~/mocks/requests";
 import {
   ActivitiesFilterSchema,
-  type ActivitiesFilterParams,
+  type ActivitiesFilterParamsOutput,
   type ActivitType,
   type Activity,
   type ServerCreateActivityInput,
@@ -35,32 +34,13 @@ export const activitiesService = {
     return response.data;
   },
   fetchActivitiesList: async (
-    params: ActivitiesFilterParams,
-  ): Promise<ActivityItem[]> => {
+    params: ActivitiesFilterParamsOutput,
+    request: Request,
+  ): Promise<Activity[]> => {
     const parsedParams = ActivitiesFilterSchema.parse(params);
-    let items = z.array(ActivityItemSchema).parse(MOCK_ACTIVITIES);
-
-    if (parsedParams.executor) {
-      items = items.filter((a) => a.executor === parsedParams.executor);
-    }
-
-    if (parsedParams.status) {
-      items = items.filter((a) => a.status === parsedParams.status);
-    }
-
-    if (parsedParams.q) {
-      const query = parsedParams.q.toLowerCase();
-      items = items.filter(
-        (a) =>
-          a.type.toLowerCase().includes(query) ||
-          a.desc.toLowerCase().includes(query) ||
-          a.executor.toLowerCase().includes(query),
-      );
-    }
-
-    return items;
+    const result = await activitiesApi.getAllActivites(parsedParams, request);
+    return result.data;
   },
-
   getAllTypes: async (request: Request): Promise<ActivitType[]> => {
     return await activitiesApi.getAllTypes(request);
   },
