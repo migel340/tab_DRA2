@@ -1,4 +1,4 @@
-import { Form, useSubmit } from "react-router";
+import { useSubmit } from "react-router";
 import {
   RequestsFilterSchema,
   type RequestsFilterParamsInput,
@@ -7,43 +7,36 @@ import {
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import SearchBar from "~/components/SearchBar";
 import { DatePickerWithRange } from "~/components/RangePicker";
 import type { DateRange } from "react-day-picker";
 import { format } from "date-fns/format";
 import { buildUrl } from "~/lib/utils";
+import { BaseSelect, RepairStatusSelect } from "~/components/Select";
+import { type PersonelLookup } from "~/types/personel";
+import { BaseField } from "~/components/BaseField";
 
 export function RequestsFiltersForm({
   initialValues,
-  loggedUserId,
   managers = [],
 }: {
-  initialValues: RequestsFilterParamsInput;
-  loggedUserId: number;
-  managers?: Array<{ id: number; firstName: string; surname: string }>;
+  initialValues: RequestsFilterParamsOutput;
+  managers?: PersonelLookup[];
 }) {
   const submit = useSubmit();
 
-  const {
-    watch,
-    handleSubmit,
-    control,
-    setValue,
-    formState: { errors },
-  } = useForm<RequestsFilterParamsInput, any, RequestsFilterParamsOutput>({
+  const { watch, handleSubmit, control, setValue } = useForm<
+    RequestsFilterParamsInput,
+    any,
+    RequestsFilterParamsOutput
+  >({
     resolver: zodResolver(RequestsFilterSchema),
     defaultValues: initialValues,
   });
 
   function onSubmit(data: RequestsFilterParamsOutput) {
     const url = buildUrl("/requests", data);
+    console.log(url);
     submit(data, { action: url, replace: true });
   }
 
@@ -75,52 +68,48 @@ export function RequestsFiltersForm({
       onSubmit={handleSubmit(onSubmit)}
       className="flex flex-col gap-4 w-full"
     >
-      {/* Górny rząd: Selektory */}
-      <div className="flex flex-wrap gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Controller
           name="manager"
           control={control}
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger className="w-[200px] bg-gray-50 border-gray-100 shadow-none">
-                <SelectValue placeholder="Wybierz Managera" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Wszyscy</SelectItem>
-                <SelectItem value={loggedUserId.toString()}>
-                  Moje zgłoszenia
-                </SelectItem>
-              </SelectContent>
-            </Select>
+          render={({ field, fieldState }) => (
+            <BaseSelect
+              showAllOption
+              field={field}
+              fieldState={fieldState}
+              label="Wykonawca"
+              placeholder="Wybierz wykonawcę"
+              getOptionKey={({ id }) => id}
+              getOptionValue={({ id }) => id}
+              onValueChange={({ id }) => id}
+              options={managers}
+              renderItem={({ name }) => name}
+              //@ts-ignore
+              getValueToSave={({ id }) => id.toString()}
+            />
           )}
         />
 
         <Controller
           name="status"
           control={control}
-          render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
-              <SelectTrigger className="w-[200px] bg-gray-50 border-gray-100 shadow-none">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Wszystkie</SelectItem>
-                <SelectItem value="REGISTERED">Zarejestrowane</SelectItem>
-                <SelectItem value="IN_PROGRESS">W trakcie</SelectItem>
-                <SelectItem value="FINISHED">Zakończone</SelectItem>
-                <SelectItem value="CANCELLED">Anulowane</SelectItem>
-              </SelectContent>
-            </Select>
+          render={({ field, fieldState }) => (
+            <RepairStatusSelect
+              label="Status"
+              field={field}
+              fieldState={fieldState}
+            />
           )}
         />
 
-        <DatePickerWithRange
-          value={selectedDateRange}
-          onChange={handleDateChange}
-        />
+        <BaseField label="Daty">
+          <DatePickerWithRange
+            value={selectedDateRange}
+            onChange={handleDateChange}
+          />
+        </BaseField>
       </div>
 
-      {/* Dolny rząd: Searchbar */}
       <Controller
         name="q"
         control={control}

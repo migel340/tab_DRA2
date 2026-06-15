@@ -8,7 +8,6 @@ import {
   useActionData,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
-  redirect,
   useFetcher,
   useLoaderData,
 } from "react-router";
@@ -31,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
 import PageLayout from "~/layouts/PageLayout";
 import z from "zod";
@@ -44,6 +42,10 @@ import type { Device } from "~/types/device";
 import { useEffect } from "react";
 import { activitiesService } from "../activities/activities-service";
 import type { Activity } from "../activities/schema";
+import { RepairStatusBadge } from "~/components/Badge";
+import type { RepairStatus } from "~/types/status";
+import { useActionToast } from "~/hooks/useActionToast";
+import { RepairStatusSelect } from "~/components/Select";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireManager(request);
@@ -136,7 +138,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     await requestsService.updateRequest(id, payloadForApi as any, request);
 
-    return redirect("/requests");
+    return {
+      success: true,
+    };
   } catch (error) {
     console.error("=== [DEBUG] BŁĄD ZAPISU ===", error);
     return {
@@ -155,6 +159,8 @@ export default function RequestEditPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const actionData = useActionData<typeof action>();
+
+  useActionToast(actionData, "Zgłoszenie zostało zaktualizowane");
 
   const { requestData, clients, activities, deviceData, currentClient } =
     useLoaderData<typeof loader>();
@@ -319,31 +325,15 @@ export default function RequestEditPage() {
 
                 {/* Status */}
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="status">Status</Label>
                   <Controller
                     name="status"
                     control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger id="status" className="bg-gray-50/50">
-                          <SelectValue placeholder="Wybierz status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectContent>
-                            <SelectItem value="REGISTERED">
-                              Zarejestrowane
-                            </SelectItem>
-                            <SelectItem value="IN_PROGRESS">
-                              W trakcie
-                            </SelectItem>
-                            <SelectItem value="FINISHED">Zakończone</SelectItem>
-                            <SelectItem value="CANCELLED">Anulowane</SelectItem>
-                          </SelectContent>
-                        </SelectContent>
-                      </Select>
+                    render={({ field, fieldState }) => (
+                      <RepairStatusSelect
+                        label="Status"
+                        field={field}
+                        fieldState={fieldState}
+                      />
                     )}
                   />
 
@@ -484,17 +474,11 @@ export default function RequestEditPage() {
                       <TableCell className="text-gray-700">
                         {act.executor && act.executor.name}
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            act.status === "DONE"
-                              ? "bg-green-50 text-green-600 border-green-200"
-                              : "bg-gray-100 text-gray-600 border-gray-200"
-                          }
-                        >
-                          {act.status}
-                        </Badge>
+                      <TableCell className="">
+                        <RepairStatusBadge
+                          status={act.status as RepairStatus}
+                          className="align-center"
+                        />
                       </TableCell>
                       <TableCell className="text-gray-500">
                         {new Date(act.dateRegistration).toLocaleDateString(

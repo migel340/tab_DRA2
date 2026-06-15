@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/button";
 import { Plus } from "lucide-react";
 import { useTable } from "~/hooks/useTable";
 import { requireManager } from "~/lib/auth.server";
+import { personelService } from "../personel/personel-service";
 
 export const handle = {
   breadcrumb: () => "lista",
@@ -18,7 +19,6 @@ export const handle = {
 export async function loader({ request }: Route.LoaderArgs) {
   const loggedUser = await requireManager(request);
   const url = new URL(request.url);
-  // console.log(url);
 
   if (!url.searchParams.has("status") && !url.searchParams.has("manager")) {
     url.searchParams.set("status", "REGISTERED");
@@ -31,16 +31,19 @@ export async function loader({ request }: Route.LoaderArgs) {
     Object.fromEntries(url.searchParams),
   );
 
+  console.log(params);
   const requestsList = await requestsService.fetchRequestsList(request, params);
-  // console.log(params);
 
-  return { requestsList, params, loggedUserId: loggedUser.id };
+  const managers = await personelService.fetchLookup(request, "MANAGER");
+
+  return { requestsList, params, loggedUser: loggedUser, managers };
 }
 
 export default function Requests({ loaderData }: Route.ComponentProps) {
-  const { requestsList, params, loggedUserId } = loaderData;
+  const { requestsList, params, managers } = loaderData;
   const navigate = useNavigate();
 
+  //@ts-ignore
   const { table } = useTable({
     data: requestsList.data || [],
     columns,
@@ -61,10 +64,7 @@ export default function Requests({ loaderData }: Route.ComponentProps) {
       }
     >
       <DataTable table={table} onRowClick={(id) => navigate(`/requests/${id}`)}>
-        <RequestsFiltersForm
-          initialValues={params}
-          loggedUserId={loggedUserId}
-        />
+        <RequestsFiltersForm initialValues={params} managers={managers} />
       </DataTable>
     </PageLayout>
   );
