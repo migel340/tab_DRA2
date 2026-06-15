@@ -241,6 +241,7 @@ export default function ActivityEditPage({
                   <Textarea
                     id="result"
                     {...field}
+                    value={field.value ?? ""}
                     className="bg-gray-50/50 min-h-[100px]"
                   />
                 )}
