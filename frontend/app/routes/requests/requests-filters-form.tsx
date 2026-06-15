@@ -36,7 +36,6 @@ export function RequestsFiltersForm({
 
   function onSubmit(data: RequestsFilterParamsOutput) {
     const url = buildUrl("/requests", data);
-    console.log(url);
     submit(data, { action: url, replace: true });
   }
 

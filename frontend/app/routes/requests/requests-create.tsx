@@ -115,8 +115,6 @@ export default function RequestCreatePage() {
     },
   });
 
-  console.log(errors);
-
   const selectedClientId = useWatch({
     control,
     name: "clientId",

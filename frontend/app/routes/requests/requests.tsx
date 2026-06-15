@@ -31,7 +31,6 @@ export async function loader({ request }: Route.LoaderArgs) {
     Object.fromEntries(url.searchParams),
   );
 
-  console.log(params);
   const requestsList = await requestsService.fetchRequestsList(request, params);
 
   const managers = await personelService.fetchLookup(request, "MANAGER");

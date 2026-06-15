@@ -418,7 +418,6 @@ export default function RequestEditPage() {
               variant="outline"
               className="bg-white text-black border-gray-300 hover:bg-gray-50"
               onClick={() => {
-                console.log("redirect");
                 navigate(`/requests/${id}/activities/new`);
               }}
             >
