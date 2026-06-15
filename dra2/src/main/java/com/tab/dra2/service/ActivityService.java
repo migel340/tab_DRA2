@@ -6,7 +6,6 @@ import com.tab.dra2.dto.CreateActivityDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.dto.PersonelLookupResponse;
-import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.UpdateActivityDto;
 import com.tab.dra2.dto.UpdateActivityStatusDto;
 import com.tab.dra2.entity.Activity;
