@@ -52,7 +52,7 @@ public class ClientController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
     public ResponseEntity<ApiResponse<ClientResponse>> getById(@PathVariable Integer id) {
         ClientResponse data = clientService.getById(id);
         return ResponseEntity.ok(ApiResponse.<ClientResponse>builder()

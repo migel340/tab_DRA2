@@ -6,6 +6,7 @@ import type {
   ServerCreateActivityInput,
   ServerEditActivityInput,
   ActivitiesFilterParamsOutput,
+  EditPersonelActivityFormData,
 } from "./schema";
 import { buildUrl } from "~/lib/utils";
 
@@ -50,6 +51,17 @@ export const activitiesApi = {
     return api<Activity>(
       `${ENDPOINT}/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
+      request,
+    );
+  },
+  updateFromStaff(
+    id: number,
+    data: EditPersonelActivityFormData,
+    request: Request,
+  ) {
+    return api<Activity>(
+      `${ENDPOINT}/${id}`,
+      { method: "PATCH", body: JSON.stringify(data) },
       request,
     );
   },

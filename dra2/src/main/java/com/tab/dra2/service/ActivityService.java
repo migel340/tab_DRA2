@@ -165,14 +165,16 @@ public class ActivityService {
                         throw new AccessDeniedException("You can change status only for activities assigned to you");
                 }
 
-                ensureEditable(activity);
+                // ensureEditable(activity);
 
                 String nextStatus = normalizeActivityStatus(dto.getStatus());
-                validateTransition(activity.getStatus(), nextStatus);
+                // validateTransition(activity.getStatus(), nextStatus);
                 activity.setStatus(nextStatus);
                 if (isTerminal(nextStatus)) {
                         activity.setDateFinishedCanceled(LocalDateTime.now());
                 }
+
+                activity.setResult(dto.getResult());
 
                 Activity saved = activityRepository.save(activity);
 

@@ -91,7 +91,7 @@ export default function ActivityEditPage({
   const actionData = useActionData<typeof action>();
   const { id } = params;
 
-  useActionToast(actionData, "Pomyślnie dodano aktwność!");
+  useActionToast(actionData, "Pomyślnie zaktualizowana aktwność!");
 
   const { handleSubmit, control } = useForm<
     EditActivityInputFormData,

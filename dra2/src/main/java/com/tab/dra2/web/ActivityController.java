@@ -80,7 +80,7 @@ public class ActivityController {
                 return ResponseEntity.ok(resp);
         }
 
-        @PutMapping("/{id}/status")
+        @PatchMapping("/{id}")
         @PreAuthorize("hasRole('STAFF')")
         public ResponseEntity<ApiResponse<ActivityResponse>> updateStatus(@PathVariable Long id,
                         @Valid @RequestBody UpdateActivityStatusDto dto) {

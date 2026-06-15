@@ -53,7 +53,7 @@ public class DeviceController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('MANAGER')")
+    @PreAuthorize("hasAnyRole('MANAGER','STAFF')")
     public ResponseEntity<ApiResponse<DeviceResponse>> getById(@PathVariable Integer id) {
         DeviceResponse data = deviceService.getById(id);
         ApiResponse<DeviceResponse> resp = ApiResponse.<DeviceResponse>builder()

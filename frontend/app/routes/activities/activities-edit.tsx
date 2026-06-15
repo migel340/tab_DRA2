@@ -7,7 +7,6 @@ import {
   useActionData,
   useLoaderData,
   type ActionFunctionArgs,
-  type LoaderFunctionArgs,
   redirect,
 } from "react-router";
 import { Button } from "~/components/ui/button";
@@ -25,6 +24,10 @@ import {
 import { activitiesService } from "./activities-service";
 import z from "zod";
 import type { Route } from "./+types/activities-edit";
+import { useActionToast } from "~/hooks/useActionToast";
+import { requestsService } from "../requests/requests-service";
+import { clientService } from "../client/client-service";
+import { deviceService } from "../device/device-service";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const { id } = params;
@@ -39,18 +42,32 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   // const activity = MOCK_ACTIVITIES.find((a) => a.id.toString() === id);
   // if (!activity) throw new Response("Not Found", { status: 404 });
 
-  const _request = {
-    id,
-    client: MOCK_CLIENTS[0].name,
-    device: MOCK_DEVICES[0].name,
-    description: "Klient zgłasza brak reakcji na przycisk zasilania.",
-    status: "W trakcie",
-  };
+  const _request = await requestsService.getRequestById(
+    request,
+    activity.requestId,
+  );
 
-  return { activity, request: _request };
+  const device = await deviceService.getDeviceById(
+    request,
+    _request?.deviceId as number,
+  );
+
+  const client = await clientService.getClientById(
+    request,
+    device?.clientId as number,
+  );
+
+  return { activity, request: _request, device, client };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { id } = params;
+
+  const paresdId = z.coerce.number().safeParse(id);
+  if (!paresdId.success) {
+    throw new Response("Invalid ID", { status: 400 });
+  }
+
   const payload = await request.json();
   const parsed = EditPersonelActivityFormSchema.safeParse(payload);
 
@@ -58,9 +75,11 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
   }
 
-  // TODO: wywołanie API np: await activitiesService.update(params.id, parsed.data)
+  await activitiesService.updateFromStaff(paresdId.data, parsed.data, request);
 
-  return redirect(`/activities`);
+  return {
+    success: true,
+  };
 }
 
 export const handle = {
@@ -71,14 +90,15 @@ export default function PersonelActivityEditPage() {
   const submit = useSubmit();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
-  const { activity, request } = useLoaderData<typeof loader>();
-  //const { id } = useParams();
+  const { activity, request, client, device } = useLoaderData<typeof loader>();
+
+  useActionToast(actionData, "Pomyślnie zaktualizowana aktwność!");
 
   const { handleSubmit, control } = useForm<EditPersonelActivityFormData>({
     resolver: zodResolver(EditPersonelActivityFormSchema),
     defaultValues: {
-      status: activity.status || "closed",
-      result: "Wymieniono uszkodzony układ zasilania.",
+      status: activity.status,
+      result: activity.result ?? "",
     },
   });
 
@@ -103,7 +123,7 @@ export default function PersonelActivityEditPage() {
                 <Label>Klient</Label>
                 <Input
                   disabled
-                  value={`${request.client}`}
+                  value={`${client?.firstName + " " + client?.surname}`}
                   className="bg-gray-100 text-gray-500 font-medium"
                 />
               </div>
@@ -113,7 +133,7 @@ export default function PersonelActivityEditPage() {
                 <Label>Urządzenie</Label>
                 <Input
                   disabled
-                  value={`${request.device}`}
+                  value={`${device?.deviceName}`}
                   className="bg-gray-100 text-gray-500 font-medium"
                 />
               </div>
@@ -123,7 +143,7 @@ export default function PersonelActivityEditPage() {
                 <Label htmlFor="status">Status</Label>
                 <Input
                   disabled
-                  value={`${request.status}`}
+                  value={`${request?.status}`}
                   className="bg-gray-100 text-gray-500 font-medium"
                 />
               </div>
@@ -135,7 +155,7 @@ export default function PersonelActivityEditPage() {
               <Textarea
                 id="description"
                 disabled
-                value={request.description}
+                value={request?.description}
                 className="bg-gray-100 text-gray-500 min-h-[100px]"
               />
             </div>
@@ -145,7 +165,7 @@ export default function PersonelActivityEditPage() {
                 type="button"
                 className="bg-black text-white hover:bg-gray-800"
                 onClick={() =>
-                  navigate(`/activities/request-details/${request.id}`)
+                  navigate(`/activities/request-details/${request?.id}`)
                 }
               >
                 Zobacz
@@ -173,7 +193,9 @@ export default function PersonelActivityEditPage() {
                 <Label>Utworzono</Label>
                 <Input
                   disabled
-                  value={activity.created}
+                  value={new Date(activity.dateRegistration).toLocaleDateString(
+                    "pl-PL",
+                  )}
                   className="bg-gray-100 text-gray-500"
                 />
               </div>
@@ -181,7 +203,13 @@ export default function PersonelActivityEditPage() {
                 <Label>Zakończono</Label>
                 <Input
                   disabled
-                  value={activity.finished}
+                  value={
+                    activity.dateFinishedCancelled
+                      ? new Date(
+                          activity.dateFinishedCancelled,
+                        ).toLocaleDateString("pl-PL")
+                      : "-"
+                  }
                   className="bg-gray-100 text-gray-500"
                 />
               </div>
@@ -193,7 +221,7 @@ export default function PersonelActivityEditPage() {
                 <Label>Typ</Label>
                 <Input
                   disabled
-                  value={`${activity.type}`}
+                  value={activity.type.actType ?? "-"}
                   className="bg-gray-100 text-gray-500 font-medium"
                 />
               </div>
@@ -201,7 +229,7 @@ export default function PersonelActivityEditPage() {
                 <Label>Wykonawca</Label>
                 <Input
                   disabled
-                  value={activity.executor}
+                  value={activity.executor?.name ?? "-"}
                   className="bg-gray-100 text-gray-500"
                 />
               </div>
@@ -226,7 +254,7 @@ export default function PersonelActivityEditPage() {
               <Textarea
                 id="description"
                 disabled
-                value={activity.desc}
+                value={activity.description}
                 className="bg-gray-100 text-gray-500 min-h-[100px]"
               />
             </div>

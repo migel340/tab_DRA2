@@ -4,6 +4,7 @@ import {
   type ActivitiesFilterParamsOutput,
   type ActivitType,
   type Activity,
+  type EditPersonelActivityFormData,
   type ServerCreateActivityInput,
   type ServerEditActivityInput,
 } from "./schema";
@@ -54,5 +55,12 @@ export const activitiesService = {
     request: Request,
   ) => {
     return await activitiesApi.update(id, data, request);
+  },
+  updateFromStaff: async (
+    id: number,
+    data: EditPersonelActivityFormData,
+    request: Request,
+  ) => {
+    return await activitiesApi.updateFromStaff(id, data, request);
   },
 };

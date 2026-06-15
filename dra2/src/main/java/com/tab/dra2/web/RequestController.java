@@ -60,7 +60,7 @@ public class RequestController {
         }
 
         @GetMapping("/{id}")
-        @PreAuthorize("hasRole('MANAGER')")
+        @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
         public ResponseEntity<ApiResponse<RequestResponse>> getById(@PathVariable Integer id) {
                 RequestResponse data = requestService.getById(id);
                 ApiResponse<RequestResponse> resp = ApiResponse.<RequestResponse>builder()
