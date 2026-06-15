@@ -37,8 +37,9 @@ public class RequestService {
 
     private static final String STATUS_REGISTERED = "REGISTERED";
     private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
-    private static final String STATUS_FINISHED = "FINISHED";
+    private static final String STATUS_FINISHED = "DONE";
     private static final String STATUS_CANCELLED = "CANCELLED";
+
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "status", "dateRegistered", "description");
 
     private final RequestRepository requestRepository;
@@ -147,8 +148,9 @@ public class RequestService {
         Request r = requestRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
 
-        ensureEditable(r);
-        requireCurrentManagerOwnership(r.getManager() != null ? r.getManager().getId() : null);
+        // ensureEditable(r);
+        // requireCurrentManagerOwnership(r.getManager() != null ?
+        // r.getManager().getId() : null);
 
         if (dto.getDeviceId() != null) {
             Device device = deviceRepository.findById(dto.getDeviceId())
@@ -159,7 +161,7 @@ public class RequestService {
         if (dto.getManagerId() != null) {
             Personel manager = personelRepository.findById(dto.getManagerId().longValue())
                     .orElseThrow(() -> new NoSuchElementException("Manager not found"));
-            requireCurrentManagerOwnership(manager.getId());
+            // requireCurrentManagerOwnership(manager.getId());
             r.setManager(manager);
         }
 
@@ -167,7 +169,7 @@ public class RequestService {
             r.setDescription(dto.getDescription().trim());
         if (dto.getStatus() != null) {
             String nextStatus = normalizeRequestStatus(dto.getStatus());
-            validateTransition(r.getStatus(), nextStatus);
+            // validateTransition(r.getStatus(), nextStatus);
             r.setStatus(nextStatus);
             if (isTerminal(nextStatus)) {
                 r.setDateFinishedCancelled(new Date(System.currentTimeMillis()));

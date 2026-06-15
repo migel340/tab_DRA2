@@ -3,11 +3,13 @@ package com.tab.dra2.web;
 import com.tab.dra2.dto.ActivityTypeResponseDto;
 import com.tab.dra2.dto.ApiResponse;
 import com.tab.dra2.dto.ActivityTypeSaveDto;
-import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.service.ActivityTypeService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -37,13 +39,9 @@ public class ActivityTypeController {
 
     @GetMapping
     @PreAuthorize("hasRole('MANAGER')")
-    public ResponseEntity<ApiResponse<ListResponse<ActivityTypeResponseDto>>> list(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "10") int limit,
-            @RequestParam(defaultValue = "id") String orderBy,
-            @RequestParam(defaultValue = "ASC") String sort) {
-        ListResponse<ActivityTypeResponseDto> data = activityTypeService.list(page, limit, orderBy, sort);
-        return ResponseEntity.ok(ApiResponse.<ListResponse<ActivityTypeResponseDto>>builder()
+    public ResponseEntity<ApiResponse<List<ActivityTypeResponseDto>>> list() {
+        List<ActivityTypeResponseDto> data = activityTypeService.list();
+        return ResponseEntity.ok(ApiResponse.<List<ActivityTypeResponseDto>>builder()
                 .success(true)
                 .message("OK")
                 .data(data)

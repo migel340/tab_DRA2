@@ -87,22 +87,26 @@ interface BaseSelectProps<
   TFieldValues extends FieldValues,
   TName extends Path<TFieldValues>,
   TOption,
+  TValue = TOption,
 > {
   field: ControllerRenderProps<TFieldValues, TName>;
   fieldState: ControllerFieldState;
-  label?: string;
+  label: string;
   placeholder?: string;
-  options: readonly TOption[] | TOption[];
-  renderItem: (value: TOption) => React.ReactNode;
+  options: TOption[];
+  renderItem: (option: TOption) => React.ReactNode;
   showAllOption?: boolean;
-  getOptionValue: (option: TOption) => string | number;
-  getOptionKey: (option: TOption) => string | number;
+  getOptionValue?: (option: TOption) => string | number;
+  getOptionKey?: (option: TOption) => string | number;
+  onValueChange?: (value: TValue) => void; // Zwraca typ TValue
+  getValueToSave?: (option: TOption) => TValue;
 }
 
-function BaseSelect<
+export function BaseSelect<
   TFieldValues extends FieldValues,
   TName extends Path<TFieldValues>,
   TOption,
+  TValue = TOption,
 >({
   field,
   fieldState,
@@ -113,11 +117,55 @@ function BaseSelect<
   showAllOption = false,
   getOptionValue,
   getOptionKey,
-}: BaseSelectProps<TFieldValues, TName, TOption>) {
-  const selectValue =
-    field.value !== undefined && field.value !== null
-      ? field.value.toString()
-      : undefined;
+  onValueChange,
+  getValueToSave,
+}: BaseSelectProps<TFieldValues, TName, TOption, TValue>) {
+  const getOptionIdStr = (option: TOption): string => {
+    if (option && typeof option === "object") {
+      if (!getOptionValue)
+        throw new Error("Musisz podać getOptionValue dla obiektów!");
+      return getOptionValue(option).toString();
+    }
+    return String(option);
+  };
+
+  const selectValue = (() => {
+    if (field.value === undefined || field.value === null) return undefined;
+
+    if (getValueToSave) {
+      const found = options.find(
+        (opt) => String(getValueToSave(opt)) === String(field.value),
+      );
+      return found ? getOptionIdStr(found) : undefined;
+    }
+
+    return typeof field.value === "object"
+      ? getOptionIdStr(field.value as TOption)
+      : String(field.value);
+  })();
+
+  const handleValueChange = (selectedValueStr: string) => {
+    if (selectedValueStr === "all") {
+      field.onChange("all");
+      return;
+    }
+
+    const foundOption = options.find(
+      (opt) => getOptionIdStr(opt) === selectedValueStr,
+    );
+
+    if (foundOption !== undefined) {
+      const valueToSave = getValueToSave
+        ? getValueToSave(foundOption)
+        : (foundOption as unknown as TValue);
+
+      field.onChange(valueToSave);
+
+      if (onValueChange) {
+        onValueChange(valueToSave);
+      }
+    }
+  };
 
   return (
     <BaseField
@@ -128,20 +176,22 @@ function BaseSelect<
       <Select
         name={field.name}
         value={selectValue}
-        onValueChange={field.onChange}
+        onValueChange={handleValueChange}
       >
         <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {showAllOption && <SelectItem value="all">Wszystkie</SelectItem>}
-
-          {options.map((option) => {
-            const value = getOptionValue(option);
-            const key = getOptionKey(option);
+          {options.map((option, index) => {
+            const valStr = getOptionIdStr(option);
+            const keyStr =
+              getOptionKey && typeof option === "object"
+                ? getOptionKey(option).toString()
+                : `${valStr}-${index}`;
 
             return (
-              <SelectItem value={value.toString()} key={key}>
+              <SelectItem value={valStr} key={keyStr}>
                 {renderItem(option)}
               </SelectItem>
             );
@@ -160,7 +210,7 @@ export function RepairStatusSelect<T extends FieldValues, N extends Path<T>>(
   return (
     <BaseSelect
       {...props}
-      label="Status Naprawy"
+      label={props.label ?? "Status Naprawy"}
       options={repairStatusOptions}
       renderItem={(status) => <RepairStatusBadge status={status} />}
       getOptionKey={(val) => val}
@@ -214,8 +264,8 @@ export function PersonelRoleSelect<T extends FieldValues, N extends Path<T>>(
 
 export function DeviceTypeSelect<T extends FieldValues, N extends Path<T>>(
   props: Omit<
-    BaseSelectProps<T, N, DeviceType>,
-    "getOptionKey" | "getOptionValue" | "renderItem"
+    BaseSelectProps<T, N, DeviceType, number>,
+    "getOptionKey" | "getOptionValue" | "renderItem" | "label"
   >,
 ) {
   return (
@@ -226,6 +276,7 @@ export function DeviceTypeSelect<T extends FieldValues, N extends Path<T>>(
       getOptionKey={(type) => type.id}
       getOptionValue={(type) => type.id}
       renderItem={(type) => type.deviceTypeName}
+      getValueToSave={({ id }) => id}
     />
   );
 }

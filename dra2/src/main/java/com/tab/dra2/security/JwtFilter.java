@@ -40,7 +40,8 @@ public class JwtFilter extends OncePerRequestFilter {
         }
 
         if (!authHeader.startsWith("Bearer ")) {
-            log.debug("JWT filter: Authorization header is present but not Bearer for {} {}", request.getMethod(), request.getRequestURI());
+            log.debug("JWT filter: Authorization header is present but not Bearer for {} {}", request.getMethod(),
+                    request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
@@ -51,17 +52,41 @@ public class JwtFilter extends OncePerRequestFilter {
             String username = jwtUtil.getUsername(token);
             String role = jwtUtil.getRole(token);
 
-            log.debug("JWT filter: authenticated user={} role={} for {} {}", username, role, request.getMethod(), request.getRequestURI());
+            log.debug("JWT filter: authenticated user={} role={} for {} {}", username, role, request.getMethod(),
+                    request.getRequestURI());
 
             var auth = new UsernamePasswordAuthenticationToken(
                     username,
                     null,
-                    List.of(new SimpleGrantedAuthority("ROLE_" + role))
-            );
+                    List.of(new SimpleGrantedAuthority("ROLE_" + role)));
             auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(auth);
         } else {
             log.warn("JWT filter: invalid or expired token for {} {}", request.getMethod(), request.getRequestURI());
+
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+
+            // 2. Dodanie nagłówka informującego o problemie z tokenem (dobra praktyka)
+            response.setHeader("WWW-Authenticate",
+                    "Bearer error=\"invalid_token\", error_description=\"The access token expired or is invalid\"");
+
+            // 3. Stworzenie ładnego body w formacie JSON
+            String jsonResponse = """
+                    {
+                        "status": 401,
+                        "error": "Unauthorized",
+                        "code": "TOKEN_EXPIRED",
+                        "message": "Twój token wygasł lub jest nieprawidłowy."
+                    }
+                    """;
+
+            response.getWriter().write(jsonResponse);
+
+            // 4. PRZERWANIE FILTRACJI - nie wywołujemy filterChain.doFilter
+            return;
+
         }
 
         filterChain.doFilter(request, response);

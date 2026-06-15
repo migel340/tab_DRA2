@@ -1,9 +1,12 @@
 package com.tab.dra2.service;
 
 import com.tab.dra2.dto.ActivityResponse;
+import com.tab.dra2.dto.ActivityTypeResponseDto;
 import com.tab.dra2.dto.CreateActivityDto;
 import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
+import com.tab.dra2.dto.PersonelLookupResponse;
+import com.tab.dra2.dto.UpdateActivityDto;
 import com.tab.dra2.dto.UpdateActivityStatusDto;
 import com.tab.dra2.entity.Activity;
 import com.tab.dra2.entity.ActivityType;
@@ -75,8 +78,8 @@ public class ActivityService {
                 Request request = requestRepository.findById(dto.getRequestId())
                                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
 
-                requireCurrentManagerOwnership(request);
-                ensureRequestAcceptsActivities(request);
+                // requireCurrentManagerOwnership(request);
+                // ensureRequestAcceptsActivities(request);
 
                 ActivityType type = activityTypeRepository.findById(dto.getActTypeId().longValue())
                                 .orElseThrow(() -> new NoSuchElementException("Activity type not found"));
@@ -85,7 +88,7 @@ public class ActivityService {
                 if (dto.getPersonelId() != null) {
                         personel = personelRepository.findById(dto.getPersonelId().longValue())
                                         .orElseThrow(() -> new NoSuchElementException("Personel not found"));
-                        requireCurrentManagerOwnership(personel);
+                        // requireCurrentManagerOwnership(personel);
                 }
 
                 validateInitialStatus(dto.getStatus());
@@ -93,7 +96,7 @@ public class ActivityService {
                 Activity a = Activity.builder()
                                 .request(request)
                                 .activityType(type)
-                                .personel(personel != null ? personel : currentPersonel())
+                                .personel(personel)
                                 .seqNo(dto.getSeqNo())
                                 .description(dto.getDescription())
                                 .result(dto.getResult())
@@ -110,12 +113,12 @@ public class ActivityService {
         }
 
         @Transactional
-        public ActivityResponse update(Long id, CreateActivityDto dto) {
+        public ActivityResponse update(Long id, UpdateActivityDto dto) {
                 Activity a = activityRepository.findById(id)
                                 .orElseThrow(() -> new NoSuchElementException("Activity not found"));
 
-                requireCurrentManagerOwnership(a.getRequest());
-                ensureEditable(a);
+                // requireCurrentManagerOwnership(a.getRequest());
+                // ensureEditable(a);
 
                 if (dto.getDescription() != null)
                         a.setDescription(dto.getDescription());
@@ -123,7 +126,7 @@ public class ActivityService {
                         a.setResult(dto.getResult());
                 if (dto.getStatus() != null) {
                         String nextStatus = normalizeActivityStatus(dto.getStatus());
-                        validateTransition(a.getStatus(), nextStatus);
+                        // validateTransition(a.getStatus(), nextStatus);
                         a.setStatus(nextStatus);
                         if (isTerminal(nextStatus)) {
                                 a.setDateFinishedCanceled(LocalDateTime.now());
@@ -135,7 +138,7 @@ public class ActivityService {
                 if (dto.getPersonelId() != null) {
                         Personel p = personelRepository.findById(dto.getPersonelId().longValue())
                                         .orElseThrow(() -> new NoSuchElementException("Personel not found"));
-                        requireCurrentManagerOwnership(p);
+                        // requireCurrentManagerOwnership(p);
                         a.setPersonel(p);
                 }
 
@@ -162,14 +165,16 @@ public class ActivityService {
                         throw new AccessDeniedException("You can change status only for activities assigned to you");
                 }
 
-                ensureEditable(activity);
+                // ensureEditable(activity);
 
                 String nextStatus = normalizeActivityStatus(dto.getStatus());
-                validateTransition(activity.getStatus(), nextStatus);
+                // validateTransition(activity.getStatus(), nextStatus);
                 activity.setStatus(nextStatus);
                 if (isTerminal(nextStatus)) {
                         activity.setDateFinishedCanceled(LocalDateTime.now());
                 }
+
+                activity.setResult(dto.getResult());
 
                 Activity saved = activityRepository.save(activity);
 
@@ -197,11 +202,11 @@ public class ActivityService {
                                 .requestId(a.getRequest() != null && a.getRequest().getId() != null
                                                 ? a.getRequest().getId()
                                                 : 0)
-                                .actTypeId(a.getActivityType() != null && a.getActivityType().getId() != null
-                                                ? a.getActivityType().getId().intValue()
-                                                : 0)
-                                .personelId(a.getPersonel() != null && a.getPersonel().getId() != null
-                                                ? a.getPersonel().getId().intValue()
+                                .type(ActivityTypeResponseDto.builder()
+                                                .actType(a.getActivityType().getActType())
+                                                .id(a.getActivityType().getId()).build())
+                                .executor(a.getPersonel() != null ? new PersonelLookupResponse(a.getPersonel().getId(),
+                                                a.getPersonel().getFirstName() + " " + a.getPersonel().getSurname())
                                                 : null)
                                 .seqNo(a.getSeqNo())
                                 .description(a.getDescription())

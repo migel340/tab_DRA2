@@ -8,7 +8,6 @@ import {
   useActionData,
   type ActionFunctionArgs,
   type LoaderFunctionArgs,
-  redirect,
   useFetcher,
   useLoaderData,
 } from "react-router";
@@ -31,8 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Badge } from "~/components/ui/badge";
-import { ArrowUpDown, Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import PageLayout from "~/layouts/PageLayout";
 import z from "zod";
 import { EditRequestFormSchema, type EditRequestFormData } from "./schema";
@@ -42,7 +40,12 @@ import { deviceService } from "../device/device.service";
 import { requestsService } from "./requests-service";
 import type { Device } from "~/types/device";
 import { useEffect } from "react";
-import { api } from "~/lib/api.server";
+import { activitiesService } from "../activities/activities-service";
+import type { Activity } from "../activities/schema";
+import { RepairStatusBadge } from "~/components/Badge";
+import type { RepairStatus } from "~/types/status";
+import { useActionToast } from "~/hooks/useActionToast";
+import { RepairStatusSelect } from "~/components/Select";
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
   await requireManager(request);
@@ -84,6 +87,7 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   const deviceData = requestData.deviceId
     ? await deviceService.getDeviceById(request, requestData.deviceId)
     : null;
+
   const currentClient = await clientService.getClientById(
     request,
     deviceData?.clientId || 0,
@@ -95,22 +99,10 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     page: 1,
   });
 
-  let activities = [];
-  try {
-    const actRes = await api<any>(
-      `/activities?requestId=${id}&limit=100&page=1&sort=desc`,
-      { method: "GET" },
-      request,
-    );
-    if (actRes && actRes.data) {
-      activities = actRes.data;
-    }
-  } catch (error) {
-    console.error(
-      "Nie udało się pobrać aktywności dla zgłoszenia ID: ${id}",
-      error,
-    );
-  }
+  const activities = await activitiesService.fetchActivitesForRequest(
+    id,
+    request,
+  );
 
   return {
     requestData,
@@ -146,7 +138,9 @@ export async function action({ request, params }: ActionFunctionArgs) {
 
     await requestsService.updateRequest(id, payloadForApi as any, request);
 
-    return redirect("/requests");
+    return {
+      success: true,
+    };
   } catch (error) {
     console.error("=== [DEBUG] BŁĄD ZAPISU ===", error);
     return {
@@ -165,6 +159,8 @@ export default function RequestEditPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const actionData = useActionData<typeof action>();
+
+  useActionToast(actionData, "Zgłoszenie zostało zaktualizowane");
 
   const { requestData, clients, activities, deviceData, currentClient } =
     useLoaderData<typeof loader>();
@@ -329,31 +325,15 @@ export default function RequestEditPage() {
 
                 {/* Status */}
                 <div className="flex flex-col gap-2">
-                  <Label htmlFor="status">Status</Label>
                   <Controller
                     name="status"
                     control={control}
-                    render={({ field }) => (
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger id="status" className="bg-gray-50/50">
-                          <SelectValue placeholder="Wybierz status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectContent>
-                            <SelectItem value="REGISTERED">
-                              Zarejestrowane
-                            </SelectItem>
-                            <SelectItem value="IN_PROGRESS">
-                              W trakcie
-                            </SelectItem>
-                            <SelectItem value="FINISHED">Zakończone</SelectItem>
-                            <SelectItem value="CANCELLED">Anulowane</SelectItem>
-                          </SelectContent>
-                        </SelectContent>
-                      </Select>
+                    render={({ field, fieldState }) => (
+                      <RepairStatusSelect
+                        label="Status"
+                        field={field}
+                        fieldState={fieldState}
+                      />
                     )}
                   />
 
@@ -437,7 +417,9 @@ export default function RequestEditPage() {
             <Button
               variant="outline"
               className="bg-white text-black border-gray-300 hover:bg-gray-50"
-              onClick={() => navigate(`/requests/${id}/activities/new`)}
+              onClick={() => {
+                navigate(`/requests/${id}/activities/new`);
+              }}
             >
               <Plus className="mr-2 h-4 w-4" /> Dodaj aktywność
             </Button>
@@ -448,46 +430,32 @@ export default function RequestEditPage() {
               <TableHeader className="bg-stone-100">
                 <TableRow>
                   <TableHead className="w-[60px]">
-                    <div className="flex items-center gap-1">
-                      Lp. <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Lp.</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Typ <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Typ</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Opis <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Opis</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Wykonawca <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Wykonawca</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Status <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Status</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Utworzono <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Utworzono</div>
                   </TableHead>
                   <TableHead>
-                    <div className="flex items-center gap-1">
-                      Zakończono <ArrowUpDown className="h-3 w-3 opacity-50" />
-                    </div>
+                    <div className="flex items-center gap-1">Zakończono</div>
                   </TableHead>
                   <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {activities.length > 0 ? (
-                  activities.map((act: any, idx: number) => (
+                {activities && activities.length > 0 ? (
+                  activities?.map((act: Activity, idx: number) => (
                     <TableRow
                       key={act.id}
                       className="hover:bg-gray-50 cursor-pointer"
@@ -495,27 +463,21 @@ export default function RequestEditPage() {
                         navigate(`/requests/${id}/activities/${act.id}`)
                       }
                     >
-                      <TableCell className="font-medium">{idx + 1}</TableCell>
+                      <TableCell className="font-medium">{act.seqNo}</TableCell>
                       <TableCell className="font-medium text-gray-900">
-                        {act.actTypeId}
+                        {act.type.actType}
                       </TableCell>
                       <TableCell className="text-gray-500 max-w-[250px] truncate">
                         {act.description}
                       </TableCell>
                       <TableCell className="text-gray-700">
-                        {act.personelId}
+                        {act.executor && act.executor.name}
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={
-                            act.status === "DONE"
-                              ? "bg-green-50 text-green-600 border-green-200"
-                              : "bg-gray-100 text-gray-600 border-gray-200"
-                          }
-                        >
-                          {act.status}
-                        </Badge>
+                      <TableCell className="">
+                        <RepairStatusBadge
+                          status={act.status as RepairStatus}
+                          className="align-center"
+                        />
                       </TableCell>
                       <TableCell className="text-gray-500">
                         {new Date(act.dateRegistration).toLocaleDateString(

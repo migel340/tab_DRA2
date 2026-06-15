@@ -1,63 +1,111 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Form, useNavigate, useSubmit, useParams, useActionData, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "react-router";
+import {
+  Form,
+  useNavigate,
+  useSubmit,
+  useActionData,
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
-import { RepairStatusSelect, SelectField } from "~/components/Select";
-import { MOCK_ACTIVITY_TYPES, MOCK_EXECUTORS, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
-import { EditActivityFormSchema, type EditActivityFormData } from "./schema";
+import { BaseSelect, RepairStatusSelect } from "~/components/Select";
+import {
+  EditActivityFormSchema,
+  ServerEditActivityFormSchema,
+  type EditActivityFormData,
+  type EditActivityInputFormData,
+} from "../activities/schema";
+import { activitiesService } from "../activities/activities-service";
+import z from "zod";
+import { personelService } from "../personel/personel-service";
+import type { Route } from "./+types/activities-edit";
+import InputField from "~/components/InputField";
+import { useActionToast } from "~/hooks/useActionToast";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   const { activityId } = params;
-  
-  // TODO: Docelowo pobranie z API np. await activitiesService.getById(activityId)
-  const activity = MOCK_ACTIVITIES.find(a => a.id.toString() === activityId) || {
-    id: activityId,
-    created: "10-05-2024",
-    finished: "-",
-    desc: "Brak opisu",
-  };
 
-  return { activity };
+  const paresdId = z.coerce.number().safeParse(activityId);
+  if (!paresdId.success) {
+    throw new Response("Invalid ID", { status: 400 });
+  }
+
+  const activity = await activitiesService.getById(paresdId.data, request);
+
+  const activitesTypes = await activitiesService.getAllTypes(request);
+
+  const executors = await personelService.fetchLookup(request, "STAFF");
+
+  executors.push({ id: -1, name: "brak" });
+
+  return { activity, activitesTypes, executors };
 }
 
 export async function action({ request, params }: ActionFunctionArgs) {
+  const { activityId } = params;
+
+  const paresdId = z.coerce.number().safeParse(activityId);
+  if (!paresdId.success) {
+    throw new Response("Invalid ID", { status: 400 });
+  }
+
   const payload = await request.json();
-  const parsed = EditActivityFormSchema.safeParse(payload);
-  
+  const parsed = ServerEditActivityFormSchema.safeParse(payload);
+
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
   }
 
-  // TODO: wywołanie API np: await activitiesService.update(params.activityId, parsed.data)
-  
-  // Powrót do widoku zgłoszenia po udanej edycji
-  return redirect(`/requests/${params.id}`);
+  try {
+    await activitiesService.update(paresdId.data, parsed.data, request);
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false as const,
+      serverError:
+        error instanceof Error
+          ? error.message
+          : "Wystąpił nieoczekiwany błąd serwera.",
+    };
+  }
 }
 
 export const handle = {
   breadcrumb: () => "szczegóły",
 };
 
-export default function ActivityEditPage() {
+export default function ActivityEditPage({
+  loaderData,
+  params,
+}: Route.ComponentProps) {
+  const { activity, activitesTypes, executors } = loaderData;
+
   const submit = useSubmit();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
-  const { activity } = useLoaderData<typeof loader>();
-  const { id } = useParams();
+  const { id } = params;
 
-  const { handleSubmit, control } = useForm<EditActivityFormData>({
+  useActionToast(actionData, "Pomyślnie zaktualizowana aktwność!");
+
+  const { handleSubmit, control } = useForm<
+    EditActivityInputFormData,
+    any,
+    EditActivityFormData
+  >({
     resolver: zodResolver(EditActivityFormSchema),
     defaultValues: {
-      type: "diagnoza", // Mapowanie na id z mocków
-      executor: "1",
-      status: "closed",
-      description: activity.desc || "",
-      result: "Wymieniono uszkodzony układ zasilania.",
+      type: activity.type,
+      executor: activity.executor ?? { id: -1, name: "brak" },
+      status: activity.status,
+      description: activity.description,
+      result: activity.result ?? "",
+      seqNo: activity.seqNo,
     },
   });
 
@@ -68,80 +116,119 @@ export default function ActivityEditPage() {
   return (
     <PageLayout title="Edytuj aktywność">
       <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-        
-        {/* Główna karta formularza */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-lg font-semibold mb-2">Informacje</h2>
           <Separator className="mb-6" />
 
           <div className="flex flex-col gap-6">
-            
-            {/* Górny wiersz (Read-only) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex flex-col gap-2">
-                <Label>Numer Sekwencji</Label>
-                <Input disabled value={`#${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Utworzono</Label>
-                <Input disabled value={activity.created} className="bg-gray-100 text-gray-500" />
-              </div>
-              <div className="flex flex-col gap-2">
-                <Label>Zakończono</Label>
-                <Input disabled value={activity.finished} className="bg-gray-100 text-gray-500" />
-              </div>
-            </div>
-
-            {/* Środkowy wiersz z Selectami (3 kolumny) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              
-              <SelectField
-                name="type"
-                control={control}
-                label="Typ"
-                placeholder="Wybierz typ"
-                options={MOCK_ACTIVITY_TYPES.map((type) => ({
-                  id: type.id,
-                  label: type.name,
-                }))}
-                error={actionData?.fieldErrors?.type?.[0]}
-              />
-
-              <SelectField
-                name="executor"
-                control={control}
-                label="Wykonawca"
-                placeholder="Wybierz wykonawcę"
-                options={MOCK_EXECUTORS.map((executor) => ({
-                  id: executor.id,
-                  label: executor.name,
-                }))}
-                error={actionData?.fieldErrors?.executor?.[0]}
-              />
-
               <Controller
-                name="status"
+                name="seqNo"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <RepairStatusSelect
+                  <InputField
+                    label="Number Sekwencyjny"
+                    placeholder="np. 1"
                     field={field}
+                    type="number"
                     fieldState={fieldState}
-                    label="Status"
-                    showAllOption={false}
                   />
                 )}
               />
+
+              <div className="flex flex-col gap-2">
+                <Label>Utworzono</Label>
+                <Input
+                  disabled
+                  value={new Date(activity.dateRegistration).toLocaleDateString(
+                    "pl-PL",
+                  )}
+                  className="bg-gray-100 text-gray-500"
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <Label>Zakończono</Label>
+                <Input
+                  disabled
+                  value={
+                    activity.dateFinishedCancelled
+                      ? new Date(
+                          activity.dateFinishedCancelled,
+                        ).toLocaleDateString("pl-PL")
+                      : "-"
+                  }
+                  className="bg-gray-100 text-gray-500"
+                />
+              </div>
+
+              <Controller
+                name="type"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <BaseSelect
+                    field={field}
+                    fieldState={fieldState}
+                    label="Typ"
+                    placeholder="Wybierz typ"
+                    getOptionKey={({ id }) => id}
+                    getOptionValue={({ actType }) => actType}
+                    options={activitesTypes}
+                    renderItem={({ actType }) => actType}
+                  />
+                )}
+              />
+
+              <Controller
+                name="executor"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <BaseSelect
+                    field={field}
+                    fieldState={fieldState}
+                    label="Wykonawca"
+                    placeholder="Wybierz wykonawcę"
+                    getOptionKey={({ id }) => id}
+                    getOptionValue={({ name }) => name}
+                    options={executors}
+                    renderItem={({ name }) => name}
+                  />
+                )}
+              />
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <RepairStatusSelect
+                      field={field}
+                      fieldState={fieldState}
+                      label="Status"
+                      showAllOption={false}
+                    />
+                  )}
+                />
+              </div>
             </div>
 
-            {/* Pola Textarea (Opis i Wynik) */}
             <div className="flex flex-col gap-2">
               <Label htmlFor="description">Opis</Label>
               <Controller
                 name="description"
                 control={control}
-                render={({ field }) => <Textarea id="description" {...field} className="bg-gray-50/50 min-h-[100px]" />}
+                render={({ field }) => (
+                  <Textarea
+                    id="description"
+                    {...field}
+                    className="bg-gray-50/50 min-h-[100px]"
+                  />
+                )}
               />
-              {actionData?.fieldErrors?.description && <span className="text-xs text-destructive">{actionData.fieldErrors.description[0]}</span>}
+              {actionData?.fieldErrors?.description && (
+                <span className="text-xs text-destructive">
+                  {actionData.fieldErrors.description[0]}
+                </span>
+              )}
             </div>
 
             <div className="flex flex-col gap-2">
@@ -149,23 +236,35 @@ export default function ActivityEditPage() {
               <Controller
                 name="result"
                 control={control}
-                render={({ field }) => <Textarea id="result" {...field} className="bg-gray-50/50 min-h-[100px]" />}
+                render={({ field }) => (
+                  <Textarea
+                    id="result"
+                    {...field}
+                    value={field.value ?? ""}
+                    className="bg-gray-50/50 min-h-[100px]"
+                  />
+                )}
               />
-              {actionData?.fieldErrors?.result && <span className="text-xs text-destructive">{actionData.fieldErrors.result[0]}</span>}
+              {actionData?.fieldErrors?.result && (
+                <span className="text-xs text-destructive">
+                  {actionData.fieldErrors.result[0]}
+                </span>
+              )}
             </div>
-
           </div>
         </div>
 
-        {/* Przyciski Akcji na dole strony */}
         <div className="flex items-center gap-3 self-start">
-          <Button type="submit" className="bg-black text-white hover:bg-gray-800">
+          <Button
+            type="submit"
+            className="bg-black text-white hover:bg-gray-800"
+          >
             Zapisz
           </Button>
-          <Button 
-            type="button" 
-            variant="secondary" 
-            className="bg-gray-100 text-black hover:bg-gray-200" 
+          <Button
+            type="button"
+            variant="secondary"
+            className="bg-gray-100 text-black hover:bg-gray-200"
             onClick={() => navigate(`/requests/${id}`)}
           >
             Anuluj

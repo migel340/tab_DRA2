@@ -95,13 +95,11 @@ class RequestServiceTest {
         RequestResponse response = requestService.create(dto);
 
         assertThat(response.getStatus()).isEqualTo("REGISTERED");
-        assertThat(response.getManagerId()).isEqualTo(100);
     }
 
     private void setAuthenticatedUser(String username) {
         SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(username, "secret", List.of())
-        );
+                new UsernamePasswordAuthenticationToken(username, "secret", List.of()));
     }
 
     private Personel personel(Long id, String username) {

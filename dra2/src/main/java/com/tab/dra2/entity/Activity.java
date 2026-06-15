@@ -1,6 +1,5 @@
 package com.tab.dra2.entity;
 
-
 import java.time.LocalDateTime;
 import jakarta.persistence.*;
 import lombok.*;
@@ -8,13 +7,13 @@ import jakarta.persistence.ManyToOne;
 
 @Entity
 @Table(name = "activity")
-@Getter 
+@Getter
 @Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Activity {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_activity")
@@ -29,12 +28,12 @@ public class Activity {
     private Request request;
 
     @ManyToOne
-    @JoinColumn(name = "id_personel")
+    @JoinColumn(name = "id_personel", nullable = true)
     private Personel personel;
     @Column(name = "seq_no", length = 20)
     private String seqNo;
 
-    @Column(length=255,nullable=false)
+    @Column(length = 255, nullable = false)
     private String description;
 
     @Column(length = 255)
@@ -48,8 +47,5 @@ public class Activity {
 
     @Column(name = "date_finished_canceled")
     private LocalDateTime dateFinishedCanceled;
-    
+
 }
-
-
-

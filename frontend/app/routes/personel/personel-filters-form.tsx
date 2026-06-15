@@ -4,8 +4,6 @@ import { useEffect } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import SearchBar from "~/components/SearchBar";
-import { InputGroupButton } from "~/components/ui/input-group";
-import { X } from "lucide-react";
 
 export function PersonelFiltersForm({
   initialValues,
@@ -14,7 +12,7 @@ export function PersonelFiltersForm({
 }) {
   const submit = useSubmit();
 
-  const { handleSubmit, control, register, setValue } = useForm({
+  const { handleSubmit, control, register } = useForm({
     resolver: zodResolver(PersonelFilterSchema),
     defaultValues: initialValues,
   });

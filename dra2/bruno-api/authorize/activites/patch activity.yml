@@ -1,18 +1,16 @@
 info:
-  name: create activity
+  name: patch activity
   type: http
-  seq: 2
+  seq: 5
 
 http:
-  method: POST
-  url: "{{host}}/{{path}}"
+  method: PATCH
+  url: "{{host}}/{{path}}/26"
   body:
     type: json
     data: |-
       {
-          "requestId": "7",
-          "description": "fdssafsfa",
-          "actTypeId": "4",
+          "result": "fdssafsfa",
           "status": "REGISTERED"
       }
   auth: inherit
