@@ -102,6 +102,21 @@ export default function PersonelActivityEditPage() {
     },
   });
 
+  const translateStatus = (status: string | undefined) => {
+  switch (status) {
+    case "REGISTERED":
+      return "Zarejestrowane";
+    case "IN_PROGRESS":
+      return "W trakcie";
+    case "DONE":
+      return "Zakończone"; // Tu używamy DONE zgodnie z Twoim kodem dla aktywności
+    case "CANCELLED":
+      return "Anulowane";
+    default:
+      return status || "Brak statusu";
+  }
+};
+
   const onSubmit = (data: EditPersonelActivityFormData) => {
     submit(data, { method: "post", encType: "application/json" });
   };
@@ -143,7 +158,7 @@ export default function PersonelActivityEditPage() {
                 <Label htmlFor="status">Status</Label>
                 <Input
                   disabled
-                  value={`${request?.status}`}
+                  value={translateStatus(request?.status)}
                   className="bg-gray-100 text-gray-500 font-medium"
                 />
               </div>
