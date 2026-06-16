@@ -75,11 +75,10 @@ class ActivityServiceTest {
                 when(personelRepository.findByUsername("tech1")).thenReturn(Optional.of(personel(200L, "tech1")));
                 when(activityRepository.save(any(Activity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-                // UpdateActivityStatusDto dto = UpdateActivityStatusDto.builder()
-                // .status("IN_PROGRESS")
-                // .build();
+                UpdateActivityStatusDto dto = new UpdateActivityStatusDto();
+                dto.setStatus("IN_PROGRESS");
 
-                // ActivityResponse response = activityService.updateAssignedStatus(1L, dto);
+                ActivityResponse response = activityService.updateAssignedStatus(1L, dto);
 
                 assertThat(response.getStatus()).isEqualTo("IN_PROGRESS");
         }
@@ -106,12 +105,11 @@ class ActivityServiceTest {
                 when(activityRepository.findById(1L)).thenReturn(Optional.of(activity));
                 when(personelRepository.findByUsername("tech2")).thenReturn(Optional.of(personel(201L, "tech2")));
 
-                // UpdateActivityStatusDto dto = UpdateActivityStatusDto.builder()
-                // .status("DONE")
-                // .build();
+                UpdateActivityStatusDto dto = new UpdateActivityStatusDto();
+                dto.setStatus("DONE");
 
-                // assertThrows(org.springframework.security.access.AccessDeniedException.class,
-                // () -> activityService.updateAssignedStatus(1L, dto));
+                assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                                () -> activityService.updateAssignedStatus(1L, dto));
         }
 
         private void setAuthenticatedUser(String username) {
