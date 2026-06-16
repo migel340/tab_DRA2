@@ -75,7 +75,6 @@ export const columns: ColumnDef<RequestDB>[] = [
   },
   {
     accessorKey: "progress",
-    accessorFn: () => 0,
     header: ({ column }) => <SortableHeader label="Postęp" column={column} />,
     cell: ({ getValue }) => (
       <ProgressField value={(getValue() as number) || 0} />

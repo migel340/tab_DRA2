@@ -5,6 +5,7 @@ import com.tab.dra2.dto.ListResponse;
 import com.tab.dra2.dto.ListResponseMeta;
 import com.tab.dra2.dto.PersonelResponse;
 import com.tab.dra2.dto.RequestResponse;
+import com.tab.dra2.entity.Activity;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.Personel;
 import com.tab.dra2.entity.Request;
@@ -39,6 +40,7 @@ public class RequestService {
     private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
     private static final String STATUS_FINISHED = "DONE";
     private static final String STATUS_CANCELLED = "CANCELLED";
+    private static final Set<String> COMPLETED_ACTIVITY_STATUSES = Set.of("DONE", "CANCELLED");
 
     private static final List<String> ORDER_BY_FIELDS = List.of("id", "status", "dateRegistered", "description");
 
@@ -189,7 +191,23 @@ public class RequestService {
                 .status(r.getStatus())
                 .dateRegistration(r.getDateRegistered())
                 .dateFinishedCancelled(r.getDateFinishedCancelled())
+                .progress(calculateProgress(r))
                 .build();
+    }
+
+    private int calculateProgress(Request request) {
+        if (request.getActivities() == null || request.getActivities().isEmpty()) {
+            return 0;
+        }
+
+        long completedActivities = request.getActivities().stream()
+                .map(Activity::getStatus)
+                .filter(Objects::nonNull)
+                .map(status -> status.trim().toUpperCase())
+                .filter(COMPLETED_ACTIVITY_STATUSES::contains)
+                .count();
+
+        return (int) Math.round((completedActivities * 100.0) / request.getActivities().size());
     }
 
     private void requireCurrentManagerOwnership(Long managerId) {

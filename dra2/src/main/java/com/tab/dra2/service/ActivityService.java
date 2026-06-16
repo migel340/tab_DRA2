@@ -16,11 +16,14 @@ import com.tab.dra2.repository.ActivityRepository;
 import com.tab.dra2.repository.ActivityTypeRepository;
 import com.tab.dra2.repository.PersonelRepository;
 import com.tab.dra2.repository.RequestRepository;
+import com.tab.dra2.util.PaginationValidator;
 import lombok.RequiredArgsConstructor;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -28,6 +31,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,31 +47,92 @@ public class ActivityService {
         private static final String STATUS_IN_PROGRESS = "IN_PROGRESS";
         private static final String STATUS_DONE = "DONE";
         private static final String STATUS_CANCELLED = "CANCELLED";
+        private static final List<String> ORDER_BY_FIELDS = List.of(
+                        "id",
+                        "seqNo",
+                        "description",
+                        "status",
+                        "dateRegistered",
+                        "dateFinishedCanceled");
 
         private final ActivityRepository activityRepository;
         private final RequestRepository requestRepository;
         private final ActivityTypeRepository activityTypeRepository;
         private final PersonelRepository personelRepository;
 
-        public ListResponse<ActivityResponse> list(int page, int limit, String orderBy, String sort,
+        public ListResponse<ActivityResponse> list(String q, String status, String executor, String dateFrom,
+                        String dateTo, int page, int limit, String orderBy, String sort,
                         Integer requestId) {
-                Sort.Direction direction = "DESC".equalsIgnoreCase(sort) ? Sort.Direction.DESC : Sort.Direction.ASC;
-                Pageable pageable = PageRequest.of(page - 1, limit, Sort.by(direction, orderBy));
+                int validatedPage = PaginationValidator.validatePage(page);
+                int validatedLimit = PaginationValidator.validateLimit(limit);
+                String validatedOrderBy = PaginationValidator.validateOrderBy(orderBy, ORDER_BY_FIELDS);
+                Sort.Direction direction = PaginationValidator.validateSort(sort);
+                Pageable pageable = PageRequest.of(validatedPage - 1, validatedLimit, Sort.by(direction, validatedOrderBy));
 
-                Page<Activity> activities = activityRepository.findByRequestIdOptional(requestId, pageable);
+                Page<Activity> activities = activityRepository.findAll(
+                                buildListSpecification(q, status, executor, dateFrom, dateTo, requestId),
+                                pageable);
 
                 return ListResponse.<ActivityResponse>builder()
                                 .data(activities.getContent().stream().map(this::toResponse)
                                                 .collect(Collectors.toList()))
                                 .meta(ListResponseMeta.builder()
-                                                .page(page)
-                                                .limit(limit)
+                                                .page(validatedPage)
+                                                .limit(validatedLimit)
                                                 .totalItems(activities.getTotalElements())
                                                 .totalPages(activities.getTotalPages())
-                                                .orderBy(orderBy)
-                                                .sort(sort)
+                                                .orderBy(validatedOrderBy)
+                                                .sort(direction.name().toLowerCase())
                                                 .build())
                                 .build();
+        }
+
+        private Specification<Activity> buildListSpecification(String q, String status, String executor, String dateFrom,
+                        String dateTo, Integer requestId) {
+                return (root, query, cb) -> {
+                        List<Predicate> predicates = new ArrayList<>();
+
+                        if (requestId != null) {
+                                predicates.add(cb.equal(root.get("request").get("id"), requestId));
+                        }
+
+                        if (q != null && !q.isBlank()) {
+                                String searchPattern = "%" + q.trim().toLowerCase() + "%";
+                                predicates.add(cb.or(
+                                                cb.like(cb.lower(root.get("description")), searchPattern),
+                                                cb.like(cb.lower(cb.coalesce(root.get("result"), "")), searchPattern)));
+                        }
+
+                        if (status != null && !status.isBlank() && !"all".equalsIgnoreCase(status)) {
+                                predicates.add(cb.equal(root.get("status"), status.trim().toUpperCase()));
+                        }
+
+                        if (executor != null && !executor.isBlank() && !"all".equalsIgnoreCase(executor)) {
+                                try {
+                                        Long executorId = Long.valueOf(executor);
+                                        predicates.add(cb.equal(root.get("personel").get("id"), executorId));
+                                } catch (NumberFormatException e) {
+                                }
+                        }
+
+                        if (dateFrom != null && !dateFrom.isBlank()) {
+                                try {
+                                        LocalDateTime from = LocalDate.parse(dateFrom).atStartOfDay();
+                                        predicates.add(cb.greaterThanOrEqualTo(root.get("dateRegistered"), from));
+                                } catch (RuntimeException e) {
+                                }
+                        }
+
+                        if (dateTo != null && !dateTo.isBlank()) {
+                                try {
+                                        LocalDateTime to = LocalDate.parse(dateTo).atTime(LocalTime.MAX);
+                                        predicates.add(cb.lessThanOrEqualTo(root.get("dateRegistered"), to));
+                                } catch (RuntimeException e) {
+                                }
+                        }
+
+                        return cb.and(predicates.toArray(new Predicate[0]));
+                };
         }
 
         public ActivityResponse get(Long id) {

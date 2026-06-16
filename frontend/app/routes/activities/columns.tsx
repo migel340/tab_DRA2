@@ -73,7 +73,7 @@ export const columns: ColumnDef<Activity>[] = [
     ),
   },
   {
-    accessorKey: "dateFinisihedCancelled",
+    accessorKey: "dateFinishedCancelled",
     header: ({ column }) => (
       <SortableHeader label="Zakończono" column={column} />
     ),
