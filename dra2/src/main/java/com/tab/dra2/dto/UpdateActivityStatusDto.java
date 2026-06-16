@@ -11,7 +11,6 @@ public class UpdateActivityStatusDto {
     @Size(max = 30)
     private String status;
 
-    @NotBlank
     @Size(max = 255)
     private String result;
 }
