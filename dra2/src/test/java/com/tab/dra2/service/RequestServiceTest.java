@@ -2,6 +2,7 @@ package com.tab.dra2.service;
 
 import com.tab.dra2.dto.CreateRequestDto;
 import com.tab.dra2.dto.RequestResponse;
+import com.tab.dra2.entity.Activity;
 import com.tab.dra2.entity.Device;
 import com.tab.dra2.entity.Personel;
 import com.tab.dra2.entity.Request;
@@ -97,6 +98,27 @@ class RequestServiceTest {
         assertThat(response.getStatus()).isEqualTo("REGISTERED");
     }
 
+    @Test
+    void getByIdCalculatesProgressFromCompletedActivities() {
+        Request existing = Request.builder()
+                .id(1)
+                .device(device(10))
+                .manager(personel(100L, "manager1"))
+                .description("Test")
+                .status("IN_PROGRESS")
+                .activities(List.of(
+                        activity("DONE"),
+                        activity("REGISTERED"),
+                        activity("CANCELLED")))
+                .build();
+
+        when(requestRepository.findById(1)).thenReturn(Optional.of(existing));
+
+        RequestResponse response = requestService.getById(1);
+
+        assertThat(response.getProgress()).isEqualTo(67);
+    }
+
     private void setAuthenticatedUser(String username) {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(username, "secret", List.of()));
@@ -117,5 +139,11 @@ class RequestServiceTest {
         device.setId(id);
         device.setDeviceName("Laptop");
         return device;
+    }
+
+    private Activity activity(String status) {
+        Activity activity = new Activity();
+        activity.setStatus(status);
+        return activity;
     }
 }
