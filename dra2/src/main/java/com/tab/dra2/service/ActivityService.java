@@ -215,7 +215,7 @@ public class ActivityService {
                                 a.getRequest().getId(),
                                 Set.of(STATUS_DONE, STATUS_CANCELLED))) {
                         Request request = a.getRequest();
-                        request.setStatus("FINISHED");
+                        request.setStatus(STATUS_DONE);
                         request.setDateFinishedCancelled(java.sql.Date.valueOf(java.time.LocalDate.now()));
                         requestRepository.save(request);
                 }
@@ -256,7 +256,7 @@ public class ActivityService {
                                 saved.getRequest().getId(),
                                 Set.of(STATUS_DONE, STATUS_CANCELLED))) {
                         Request request = saved.getRequest();
-                        request.setStatus(STATUS_DONE.equals(saved.getStatus()) ? "FINISHED" : "CANCELLED");
+                        request.setStatus(STATUS_DONE.equals(saved.getStatus()) ? STATUS_DONE : STATUS_CANCELLED);
                         request.setDateFinishedCancelled(java.sql.Date.valueOf(java.time.LocalDate.now()));
                         requestRepository.save(request);
                 }

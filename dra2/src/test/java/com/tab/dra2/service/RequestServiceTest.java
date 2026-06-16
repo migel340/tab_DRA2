@@ -64,7 +64,7 @@ class RequestServiceTest {
         when(personelRepository.findByUsername("manager1")).thenReturn(Optional.of(personel(100L, "manager1")));
 
         CreateRequestDto dto = CreateRequestDto.builder()
-                .status("FINISHED")
+                .status("DONE")
                 .build();
 
         assertThrows(IllegalStateException.class, () -> requestService.update(1, dto));
