@@ -26,12 +26,18 @@ public class ActivityController {
         @GetMapping
         @PreAuthorize("hasAnyRole('MANAGER', 'STAFF')")
         public ResponseEntity<ApiResponse<ListResponse<ActivityResponse>>> list(
+                        @RequestParam(required = false) String q,
+                        @RequestParam(required = false) String status,
+                        @RequestParam(required = false) String executor,
+                        @RequestParam(required = false) String dateFrom,
+                        @RequestParam(required = false) String dateTo,
                         @RequestParam(defaultValue = "1") int page,
                         @RequestParam(defaultValue = "10") int limit,
                         @RequestParam(defaultValue = "seqNo") String orderBy,
                         @RequestParam(defaultValue = "ASC") String sort,
                         @RequestParam(required = false) Integer requestId) {
-                ListResponse<ActivityResponse> data = activityService.list(page, limit, orderBy, sort, requestId);
+                ListResponse<ActivityResponse> data = activityService.list(q, status, executor, dateFrom, dateTo, page,
+                                limit, orderBy, sort, requestId);
                 return ResponseEntity.ok(ApiResponse.<ListResponse<ActivityResponse>>builder()
                                 .success(true)
                                 .message("OK")
