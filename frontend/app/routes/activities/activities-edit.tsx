@@ -6,8 +6,6 @@ import {
   useSubmit,
   useActionData,
   useLoaderData,
-  type ActionFunctionArgs,
-  redirect,
 } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -16,7 +14,6 @@ import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
 import { RepairStatusSelect } from "~/components/Select";
-import { MOCK_CLIENTS, MOCK_DEVICES } from "~/mocks/requests";
 import {
   EditPersonelActivityFormSchema,
   type EditPersonelActivityFormData,
@@ -28,8 +25,10 @@ import { useActionToast } from "~/hooks/useActionToast";
 import { requestsService } from "../requests/requests-service";
 import { clientService } from "../client/client-service";
 import { deviceService } from "../device/device-service";
+import { userContext } from "~/context";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const user = context.get(userContext);
   const { id } = params;
 
   const result = z.coerce.number().safeParse(id);
@@ -38,9 +37,6 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }
 
   const activity = await activitiesService.getById(result.data, request);
-
-  // const activity = MOCK_ACTIVITIES.find((a) => a.id.toString() === id);
-  // if (!activity) throw new Response("Not Found", { status: 404 });
 
   const _request = await requestsService.getRequestById(
     request,
@@ -57,15 +53,23 @@ export async function loader({ params, request }: Route.LoaderArgs) {
     device?.clientId as number,
   );
 
-  return { activity, request: _request, device, client };
+  return { activity, request: _request, device, client, user };
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const user = context.get(userContext);
   const { id } = params;
 
   const paresdId = z.coerce.number().safeParse(id);
   if (!paresdId.success) {
     throw new Response("Invalid ID", { status: 400 });
+  }
+
+  const activity = await activitiesService.getById(paresdId.data, request);
+
+  const canEdit = user.role !== "STAFF" || activity.executor?.id === user.id;
+  if (!canEdit) {
+    throw new Response("Forbidden", { status: 403 });
   }
 
   const payload = await request.json();
@@ -90,9 +94,11 @@ export default function PersonelActivityEditPage() {
   const submit = useSubmit();
   const navigate = useNavigate();
   const actionData = useActionData<typeof action>();
-  const { activity, request, client, device } = useLoaderData<typeof loader>();
+  const { activity, request, client, device, user } = useLoaderData<typeof loader>();
 
   useActionToast(actionData, "Pomyślnie zaktualizowana aktwność!");
+
+  const canEdit = user.role !== "STAFF" || activity.executor?.id === user.id;
 
   const { handleSubmit, control } = useForm<EditPersonelActivityFormData>({
     resolver: zodResolver(EditPersonelActivityFormSchema),
@@ -103,19 +109,19 @@ export default function PersonelActivityEditPage() {
   });
 
   const translateStatus = (status: string | undefined) => {
-  switch (status) {
-    case "REGISTERED":
-      return "Zarejestrowane";
-    case "IN_PROGRESS":
-      return "W trakcie";
-    case "DONE":
-      return "Zakończone"; // Tu używamy DONE zgodnie z Twoim kodem dla aktywności
-    case "CANCELLED":
-      return "Anulowane";
-    default:
-      return status || "Brak statusu";
-  }
-};
+    switch (status) {
+      case "REGISTERED":
+        return "Zarejestrowane";
+      case "IN_PROGRESS":
+        return "W trakcie";
+      case "DONE":
+        return "Zakończone";
+      case "CANCELLED":
+        return "Anulowane";
+      default:
+        return status || "Brak statusu";
+    }
+  };
 
   const onSubmit = (data: EditPersonelActivityFormData) => {
     submit(data, { method: "post", encType: "application/json" });
@@ -249,18 +255,29 @@ export default function PersonelActivityEditPage() {
                 />
               </div>
 
-              <Controller
-                name="status"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <RepairStatusSelect
-                    field={field}
-                    fieldState={fieldState}
-                    label="Status"
-                    showAllOption={false}
+              {canEdit ? (
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <RepairStatusSelect
+                      field={field}
+                      fieldState={fieldState}
+                      label="Status"
+                      showAllOption={false}
+                    />
+                  )}
+                />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Label>Status</Label>
+                  <Input
+                    disabled
+                    value={translateStatus(activity.status)}
+                    className="bg-gray-100 text-gray-500 font-medium"
                   />
-                )}
-              />
+                </div>
+              )}
             </div>
 
             {/* Pola Textarea (Opis i Wynik) */}
@@ -276,21 +293,32 @@ export default function PersonelActivityEditPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="result">Wynik</Label>
-              <Controller
-                name="result"
-                control={control}
-                render={({ field }) => (
-                  <Textarea
-                    id="result"
-                    {...field}
-                    className="bg-gray-50/50 min-h-[100px]"
+              {canEdit ? (
+                <>
+                  <Controller
+                    name="result"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea
+                        id="result"
+                        {...field}
+                        className="bg-gray-50/50 min-h-[100px]"
+                      />
+                    )}
                   />
-                )}
-              />
-              {actionData?.fieldErrors?.result && (
-                <span className="text-xs text-destructive">
-                  {actionData.fieldErrors.result[0]}
-                </span>
+                  {actionData?.fieldErrors?.result && (
+                    <span className="text-xs text-destructive">
+                      {actionData.fieldErrors.result[0]}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <Textarea
+                  id="result"
+                  disabled
+                  value={activity.result ?? "Brak wpisanego wyniku"}
+                  className="bg-gray-100 text-gray-500 min-h-[100px]"
+                />
               )}
             </div>
           </div>
@@ -298,20 +326,33 @@ export default function PersonelActivityEditPage() {
 
         {/* Przyciski Akcji na dole strony */}
         <div className="flex items-center gap-3 self-start">
-          <Button
-            type="submit"
-            className="bg-black text-white hover:bg-gray-800"
-          >
-            Zapisz
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="bg-gray-100 text-black hover:bg-gray-200"
-            onClick={() => navigate(`/activities`)}
-          >
-            Anuluj
-          </Button>
+          {canEdit ? (
+            <>
+              <Button
+                type="submit"
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                Zapisz
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="bg-gray-100 text-black hover:bg-gray-200"
+                onClick={() => navigate(`/activities`)}
+              >
+                Anuluj
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-gray-100 text-black hover:bg-gray-200"
+              onClick={() => navigate(`/activities`)}
+            >
+              Powrót
+            </Button>
+          )}
         </div>
       </Form>
     </PageLayout>

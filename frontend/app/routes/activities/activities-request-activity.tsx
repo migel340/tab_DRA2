@@ -1,183 +1,277 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Form, useNavigate, useParams, useSubmit, useActionData, useLoaderData, type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "react-router";
+import {
+  Form,
+  useNavigate,
+  useSubmit,
+  useActionData,
+  useLoaderData,
+  useParams,
+  type ActionFunctionArgs,
+} from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { Separator } from "~/components/ui/separator";
 import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
-import { RepairStatusSelect, SelectField } from "~/components/Select";
-import { MOCK_ACTIVITY_TYPES, MOCK_EXECUTORS, MOCK_STATUSES, MOCK_ACTIVITIES } from "~/mocks/requests";
-import { EditActivityFormSchema, type EditActivityFormData } from "./schema";
-import { ChevronLeft } from "lucide-react";
+import { RepairStatusSelect } from "~/components/Select";
+import {
+  EditPersonelActivityFormSchema,
+  type EditPersonelActivityFormData,
+} from "./schema";
+import { activitiesService } from "./activities-service";
+import z from "zod";
+import type { Route } from "./+types/activities-request-activity";
+import { useActionToast } from "~/hooks/useActionToast";
+import { userContext } from "~/context";
 
-export async function loader({ params }: LoaderFunctionArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const user = context.get(userContext);
   const { activityId } = params;
-  
-  // Symulacja zalogowanego użytkownika (Piotr Wiśniewski)
-  const currentUser = {
-    fullName: "Piotr Wiśniewski", 
-    role: "PERSONEL"
-  };
 
-  const activity = MOCK_ACTIVITIES.find(a => a.id.toString() === activityId) || {
-    id: activityId,
-    created: "10-05-2024",
-    finished: "-",
-    desc: "Brak opisu",
-    executor: "Piotr Wiśniewski",
-    status: "open",
-    type: "diagnoza",
-    result: ""
-  };
+  const result = z.coerce.number().safeParse(activityId);
+  if (!result.success) {
+    throw new Response("Invalid ID", { status: 400 });
+  }
 
-  return { activity, currentUser };
+  const activity = await activitiesService.getById(result.data, request);
+
+  return { activity, user };
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const user = context.get(userContext);
+  const { activityId } = params;
+
+  const parsedId = z.coerce.number().safeParse(activityId);
+  if (!parsedId.success) {
+    throw new Response("Invalid ID", { status: 400 });
+  }
+
+  const activity = await activitiesService.getById(parsedId.data, request);
+
+  const canEdit = user.role !== "STAFF" || activity.executor?.id === user.id;
+  if (!canEdit) {
+    throw new Response("Forbidden", { status: 403 });
+  }
+
   const payload = await request.json();
-  const parsed = EditActivityFormSchema.safeParse(payload);
-  
+  const parsed = EditPersonelActivityFormSchema.safeParse(payload);
+
   if (!parsed.success) {
     return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
   }
 
-  return redirect(`/requests/${params.id}`);
+  await activitiesService.updateFromStaff(parsedId.data, parsed.data, request);
+
+  return {
+    success: true,
+  };
 }
 
-export default function ActivityEditPage() {
-  const { activity, currentUser } = useLoaderData<typeof loader>();
-  const { id } = useParams();
-  const navigate = useNavigate();
+export const handle = {
+  breadcrumb: () => "szczegóły",
+};
+
+export default function PersonelActivityRequestEditPage() {
   const submit = useSubmit();
+  const navigate = useNavigate();
+  const { id } = useParams();
   const actionData = useActionData<typeof action>();
+  const { activity, user } = useLoaderData<typeof loader>();
 
-  // --- LOGIKA UPRAWNIEŃ ---
-  const isExecutor = activity.executor === currentUser.fullName;
+  useActionToast(actionData, "Pomyślnie zaktualizowana aktwność!");
 
-  const { handleSubmit, control } = useForm<EditActivityFormData>({
-    resolver: zodResolver(EditActivityFormSchema),
+  const canEdit = user.role !== "STAFF" || activity.executor?.id === user.id;
+
+  const { handleSubmit, control } = useForm<EditPersonelActivityFormData>({
+    resolver: zodResolver(EditPersonelActivityFormSchema),
     defaultValues: {
-      type: activity.type || "diagnoza",
-      executor: "1",
-      status: activity.status || "open",
-      description: activity.desc || "",
-      result: "",
+      status: activity.status,
+      result: activity.result ?? "",
     },
   });
 
-  // Helpery do tekstowego wyświetlania wartości w trybie ReadOnly
-  const currentStatusName = MOCK_STATUSES.find(s => s.id === activity.status)?.name || activity.status;
-  const currentTypeName = MOCK_ACTIVITY_TYPES.find(t => t.id === activity.type)?.name || activity.type;
+  const translateStatus = (status: string | undefined) => {
+    switch (status) {
+      case "REGISTERED":
+        return "Zarejestrowane";
+      case "IN_PROGRESS":
+        return "W trakcie";
+      case "DONE":
+        return "Zakończone";
+      case "CANCELLED":
+        return "Anulowane";
+      default:
+        return status || "Brak statusu";
+    }
+  };
 
-  const onSubmit = (data: EditActivityFormData) => {
+  const onSubmit = (data: EditPersonelActivityFormData) => {
     submit(data, { method: "post", encType: "application/json" });
   };
 
   return (
-    <PageLayout title="Szczegóły aktywności">
+    <PageLayout title="Edytuj aktywność">
       <Form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
+        {/* Informacje o aktywności */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
-          <div className="flex justify-between items-center mb-2">
-            <h2 className="text-lg font-semibold">Informacje</h2>
-          </div>
+          <h2 className="text-lg font-semibold mb-2">Informacje</h2>
           <Separator className="mb-6" />
 
           <div className="flex flex-col gap-6">
-            {/* Rząd 1: Systemowe (zawsze ReadOnly) */}
+            {/* Górny wiersz (Read-only) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Numer Sekwencji</Label>
-                <Input disabled value={`${activity.id}`} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={`${activity.id}`}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Utworzono</Label>
-                <Input disabled value={activity.created} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={new Date(activity.dateRegistration).toLocaleDateString(
+                    "pl-PL",
+                  )}
+                  className="bg-gray-100 text-gray-500"
+                />
               </div>
               <div className="flex flex-col gap-2">
                 <Label>Zakończono</Label>
-                <Input disabled value={activity.finished} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={
+                    activity.dateFinishedCancelled
+                      ? new Date(
+                          activity.dateFinishedCancelled,
+                        ).toLocaleDateString("pl-PL")
+                      : "-"
+                  }
+                  className="bg-gray-100 text-gray-500"
+                />
               </div>
             </div>
 
-            {/* Rząd 2: Typ, Wykonawca, Status */}
+            {/* Środkowy wiersz z Selectami (3 kolumny) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col gap-2">
                 <Label>Typ</Label>
-                <Input disabled value={currentTypeName} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={activity.type.actType ?? "-"}
+                  className="bg-gray-100 text-gray-500 font-medium"
+                />
               </div>
-
               <div className="flex flex-col gap-2">
                 <Label>Wykonawca</Label>
-                <Input disabled value={activity.executor} className="bg-gray-100 text-gray-500 font-medium" />
+                <Input
+                  disabled
+                  value={activity.executor?.name ?? "-"}
+                  className="bg-gray-100 text-gray-500"
+                />
               </div>
 
-              <div className="flex flex-col gap-2">
-                {isExecutor ? (
-                  <Controller
-                    name="status"
-                    control={control}
-                    render={({ field, fieldState }) => (
-                      <RepairStatusSelect
-                        field={field}
-                        fieldState={fieldState}
-                        label="Status" // Etykieta jest już wyżej
-                        showAllOption={false}
-                      />
-                    )}
-                  />
-                ) : (
-                  <Input disabled value={currentStatusName} className="bg-gray-100 text-gray-500 font-medium" />
-                )}
-              </div>
-            </div>
-
-            {/* Opis - Zawsze tylko do odczytu dla pracownika */}
-            <div className="flex flex-col gap-2">
-              <Label>Opis</Label>
-              <Textarea id="description" disabled value={activity.desc} className="bg-gray-100 text-gray-500 min-h-[100px]" />
-            </div>
-
-            {/* Wynik - Edytowalny tylko dla wykonawcy */}
-            <div className="flex flex-col gap-2">
-              <Label>Wynik</Label>
-              {isExecutor ? (
+              {canEdit ? (
                 <Controller
-                  name="result"
+                  name="status"
                   control={control}
-                  render={({ field }) => (
-                    <Textarea {...field} placeholder="Wpisz wynik prac..." className="bg-gray-50/50 min-h-[100px]" />
+                  render={({ field, fieldState }) => (
+                    <RepairStatusSelect
+                      field={field}
+                      fieldState={fieldState}
+                      label="Status"
+                      showAllOption={false}
+                    />
                   )}
                 />
               ) : (
-                <Textarea 
-                  disabled
-                  value={"Brak wpisanego wyniku"} 
-                  className="bg-gray-100 text-gray-500 min-h-[100px]" 
-                />
+                <div className="flex flex-col gap-2">
+                  <Label>Status</Label>
+                  <Input
+                    disabled
+                    value={translateStatus(activity.status)}
+                    className="bg-gray-100 text-gray-500 font-medium"
+                  />
+                </div>
               )}
-              {isExecutor && actionData?.fieldErrors?.result && (
-                <span className="text-xs text-destructive">{actionData.fieldErrors.result[0]}</span>
+            </div>
+
+            {/* Pola Textarea (Opis i Wynik) */}
+            <div className="flex flex-col gap-2">
+              <Label>Opis</Label>
+              <Textarea
+                id="description"
+                disabled
+                value={activity.description}
+                className="bg-gray-100 text-gray-500 min-h-[100px]"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="result">Wynik</Label>
+              {canEdit ? (
+                <>
+                  <Controller
+                    name="result"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea
+                        id="result"
+                        {...field}
+                        className="bg-gray-50/50 min-h-[100px]"
+                      />
+                    )}
+                  />
+                  {actionData?.fieldErrors?.result && (
+                    <span className="text-xs text-destructive">
+                      {actionData.fieldErrors.result[0]}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <Textarea
+                  id="result"
+                  disabled
+                  value={activity.result ?? "Brak wpisanego wyniku"}
+                  className="bg-gray-100 text-gray-500 min-h-[100px]"
+                />
               )}
             </div>
           </div>
         </div>
 
-        {/* Przyciski Akcji */}
+        {/* Przyciski Akcji na dole strony */}
         <div className="flex items-center gap-3 self-start">
-          {isExecutor ? (
+          {canEdit ? (
             <>
-              <Button type="submit" className="bg-black text-white hover:bg-gray-800 px-8">
+              <Button
+                type="submit"
+                className="bg-black text-white hover:bg-gray-800"
+              >
                 Zapisz
               </Button>
-              <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
+              <Button
+                type="button"
+                variant="secondary"
+                className="bg-gray-100 text-black hover:bg-gray-200"
+                onClick={() => navigate(`/activities/request-details/${id}`)}
+              >
                 Anuluj
               </Button>
             </>
           ) : (
-            <Button type="button" variant="outline" onClick={() => navigate(-1)}>
-              <ChevronLeft className="mr-2 h-4 w-4" /> Powrót
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-gray-100 text-black hover:bg-gray-200"
+              onClick={() => navigate(`/activities/request-details/${id}`)}
+            >
+              Powrót
             </Button>
           )}
         </div>
