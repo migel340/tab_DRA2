@@ -18,6 +18,7 @@ export const RequestDbSchema = z.object({
   dateFinishedCancelled: z.string().optional().nullable(),
   progress: z.number().min(0).max(100).optional().nullable(),
   clientName: z.string().trim().optional().nullable(),
+  result: z.string().optional().nullable(),
 });
 
 export type RequestDB = z.infer<typeof RequestDbSchema>;

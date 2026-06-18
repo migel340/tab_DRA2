@@ -41,6 +41,9 @@ public class Request {
 	@Column(name = "date_finished_canceled")
 	private Date dateFinishedCancelled;
 
+	@Column(name = "result", length = 255)
+	private String result;
+
 	@OneToMany(mappedBy = "request")
 	private List<Activity> activities;
 

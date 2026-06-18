@@ -26,4 +26,7 @@ public class CreateRequestDto {
     @NotNull
     @Size(max = 30)
     private String status;
+
+    @Size(max = 255)
+    private String result;
 }

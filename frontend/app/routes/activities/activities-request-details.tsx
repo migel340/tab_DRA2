@@ -119,7 +119,7 @@ export default function RequestDetailsPage() {
                 <Textarea
                   id="result"
                   disabled
-                  // value={request?.result ?? ""}
+                  value={request?.result ?? ""}
                   className="bg-gray-100 text-gray-500 min-h-[100px]"
                 />
               </div>
@@ -189,8 +189,8 @@ export default function RequestDetailsPage() {
                     <TableCell className="text-gray-500">
                       {act.dateFinishedCancelled
                         ? new Date(
-                            act.dateFinishedCancelled,
-                          ).toLocaleDateString("pl-PL")
+                          act.dateFinishedCancelled,
+                        ).toLocaleDateString("pl-PL")
                         : "-"}
                     </TableCell>
                   </TableRow>

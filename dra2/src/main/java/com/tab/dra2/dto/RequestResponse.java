@@ -16,4 +16,5 @@ public class RequestResponse {
     private Date dateRegistration;
     private Date dateFinishedCancelled;
     private int progress;
+    private String result;
 }

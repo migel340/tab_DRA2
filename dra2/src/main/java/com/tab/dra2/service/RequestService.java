@@ -169,6 +169,8 @@ public class RequestService {
 
         if (dto.getDescription() != null)
             r.setDescription(dto.getDescription().trim());
+        if (dto.getResult() != null)
+            r.setResult(dto.getResult().trim());
         if (dto.getStatus() != null) {
             String nextStatus = normalizeRequestStatus(dto.getStatus());
             // validateTransition(r.getStatus(), nextStatus);
@@ -192,6 +194,7 @@ public class RequestService {
                 .dateRegistration(r.getDateRegistered())
                 .dateFinishedCancelled(r.getDateFinishedCancelled())
                 .progress(calculateProgress(r))
+                .result(r.getResult())
                 .build();
     }
 

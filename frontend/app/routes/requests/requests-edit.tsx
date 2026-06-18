@@ -134,6 +134,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
       description: parsed.data.description,
       status: parsed.data.status,
       managerId: loggedUser.id,
+      result: parsed.data.result,
     };
 
     await requestsService.updateRequest(id, payloadForApi as any, request);
@@ -187,7 +188,7 @@ export default function RequestEditPage() {
       deviceId: currentDeviceId,
       status: requestData?.status || "REGISTERED",
       description: requestData?.description || "",
-      result: "",
+      result: requestData?.result || "",
     },
   });
 
