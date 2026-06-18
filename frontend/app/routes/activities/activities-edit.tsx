@@ -7,7 +7,6 @@ import {
   useActionData,
   useLoaderData,
   type ActionFunctionArgs,
-  redirect,
 } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
@@ -16,7 +15,6 @@ import { Textarea } from "~/components/ui/textarea";
 import { Input } from "~/components/ui/input";
 import PageLayout from "~/layouts/PageLayout";
 import { RepairStatusSelect } from "~/components/Select";
-import { MOCK_CLIENTS, MOCK_DEVICES } from "~/mocks/requests";
 import {
   EditPersonelActivityFormSchema,
   type EditPersonelActivityFormData,
@@ -103,19 +101,19 @@ export default function PersonelActivityEditPage() {
   });
 
   const translateStatus = (status: string | undefined) => {
-  switch (status) {
-    case "REGISTERED":
-      return "Zarejestrowane";
-    case "IN_PROGRESS":
-      return "W trakcie";
-    case "DONE":
-      return "Zakończone"; // Tu używamy DONE zgodnie z Twoim kodem dla aktywności
-    case "CANCELLED":
-      return "Anulowane";
-    default:
-      return status || "Brak statusu";
-  }
-};
+    switch (status) {
+      case "REGISTERED":
+        return "Zarejestrowane";
+      case "IN_PROGRESS":
+        return "W trakcie";
+      case "DONE":
+        return "Zakończone"; // Tu używamy DONE zgodnie z Twoim kodem dla aktywności
+      case "CANCELLED":
+        return "Anulowane";
+      default:
+        return status || "Brak statusu";
+    }
+  };
 
   const onSubmit = (data: EditPersonelActivityFormData) => {
     submit(data, { method: "post", encType: "application/json" });
