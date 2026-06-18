@@ -24,8 +24,10 @@ import { activitiesService } from "./activities-service";
 import z from "zod";
 import type { Route } from "./+types/activities-request-activity";
 import { useActionToast } from "~/hooks/useActionToast";
+import { userContext } from "~/context";
 
-export async function loader({ params, request }: Route.LoaderArgs) {
+export async function loader({ params, request, context }: Route.LoaderArgs) {
+  const user = context.get(userContext);
   const { activityId } = params;
 
   const result = z.coerce.number().safeParse(activityId);
@@ -35,15 +37,23 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
   const activity = await activitiesService.getById(result.data, request);
 
-  return { activity };
+  return { activity, user };
 }
 
-export async function action({ request, params }: ActionFunctionArgs) {
+export async function action({ request, params, context }: Route.ActionArgs) {
+  const user = context.get(userContext);
   const { activityId } = params;
 
-  const paresdId = z.coerce.number().safeParse(activityId);
-  if (!paresdId.success) {
+  const parsedId = z.coerce.number().safeParse(activityId);
+  if (!parsedId.success) {
     throw new Response("Invalid ID", { status: 400 });
+  }
+
+  const activity = await activitiesService.getById(parsedId.data, request);
+
+  const canEdit = user.role !== "STAFF" || activity.executor?.id === user.id;
+  if (!canEdit) {
+    throw new Response("Forbidden", { status: 403 });
   }
 
   const payload = await request.json();
@@ -53,7 +63,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
     return { fieldErrors: parsed.error.flatten().fieldErrors, success: false };
   }
 
-  await activitiesService.updateFromStaff(paresdId.data, parsed.data, request);
+  await activitiesService.updateFromStaff(parsedId.data, parsed.data, request);
 
   return {
     success: true,
@@ -69,9 +79,11 @@ export default function PersonelActivityRequestEditPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const actionData = useActionData<typeof action>();
-  const { activity } = useLoaderData<typeof loader>();
+  const { activity, user } = useLoaderData<typeof loader>();
 
   useActionToast(actionData, "Pomyślnie zaktualizowana aktwność!");
+
+  const canEdit = user.role !== "STAFF" || activity.executor?.id === user.id;
 
   const { handleSubmit, control } = useForm<EditPersonelActivityFormData>({
     resolver: zodResolver(EditPersonelActivityFormSchema),
@@ -80,6 +92,21 @@ export default function PersonelActivityRequestEditPage() {
       result: activity.result ?? "",
     },
   });
+
+  const translateStatus = (status: string | undefined) => {
+    switch (status) {
+      case "REGISTERED":
+        return "Zarejestrowane";
+      case "IN_PROGRESS":
+        return "W trakcie";
+      case "DONE":
+        return "Zakończone";
+      case "CANCELLED":
+        return "Anulowane";
+      default:
+        return status || "Brak statusu";
+    }
+  };
 
   const onSubmit = (data: EditPersonelActivityFormData) => {
     submit(data, { method: "post", encType: "application/json" });
@@ -149,18 +176,29 @@ export default function PersonelActivityRequestEditPage() {
                 />
               </div>
 
-              <Controller
-                name="status"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <RepairStatusSelect
-                    field={field}
-                    fieldState={fieldState}
-                    label="Status"
-                    showAllOption={false}
+              {canEdit ? (
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <RepairStatusSelect
+                      field={field}
+                      fieldState={fieldState}
+                      label="Status"
+                      showAllOption={false}
+                    />
+                  )}
+                />
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Label>Status</Label>
+                  <Input
+                    disabled
+                    value={translateStatus(activity.status)}
+                    className="bg-gray-100 text-gray-500 font-medium"
                   />
-                )}
-              />
+                </div>
+              )}
             </div>
 
             {/* Pola Textarea (Opis i Wynik) */}
@@ -176,21 +214,32 @@ export default function PersonelActivityRequestEditPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="result">Wynik</Label>
-              <Controller
-                name="result"
-                control={control}
-                render={({ field }) => (
-                  <Textarea
-                    id="result"
-                    {...field}
-                    className="bg-gray-50/50 min-h-[100px]"
+              {canEdit ? (
+                <>
+                  <Controller
+                    name="result"
+                    control={control}
+                    render={({ field }) => (
+                      <Textarea
+                        id="result"
+                        {...field}
+                        className="bg-gray-50/50 min-h-[100px]"
+                      />
+                    )}
                   />
-                )}
-              />
-              {actionData?.fieldErrors?.result && (
-                <span className="text-xs text-destructive">
-                  {actionData.fieldErrors.result[0]}
-                </span>
+                  {actionData?.fieldErrors?.result && (
+                    <span className="text-xs text-destructive">
+                      {actionData.fieldErrors.result[0]}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <Textarea
+                  id="result"
+                  disabled
+                  value={activity.result ?? "Brak wpisanego wyniku"}
+                  className="bg-gray-100 text-gray-500 min-h-[100px]"
+                />
               )}
             </div>
           </div>
@@ -198,20 +247,33 @@ export default function PersonelActivityRequestEditPage() {
 
         {/* Przyciski Akcji na dole strony */}
         <div className="flex items-center gap-3 self-start">
-          <Button
-            type="submit"
-            className="bg-black text-white hover:bg-gray-800"
-          >
-            Zapisz
-          </Button>
-          <Button
-            type="button"
-            variant="secondary"
-            className="bg-gray-100 text-black hover:bg-gray-200"
-            onClick={() => navigate(`/activities/request-details/${id}`)}
-          >
-            Anuluj
-          </Button>
+          {canEdit ? (
+            <>
+              <Button
+                type="submit"
+                className="bg-black text-white hover:bg-gray-800"
+              >
+                Zapisz
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                className="bg-gray-100 text-black hover:bg-gray-200"
+                onClick={() => navigate(`/activities/request-details/${id}`)}
+              >
+                Anuluj
+              </Button>
+            </>
+          ) : (
+            <Button
+              type="button"
+              variant="outline"
+              className="bg-gray-100 text-black hover:bg-gray-200"
+              onClick={() => navigate(`/activities/request-details/${id}`)}
+            >
+              Powrót
+            </Button>
+          )}
         </div>
       </Form>
     </PageLayout>
