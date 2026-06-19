@@ -7,8 +7,8 @@ export type PersonelRole = z.infer<typeof PersonelRoleSchema>;
 
 export const PersonelDbSchema = z.object({
   id: z.number(),
-  firstName: z.string().trim().min(1, "Imię jest wymagane"),
-  surname: z.string().trim().min(1, "Nazwisko jest wymagane"),
+  firstName: z.string().trim().min(1, "Imię jest wymagane").regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/, "Imię może zawierać tylko litery"),
+  surname: z.string().trim().min(1, "Nazwisko jest wymagane").regex(/^[a-zA-ZąćęłńóśźżĄĆĘŁŃÓŚŹŻ]+$/, "Nazwisko może zawierać tylko litery"),
   username: z.string().trim().min(1, "Nazwa użytkownika jest wymagana"),
   role: PersonelRoleSchema,
   active: z.boolean(),
