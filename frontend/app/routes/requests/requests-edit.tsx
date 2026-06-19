@@ -492,18 +492,6 @@ export default function RequestEditPage() {
                             ).toLocaleDateString("pl-PL")
                           : "-"}
                       </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-gray-400 hover:text-red-600"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
                     </TableRow>
                   ))
                 ) : (
