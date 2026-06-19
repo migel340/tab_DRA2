@@ -20,7 +20,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   const loggedUser = await requireUser(request);
 
   if (!url.searchParams.has("status") && !url.searchParams.has("executor")) {
-    url.searchParams.set("status", "all");
+    url.searchParams.set("status", "REGISTERED");
     url.searchParams.set("executor", loggedUser.id.toString());
 
     return redirect(`/activities?${url.searchParams.toString()}`);
