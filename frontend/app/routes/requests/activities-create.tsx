@@ -95,7 +95,7 @@ export default function ActivityCreatePage({
 
   useEffect(() => {
     if (actionData?.success && actionData.id) {
-      navigate(`/requests/${params.id}/activities/${actionData.id}`, {
+      navigate(`/requests/${params.id}`, {
         replace: true,
       });
     }
